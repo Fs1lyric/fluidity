@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fluidity Directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #111417; --bg-dark: #0c0e10; --bg-light: #1b1f23; --muted: #3a3f45;
+  --fg: #e3e4da; --fg-dim: #878880; --accent: #d7e59b; --pink: #f2a7a7; --blue: #a9b8e8; --cyan: #c2e6d6;
+  --wall: url("file:///home/lyric/claude/luminescent/themes/fluid/backgrounds/01.jpg");
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #08090b; color: var(--fg); font: 14px/1.45 "Geist", "JetBrainsMono Nerd Font", Inter, sans-serif; padding: 36px 16px 80px; }
+.page { max-width: 1080px; margin: 0 auto; }
+h1 { font: 400 40px/1.1 "Instrument Serif", serif; }
+h1 i { color: var(--accent); }
+.lede { color: var(--fg-dim); margin: 8px 0 36px; max-width: 640px; }
+.dir { margin-bottom: 56px; }
+.dir-head { display: flex; gap: 14px; align-items: baseline; margin-bottom: 6px; flex-wrap: wrap; }
+.dir-head .tag { font: 600 12px "Geist"; color: var(--bg); background: var(--accent); padding: 2px 9px; border-radius: 99px; }
+.dir-head h2 { font: 400 28px "Instrument Serif", serif; }
+.dir p.why { color: var(--fg-dim); margin-bottom: 14px; max-width: 760px; }
+.trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.screen { position: relative; aspect-ratio: 16/10; overflow: hidden; background: var(--wall) center/cover, var(--bg); border-radius: 6px; }
+.screen::after { content: ""; position: absolute; inset: 0; background: rgba(5,6,8,.35); z-index: 0; }
+.screen > * { position: relative; z-index: 1; }
+.cap { color: var(--fg-dim); font-size: 12px; margin-top: 6px; }
+
+/* ---------- A · LIQUID: one pill that morphs out of the bar ---------- */
+.A { font-family: "Geist", "JetBrainsMono Nerd Font", sans-serif; }
+.A .island { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); z-index: 2;
+  background: rgba(12,14,16,.86); backdrop-filter: blur(24px) saturate(1.3);
+  border-radius: 22px; box-shadow: 0 0 0 1px rgba(255,255,255,.05), 0 20px 50px rgba(0,0,0,.5), 0 0 60px -10px rgba(215,229,155,.25); }
+.A .blob { position: absolute; width: 180px; height: 180px; border-radius: 50%; filter: blur(50px); opacity: .35; z-index: 1; }
+.A .pillbar { position: absolute; left: 50%; top: 8px; transform: translateX(-50%); font-size: 10px; color: var(--fg-dim);
+  padding: 4px 12px; border-radius: 99px; background: rgba(12,14,16,.8); z-index: 2; white-space: nowrap; }
+.A .q { display: flex; align-items: center; gap: 8px; padding: 12px 16px 8px; font-size: 15px; }
+.A .q .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+.A .q .c { width: 2px; height: 16px; background: var(--accent); border-radius: 2px; }
+.A .res { padding: 2px 8px 10px; }
+.A .r { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 14px; font-size: 12.5px; }
+.A .r .i { width: 22px; height: 22px; border-radius: 8px; display: grid; place-items: center; font-size: 11px; background: rgba(255,255,255,.06); }
+.A .r .s { margin-left: auto; font-size: 10px; color: var(--fg-dim); }
+.A .r.on { background: var(--accent); color: #111417; }
+.A .r.on .i { background: rgba(17,20,23,.15); }
+.A .r.on .s { color: rgba(17,20,23,.6); }
+.A .em { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; padding: 4px 12px 12px; }
+.A .em span { aspect-ratio: 1; display: grid; place-items: center; font-size: 19px; border-radius: 50%; }
+.A .em span.on { background: var(--accent); box-shadow: 0 0 18px rgba(215,229,155,.5); }
+.A .pw { display: flex; gap: 8px; padding: 12px; }
+.A .pw span { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.06); font-size: 16px; }
+.A .pw span.on { background: var(--accent); color: #111417; width: 92px; border-radius: 99px; font-size: 12px; font-weight: 600; gap: 4px; }
+
+/* ---------- B · EDITORIAL: no box at all, big type on a veil ---------- */
+.B .veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8,9,11,.82), rgba(8,9,11,.94)); backdrop-filter: blur(10px); }
+.B .inner { position: absolute; inset: 0; padding: 26px 30px; display: flex; flex-direction: column; }
+.B .kicker { font: 500 9px "Geist"; letter-spacing: .25em; text-transform: uppercase; color: var(--fg-dim); }
+.B .big { font: italic 400 40px/1 "Instrument Serif", serif; margin: 6px 0 14px; }
+.B .big .c { display: inline-block; width: 2px; height: 38px; background: var(--accent); vertical-align: -6px; margin-left: 3px; }
+.B .ln { display: flex; align-items: baseline; gap: 12px; padding: 2px 0; font: 400 17px/1.25 "Instrument Serif", serif; color: var(--fg-dim); }
+.B .ln .n { font: 500 9px "Geist"; color: var(--muted); width: 16px; }
+.B .ln.on { color: var(--fg); }
+.B .ln.on .n { color: var(--accent); }
+.B .ln.on .t { border-bottom: 1px solid var(--accent); }
+.B .ln .k { margin-left: auto; font: 400 10px "Geist"; color: var(--fg-dim); }
+.B .glyph { font-size: 64px; line-height: 1; margin: 8px 0 4px; }
+.B .gname { font: italic 400 22px "Instrument Serif", serif; }
+.B .row { display: flex; gap: 12px; font-size: 20px; margin-top: auto; opacity: .7; }
+.B .pwr { margin-top: auto; display: flex; flex-direction: column; gap: 0; }
+.B .pwr span { font: 400 30px/1.05 "Instrument Serif", serif; color: var(--muted); }
+.B .pwr span.on { color: var(--fg); font-style: italic; }
+.B .pwr span.on::before { content: "→ "; color: var(--accent); font-style: normal; }
+.B .pwr span b { font: 500 9px "Geist"; color: var(--fg-dim); vertical-align: super; margin-left: 4px; }
+
+/* ---------- C · DEPTH: floating cards that lift ---------- */
+.C { font-family: "Space Grotesk", "JetBrainsMono Nerd Font", sans-serif; }
+.C .stage { position: absolute; inset: 0; display: grid; place-items: center; perspective: 900px; }
+.C .stack { width: 72%; display: flex; flex-direction: column; gap: 6px; transform: rotateX(8deg); }
+.C .qc { padding: 10px 14px; border-radius: 14px; background: rgba(27,31,35,.9); backdrop-filter: blur(18px); font-size: 15px;
+  box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 12px 30px rgba(0,0,0,.45); display: flex; align-items: center; gap: 8px; }
+.C .qc .c { width: 2px; height: 16px; background: var(--accent); }
+.C .qc .hint { margin-left: auto; font-size: 10px; color: var(--fg-dim); }
+.C .cd { padding: 8px 14px; border-radius: 12px; background: rgba(17,20,23,.82); backdrop-filter: blur(14px); font-size: 12.5px;
+  display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 20px rgba(0,0,0,.35); color: var(--fg-dim); }
+.C .cd .i { width: 20px; height: 20px; border-radius: 6px; background: var(--bg-light); display: grid; place-items: center; font-size: 10px; }
+.C .cd.on { transform: translateZ(30px) scale(1.04); color: var(--fg); background: rgba(27,31,35,.95);
+  box-shadow: 0 0 0 1px var(--accent), 0 16px 40px rgba(0,0,0,.55), 0 0 40px -8px rgba(215,229,155,.45); }
+.C .cd.on .i { background: var(--accent); color: #111417; }
+.C .cd.far { opacity: .45; transform: scale(.96); }
+.C .eg { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.C .eg span { aspect-ratio: 1; display: grid; place-items: center; font-size: 18px; border-radius: 10px; background: rgba(17,20,23,.82); box-shadow: 0 6px 14px rgba(0,0,0,.35); }
+.C .eg span.on { transform: translateZ(30px) scale(1.15); box-shadow: 0 0 0 1px var(--accent), 0 0 30px -4px rgba(215,229,155,.55); }
+.C .pc { display: flex; gap: 8px; transform: rotateX(8deg); }
+.C .pc span { width: 54px; height: 72px; border-radius: 14px; background: rgba(17,20,23,.85); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 18px; box-shadow: 0 10px 24px rgba(0,0,0,.4); }
+.C .pc span small { font-size: 9px; color: var(--fg-dim); }
+.C .pc span.on { transform: translateY(-10px) scale(1.08); box-shadow: 0 0 0 1px var(--accent), 0 20px 40px rgba(0,0,0,.5), 0 0 40px -6px rgba(215,229,155,.5); }
+.C .pc span.on small { color: var(--accent); }
+
+@media (max-width: 760px) { .trio { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Three ways Fluidity could <i>feel</i></h1>
+  <p class="lede">The same three popups (launcher, emoji, power) in three directions, all in Fluid colours. None of them are boxes with monospace text. Pick one, mix them ("A's pill + B's type"), or reject all three.</p>
+
+  <!-- A -->
+  <div class="dir">
+    <div class="dir-head"><span class="tag">A</span><h2>Liquid</h2></div>
+    <p class="why">Fits the name. The bar is a small floating pill, and every popup grows out of it like water: rounded, glowing, the selection a lime pill that slides. Motion is the main idea: it stretches open, and goes back into the bar when it closes.</p>
+    <div class="trio A">
+      <div>
+        <div class="screen">
+          <div class="blob" style="background:var(--accent);left:30%;top:10%"></div>
+          <div class="blob" style="background:var(--pink);left:50%;top:30%"></div>
+          <div class="island" style="width:66%">
+            <div class="q"><span class="dot"></span>ca<span class="c"></span></div>
+            <div class="res">
+              <div class="r on"><span class="i">&#xf073;</span>Calendio<span class="s">❖ A</span></div>
+              <div class="r"><span class="i">&#xf1ec;</span>Calculator</div>
+              <div class="r"><span class="i">&#xf0eb;</span>Claude<span class="s">❖ I</span></div>
+              <div class="r"><span class="i">&#xf245;</span>Cursorify</div>
+            </div>
+          </div>
+        </div><div class="cap">launcher · grows down out of the bar pill</div>
+      </div>
+      <div>
+        <div class="screen">
+          <div class="blob" style="background:var(--blue);left:40%;top:20%"></div>
+          <div class="island" style="width:58%">
+            <div class="q"><span class="dot"></span><span style="color:var(--fg-dim)">emoji</span><span class="c"></span></div>
+            <div class="em"><span class="on">😭</span><span>🔥</span><span>💀</span><span>🙏</span><span>✨</span><span>👀</span><span>♟️</span><span>🎨</span><span>📚</span><span>😤</span><span>🥹</span><span>😂</span></div>
+          </div>
+        </div><div class="cap">emoji · round cells, the picked one glows</div>
+      </div>
+      <div>
+        <div class="screen">
+          <div class="blob" style="background:var(--pink);left:45%;top:5%"></div>
+          <div class="island"><div class="pw"><span class="on">&#xf023; lock</span><span>󰤄</span><span>󰍃</span><span style="color:var(--pink)">󰜉</span><span style="color:var(--pink)">󰐥</span></div></div>
+        </div><div class="cap">power · the selected bubble widens and shows its name</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B -->
+  <div class="dir">
+    <div class="dir-head"><span class="tag">B</span><h2>Editorial</h2></div>
+    <p class="why">No panels at all. The screen goes dark and your words show up big in a serif, like a magazine. Calm, very personal, and nothing like any other rice. Text-first, keyboard-first: numbers jump straight to a line.</p>
+    <div class="trio B">
+      <div>
+        <div class="screen"><div class="veil"></div><div class="inner">
+          <div class="kicker">Open</div>
+          <div class="big">ca<span class="c"></span></div>
+          <div class="ln on"><span class="n">01</span><span class="t">Calendio</span><span class="k">❖ A</span></div>
+          <div class="ln"><span class="n">02</span><span class="t">Calculator</span></div>
+          <div class="ln"><span class="n">03</span><span class="t">Claude</span><span class="k">❖ I</span></div>
+          <div class="ln"><span class="n">04</span><span class="t">Cursorify</span></div>
+        </div></div><div class="cap">launcher · type big, 1–9 jumps to a line</div>
+      </div>
+      <div>
+        <div class="screen"><div class="veil"></div><div class="inner">
+          <div class="kicker">Emoji · recent</div>
+          <div class="glyph">😭</div>
+          <div class="gname">loudly crying face</div>
+          <div class="row"><span>🔥</span><span>💀</span><span>🙏</span><span>✨</span><span>👀</span><span>♟️</span><span>🎨</span></div>
+        </div></div><div class="cap">emoji · one big glyph, the rest as a line</div>
+      </div>
+      <div>
+        <div class="screen"><div class="veil"></div><div class="inner">
+          <div class="kicker">Leaving?</div>
+          <div class="pwr"><span class="on">lock<b>L</b></span><span>sleep<b>S</b></span><span>log out<b>O</b></span><span>restart<b>R</b></span><span>shut down<b>P</b></span></div>
+        </div></div><div class="cap">power · just words</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- C -->
+  <div class="dir">
+    <div class="dir-head"><span class="tag">C</span><h2>Depth</h2></div>
+    <p class="why">Everything is a floating card with real depth. Results are separate cards tilted slightly away from you, and the selected one lifts toward you and glows. Playful and physical, like objects on a desk.</p>
+    <div class="trio C">
+      <div>
+        <div class="screen"><div class="stage"><div class="stack">
+          <div class="qc">ca<span class="c"></span><span class="hint">4</span></div>
+          <div class="cd on"><span class="i">&#xf073;</span>Calendio</div>
+          <div class="cd"><span class="i">&#xf1ec;</span>Calculator</div>
+          <div class="cd"><span class="i">&#xf0eb;</span>Claude</div>
+          <div class="cd far"><span class="i">&#xf245;</span>Cursorify</div>
+        </div></div></div><div class="cap">launcher · the pick lifts out of the stack</div>
+      </div>
+      <div>
+        <div class="screen"><div class="stage"><div class="stack" style="width:62%">
+          <div class="eg"><span class="on">😭</span><span>🔥</span><span>💀</span><span>🙏</span><span>✨</span><span>👀</span><span>♟️</span><span>🎨</span><span>📚</span><span>😤</span><span>🥹</span><span>😂</span></div>
+        </div></div></div><div class="cap">emoji · tiles, the picked one pops up</div>
+      </div>
+      <div>
+        <div class="screen"><div class="stage"><div class="pc">
+          <span class="on">&#xf023;<small>lock</small></span><span>󰤄<small>sleep</small></span><span>󰍃<small>out</small></span><span style="color:var(--pink)">󰜉<small>restart</small></span><span style="color:var(--pink)">󰐥<small>off</small></span>
+        </div></div></div><div class="cap">power · cards, the selected one rises</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
