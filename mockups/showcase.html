@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fluidity Showcase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+@property --ang { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+:root {
+  --bg: #111417; --bg-dark: #0c0e10; --bg-light: #1b1f23; --muted: #3a3f45;
+  --fg: #e3e4da; --dim: #878880; --lime: #d7e59b; --pink: #f2a7a7; --blue: #a9b8e8;
+  --cyan: #c2e6d6; --violet: #c8a8e0; --yellow: #e8d98a; --orange: #f0c08a;
+  --glass: rgba(14, 16, 19, .72);
+  --spring: cubic-bezier(.32, 1.32, .5, 1);
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --mono: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+  --sans: "Geist", Inter, "JetBrainsMono Nerd Font", sans-serif;
+  --serif: "Instrument Serif", Georgia, serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body { background: #050607; color: var(--fg); font: 14px/1.4 var(--sans); overflow-x: hidden; }
+.wrap { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 16px; }
+.viewport { width: 100%; max-width: 1920px; aspect-ratio: 16 / 9; position: relative; overflow: hidden; border-radius: 10px; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; overflow: hidden;
+  background: url("file:///home/lyric/claude/luminescent/themes/fluid/backgrounds/01.jpg") center / cover, #15121f; }
+.legend { color: #6b6c66; font: 12px var(--mono); display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; }
+.legend b { color: var(--lime); font-weight: 400; }
+
+/* liquid light drifting over the wallpaper */
+.blob { position: absolute; border-radius: 50%; filter: blur(90px); mix-blend-mode: screen; opacity: .28; animation: drift 22s ease-in-out infinite alternate; }
+.b1 { width: 620px; height: 620px; background: var(--lime); left: -120px; top: 560px; opacity: .2; }
+.b2 { width: 560px; height: 560px; background: var(--pink); left: 1380px; top: 420px; animation-duration: 27s; animation-delay: -8s; }
+.b3 { width: 480px; height: 480px; background: var(--blue); left: 760px; top: -260px; animation-duration: 31s; animation-delay: -14s; opacity: .22; }
+@keyframes drift { 0% { transform: translate(0,0) scale(1); } 50% { transform: translate(120px,-60px) scale(1.15); } 100% { transform: translate(-80px,40px) scale(.92); } }
+.grain { position: absolute; inset: 0; opacity: .07; pointer-events: none; z-index: 50;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+
+/* ---------- top: three floating pills ---------- */
+.pill { position: absolute; top: 14px; height: 40px; border-radius: 20px; background: var(--glass); backdrop-filter: blur(26px) saturate(1.4);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 10px 30px rgba(0,0,0,.35); display: flex; align-items: center; z-index: 20; }
+.left { left: 24px; padding: 0 8px 0 6px; gap: 10px; }
+.logo { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 35% 30%, var(--lime), #8fb36b 60%, #4d6b3c); box-shadow: 0 0 16px rgba(215,229,155,.45); }
+.logo svg { width: 14px; height: 14px; }
+.ws { display: flex; gap: 6px; align-items: center; padding-right: 6px; }
+.ws i { display: block; height: 8px; width: 8px; border-radius: 4px; background: rgba(227,228,218,.25); transition: width .38s var(--spring), background .3s; }
+.ws i.has { background: rgba(227,228,218,.55); }
+.ws i.on { width: 30px; background: linear-gradient(90deg, var(--lime), var(--cyan)); box-shadow: 0 0 12px rgba(215,229,155,.5); }
+.right { right: 24px; padding: 0 14px; gap: 16px; font: 12.5px var(--mono); color: var(--fg); }
+.right .ic { color: var(--dim); margin-right: 8px; }
+.ring { width: 22px; height: 22px; border-radius: 50%; background: conic-gradient(var(--lime) 0 68%, rgba(255,255,255,.08) 0); display: grid; place-items: center; }
+.ring::after { content: ""; width: 14px; height: 14px; border-radius: 50%; background: #121518; }
+.ai { display: flex; align-items: center; gap: 7px; }
+
+/* the island: one shape that morphs into every popup */
+.island { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); width: 360px; height: 40px; border-radius: 20px; z-index: 30;
+  background: rgba(10, 12, 14, .86); backdrop-filter: blur(30px) saturate(1.5);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.07), 0 18px 50px rgba(0,0,0,.45), 0 0 0 0 rgba(215,229,155,0);
+  transition: width .46s var(--spring), height .46s var(--spring), border-radius .46s var(--spring), box-shadow .4s var(--ease); overflow: hidden; }
+.island.launcher { width: 640px; height: 392px; border-radius: 30px; }
+.island.emoji { width: 600px; height: 262px; border-radius: 30px; }
+.island.power { width: 520px; height: 120px; border-radius: 36px; }
+.island.notify { width: 470px; height: 76px; border-radius: 26px; }
+.island:not(.idle) { box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), 0 30px 80px rgba(0,0,0,.55), 0 0 90px -20px rgba(215,229,155,.45); }
+.view { position: absolute; left: 0; top: 0; width: 100%; opacity: 0; transform: translateY(-8px) scale(.98); filter: blur(4px);
+  transition: opacity .18s var(--ease), transform .3s var(--ease), filter .2s; pointer-events: none; }
+.island.idle .v-idle, .island.launcher .v-launcher, .island.emoji .v-emoji, .island.power .v-power, .island.notify .v-notify {
+  opacity: 1; transform: none; filter: none; transition-delay: .12s; }
+.v-idle { height: 40px; display: flex; align-items: center; justify-content: center; gap: 14px; font: 500 13px var(--sans); }
+.v-idle .time { letter-spacing: .02em; }
+.v-idle .sep { width: 4px; height: 4px; border-radius: 50%; background: var(--muted); }
+.wave { display: flex; gap: 2px; align-items: center; height: 14px; }
+.wave span { width: 3px; border-radius: 2px; background: var(--lime); animation: wv 1s ease-in-out infinite; }
+.wave span:nth-child(2) { animation-delay: -.2s; background: var(--cyan); }
+.wave span:nth-child(3) { animation-delay: -.5s; }
+.wave span:nth-child(4) { animation-delay: -.7s; background: var(--pink); }
+.wave span:nth-child(5) { animation-delay: -.35s; }
+@keyframes wv { 0%,100% { height: 4px; } 50% { height: 14px; } }
+.v-idle .song { color: var(--dim); font-weight: 400; }
+
+/* launcher */
+.v-launcher { padding: 16px 14px; }
+.q { display: flex; align-items: center; gap: 12px; padding: 4px 10px 14px; font: 400 22px var(--sans); }
+.q .orb { width: 12px; height: 12px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 14px var(--lime); animation: breathe 2.4s ease-in-out infinite; }
+@keyframes breathe { 50% { box-shadow: 0 0 26px var(--lime); transform: scale(1.15); } }
+.q .typed { min-width: 2px; }
+.q .caret { width: 2px; height: 24px; background: var(--lime); border-radius: 2px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.q .count { margin-left: auto; font: 12px var(--mono); color: var(--dim); }
+.list { position: relative; }
+.sel { position: absolute; left: 0; right: 0; top: 0; height: 52px; border-radius: 18px;
+  background: linear-gradient(100deg, var(--lime), #c9e0a0 60%, var(--cyan)); box-shadow: 0 8px 30px -6px rgba(215,229,155,.55);
+  transition: transform .34s var(--spring); }
+.row { position: relative; height: 52px; display: flex; align-items: center; gap: 14px; padding: 0 12px; border-radius: 18px; transition: color .2s; }
+.row .ai2 { width: 32px; height: 32px; border-radius: 11px; display: grid; place-items: center; font: 15px var(--mono); background: rgba(255,255,255,.06); transition: background .2s; }
+.row .t { font: 500 15px var(--sans); }
+.row .d { font: 12px var(--sans); color: var(--dim); }
+.row .k { margin-left: auto; font: 11.5px var(--mono); color: var(--dim); display: flex; gap: 4px; }
+.row .k span { padding: 2px 7px; border-radius: 7px; background: rgba(255,255,255,.07); }
+.row.on { color: #101316; }
+.row.on .d, .row.on .k { color: rgba(16,19,22,.6); }
+.row.on .ai2, .row.on .k span { background: rgba(16,19,22,.12); }
+.calcline { margin: 8px 8px 0; padding: 10px 14px; border-radius: 16px; background: rgba(255,255,255,.04); display: flex; justify-content: space-between; font: 13px var(--mono); color: var(--dim); }
+.calcline b { color: var(--lime); font-weight: 400; }
+
+/* emoji */
+.v-emoji { padding: 16px 16px; }
+.cats { display: flex; gap: 6px; padding: 0 6px 12px; }
+.cats span { padding: 6px 12px; border-radius: 99px; font: 12px var(--sans); color: var(--dim); background: rgba(255,255,255,.04); }
+.cats span.on { color: #101316; background: var(--lime); }
+.eg { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; position: relative; }
+.eg span { aspect-ratio: 1; display: grid; place-items: center; font-size: 26px; border-radius: 50%; position: relative; z-index: 1; transition: transform .3s var(--spring); }
+.eg span.on { transform: scale(1.22); }
+.esel { position: absolute; width: 52px; height: 52px; border-radius: 50%; background: radial-gradient(circle, rgba(215,229,155,.5), rgba(215,229,155,.12) 70%); box-shadow: 0 0 0 2px var(--lime), 0 0 30px rgba(215,229,155,.5); transition: transform .34s var(--spring); z-index: 0; }
+.ename { display: flex; justify-content: space-between; align-items: center; padding: 14px 8px 0; font: italic 400 22px var(--serif); }
+.ename small { font: 12px var(--mono); color: var(--dim); font-style: normal; }
+
+/* power */
+.v-power { height: 120px; display: flex; align-items: center; justify-content: center; gap: 12px; }
+.pb { height: 72px; width: 72px; border-radius: 36px; display: flex; align-items: center; justify-content: center; gap: 10px; background: rgba(255,255,255,.06);
+  font: 24px var(--mono); color: var(--fg); transition: width .4s var(--spring), background .3s, color .3s; overflow: hidden; white-space: nowrap; }
+.pb b { font: 600 15px var(--sans); max-width: 0; opacity: 0; transition: max-width .4s var(--spring), opacity .2s; }
+.pb.danger { color: var(--pink); }
+.pb.on { width: 168px; background: linear-gradient(100deg, var(--lime), var(--cyan)); color: #101316; box-shadow: 0 10px 30px -8px rgba(215,229,155,.6); }
+.pb.on.danger { background: linear-gradient(100deg, var(--pink), #f0c08a); }
+.pb.on b { max-width: 120px; opacity: 1; }
+
+/* notification */
+.v-notify { height: 76px; display: flex; align-items: center; gap: 14px; padding: 0 16px; }
+.v-notify .nic { width: 44px; height: 44px; border-radius: 15px; display: grid; place-items: center; font: 20px var(--mono); color: #101316; background: linear-gradient(135deg, var(--lime), var(--cyan)); }
+.v-notify .nt { font: 600 14px var(--sans); }
+.v-notify .nb { font: 12.5px var(--sans); color: var(--dim); }
+.v-notify .nk { margin-left: auto; font: 11px var(--mono); color: var(--dim); padding: 3px 8px; border-radius: 8px; background: rgba(255,255,255,.07); }
+
+/* ---------- windows ---------- */
+.win { position: absolute; border-radius: 22px; background: rgba(12, 14, 17, .8); backdrop-filter: blur(28px) saturate(1.3); overflow: hidden; z-index: 10;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 24px 60px rgba(0,0,0,.45); transition: transform .45s var(--spring), opacity .3s; }
+.win.focus::before { content: ""; position: absolute; inset: 0; border-radius: 22px; padding: 2px; z-index: 3; pointer-events: none;
+  background: conic-gradient(from var(--ang), var(--lime), var(--cyan), var(--blue), var(--pink), var(--lime));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: spin 6s linear infinite; }
+.win.focus { box-shadow: 0 24px 60px rgba(0,0,0,.5), 0 0 60px -14px rgba(215,229,155,.35); }
+@keyframes spin { to { --ang: 360deg; } }
+.desk { position: absolute; inset: 0; transition: transform .5s var(--spring), opacity .35s var(--ease); }
+.desk.out { transform: translateY(-40px) scale(.97); opacity: 0; pointer-events: none; }
+
+.term { left: 24px; top: 74px; width: 964px; height: 566px; font: 15px/1.55 var(--mono); padding: 26px 30px; }
+.ff { display: flex; gap: 34px; align-items: center; }
+.drop { width: 220px; height: 260px; flex-shrink: 0; filter: drop-shadow(0 0 30px rgba(215,229,155,.35)); }
+.info .h { font-weight: 700; } .info .h .u { color: var(--lime); } .info .h .a { color: var(--pink); }
+.info .rule { color: var(--muted); }
+.info .l { white-space: nowrap; }
+.info .l .key { display: inline-block; width: 22px; }
+.info .l .lab { display: inline-block; width: 92px; color: var(--dim); }
+.dots { display: flex; gap: 8px; margin-top: 12px; }
+.dots i { width: 22px; height: 22px; border-radius: 50%; display: block; }
+.prompt { margin-top: 22px; }
+.prompt .p { color: var(--cyan); } .prompt .g { color: var(--violet); } .prompt .ch { color: var(--lime); }
+.cur { display: inline-block; width: 9px; height: 18px; background: var(--lime); vertical-align: -3px; border-radius: 2px; animation: blink 1s steps(1) infinite; }
+
+.code { left: 1004px; top: 74px; width: 892px; height: 566px; font: 13.5px/1.62 var(--mono); }
+.tabs { display: flex; gap: 6px; padding: 12px 14px 0; }
+.tabs span { padding: 6px 14px; border-radius: 12px 12px 0 0; font-size: 12px; color: var(--dim); }
+.tabs span.on { background: rgba(255,255,255,.05); color: var(--fg); }
+.tabs span.on::before { content: "● "; color: var(--lime); }
+.src { padding: 14px 0 0; background: rgba(255,255,255,.02); height: 470px; }
+.ln { display: block; white-space: pre; }
+.ln .n { display: inline-block; width: 54px; text-align: right; padding-right: 18px; color: #4a4f55; }
+.ln.cl { background: rgba(215,229,155,.06); } .ln.cl .n { color: var(--lime); }
+.kw { color: var(--violet); } .ty { color: var(--blue); } .st { color: var(--lime); } .nu { color: var(--orange); } .cm { color: #5d6268; font-style: italic; } .pr { color: var(--cyan); } .fn { color: var(--yellow); }
+.status { position: absolute; left: 12px; right: 12px; bottom: 12px; height: 30px; display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.status .m { padding: 4px 14px; border-radius: 99px; background: var(--lime); color: #101316; font-weight: 700; }
+.status .f { padding: 4px 14px; border-radius: 99px; background: rgba(255,255,255,.06); }
+.status .r { margin-left: auto; color: var(--dim); display: flex; gap: 14px; }
+
+/* ---------- desktop widgets ---------- */
+.clock { position: absolute; left: 44px; top: 682px; z-index: 5; text-shadow: 0 10px 40px rgba(0,0,0,.4); }
+.clock .big { font: italic 400 210px/0.9 var(--serif); letter-spacing: -.02em; color: #eef0e4; }
+.clock .big em { color: var(--lime); text-shadow: 0 0 30px rgba(215,229,155,.6); animation: blink 2s steps(1) infinite; }
+.clock .date { font: 400 26px var(--serif); color: rgba(227,228,218,.85); margin-top: 6px; padding-left: 8px; }
+.clock .date i { color: var(--lime); }
+.clock .quote { font: 13px var(--mono); color: rgba(227,228,218,.5); margin-top: 14px; padding-left: 10px; }
+
+.card { position: absolute; top: 664px; height: 392px; border-radius: 28px; background: rgba(12,14,17,.66); backdrop-filter: blur(26px) saturate(1.4);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 20px 50px rgba(0,0,0,.35); padding: 24px; z-index: 5; }
+.card h3 { font: 500 11px var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--dim); margin-bottom: 16px; display: flex; justify-content: space-between; }
+.card h3 span { color: var(--lime); letter-spacing: 0; }
+
+.music { left: 690px; width: 392px; }
+.cover { height: 196px; border-radius: 20px; position: relative; overflow: hidden;
+  background: radial-gradient(circle at 30% 30%, var(--pink), transparent 55%), radial-gradient(circle at 75% 70%, var(--lime), transparent 55%), radial-gradient(circle at 70% 20%, var(--blue), transparent 50%), #1a1626; }
+.cover::after { content: ""; position: absolute; inset: 0; background: inherit; filter: blur(18px); opacity: .6; animation: drift 9s ease-in-out infinite alternate; }
+.cover .vinyl { position: absolute; right: 16px; bottom: 16px; width: 56px; height: 56px; border-radius: 50%; z-index: 2;
+  background: repeating-radial-gradient(circle, #0c0d10 0 2px, #16181c 2px 4px); box-shadow: 0 6px 20px rgba(0,0,0,.5); animation: rot 4s linear infinite; }
+.cover .vinyl::after { content: ""; position: absolute; inset: 20px; border-radius: 50%; background: var(--lime); }
+@keyframes rot { to { transform: rotate(360deg); } }
+.track { margin-top: 16px; }
+.track .tt { font: italic 400 28px var(--serif); }
+.track .ar { font: 13px var(--sans); color: var(--dim); }
+.prog { margin-top: 14px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.08); overflow: hidden; }
+.prog i { display: block; height: 100%; width: 42%; border-radius: 3px; background: linear-gradient(90deg, var(--lime), var(--cyan)); animation: grow 60s linear infinite; }
+@keyframes grow { from { width: 42%; } to { width: 100%; } }
+.ctl { display: flex; justify-content: space-between; font: 11px var(--mono); color: var(--dim); margin-top: 8px; }
+
+.agenda { left: 1098px; width: 420px; }
+.blk { display: flex; gap: 14px; align-items: stretch; padding: 9px 0; }
+.blk .tm { width: 52px; font: 12px var(--mono); color: var(--dim); padding-top: 3px; }
+.blk .bar { width: 4px; border-radius: 2px; }
+.blk .bt { font: 500 15px var(--sans); }
+.blk .bs { font: 12px var(--sans); color: var(--dim); }
+.blk.now { margin: 0 -12px; padding: 10px 12px; border-radius: 16px; background: rgba(215,229,155,.08); box-shadow: inset 0 0 0 1px rgba(215,229,155,.25); }
+.blk.now .tm { color: var(--lime); }
+.blk.done .bt { color: var(--dim); text-decoration: line-through; text-decoration-color: var(--muted); }
+
+.sys { left: 1534px; width: 362px; }
+.rings { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 10px; }
+.rg { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.rg .o { width: 104px; height: 104px; border-radius: 50%; display: grid; place-items: center; position: relative; }
+.rg .o::before { content: ""; position: absolute; inset: 9px; border-radius: 50%; background: #0f1215; }
+.rg .o b { position: relative; font: 400 30px var(--serif); font-style: italic; }
+.rg .o b small { font: 11px var(--mono); color: var(--dim); font-style: normal; }
+.rg span { font: 11px var(--mono); color: var(--dim); letter-spacing: .12em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="viewport" id="vp"><div class="stage" id="stage">
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+
+  <!-- top pills -->
+  <div class="pill left">
+    <div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2c4 5.2 7 8.8 7 12.3A7 7 0 0 1 5 14.3C5 10.8 8 7.2 12 2Z" fill="#101316"/></svg></div>
+    <div class="ws" id="ws"><i class="on"></i><i class="has"></i><i class="has"></i><i></i><i></i></div>
+  </div>
+  <div class="pill right">
+    <span><span class="ic">&#xf1eb;</span>wifi</span>
+    <span><span class="ic">󰕾</span>64</span>
+    <span><span class="ic">󰁹</span>88</span>
+    <span class="ai"><span class="ring"></span>claude 68%</span>
+  </div>
+
+  <div class="island idle" id="island">
+    <div class="view v-idle">
+      <div class="wave"><span></span><span></span><span></span><span></span><span></span></div>
+      <span class="song">Kokoro · Tycho</span>
+      <span class="sep"></span>
+      <span class="time" id="t-small">Wed 18 · 09:41</span>
+    </div>
+
+    <div class="view v-launcher">
+      <div class="q"><span class="orb"></span><span class="typed" id="typed"></span><span class="caret"></span><span class="count" id="count">5 results</span></div>
+      <div class="list" id="list">
+        <div class="sel" id="sel"></div>
+        <div class="row"><span class="ai2">&#xf073;</span><div><div class="t">Calendio</div><div class="d">your day · math at 18:00</div></div><span class="k"><span>❖</span><span>A</span></span></div>
+        <div class="row"><span class="ai2">&#xf1ec;</span><div><div class="t">Calculator</div><div class="d">or type = in here</div></div></div>
+        <div class="row"><span class="ai2">&#xf0eb;</span><div><div class="t">Claude</div><div class="d">ask anything</div></div><span class="k"><span>❖</span><span>I</span></span></div>
+        <div class="row"><span class="ai2">&#xf245;</span><div><div class="t">Cursorify</div><div class="d">cursor designer</div></div></div>
+        <div class="row"><span class="ai2">&#xf07b;</span><div><div class="t">Burrow</div><div class="d">files</div></div><span class="k"><span>❖</span><span>E</span></span></div>
+      </div>
+      <div class="calcline"><span>= 12 * 48 + 7</span><b>583</b></div>
+    </div>
+
+    <div class="view v-emoji">
+      <div class="cats"><span class="on">recent</span><span>smileys</span><span>people</span><span>nature</span><span>food</span><span>objects</span><span>symbols</span></div>
+      <div class="eg" id="eg">
+        <div class="esel" id="esel"></div>
+        <span>😭</span><span>🔥</span><span>💀</span><span>🙏</span><span>✨</span><span>👀</span><span>♟️</span><span>🎨</span><span>📚</span><span>😤</span>
+        <span>🥹</span><span>😂</span><span>🫠</span><span>💅</span><span>🤌</span><span>🫡</span><span>😮‍💨</span><span>🤝</span><span>💯</span><span>🌙</span>
+        <span>🍵</span><span>🎧</span><span>🧠</span><span>⚡</span><span>🌊</span><span>🍃</span><span>🫧</span><span>💚</span><span>🩷</span><span>🤍</span>
+      </div>
+      <div class="ename"><span id="ename">loudly crying face</span><small>↵ paste · ⇧↵ skin tone</small></div>
+    </div>
+
+    <div class="view v-power" id="power">
+      <div class="pb on"><span>&#xf023;</span><b>lock</b></div>
+      <div class="pb"><span>󰤄</span><b>sleep</b></div>
+      <div class="pb"><span>󰍃</span><b>log out</b></div>
+      <div class="pb danger"><span>󰜉</span><b>restart</b></div>
+      <div class="pb danger"><span>󰐥</span><b>shut down</b></div>
+    </div>
+
+    <div class="view v-notify">
+      <div class="nic">&#xf073;</div>
+      <div><div class="nt">Math in 10 minutes</div><div class="nb">Linear algebra · chapter 4 · Calendio</div></div>
+      <span class="nk">❖ A open</span>
+    </div>
+  </div>
+
+  <div class="desk" id="desk">
+  <!-- terminal -->
+  <div class="win term focus" id="w-term">
+    <div class="ff">
+      <svg class="drop" viewBox="0 0 220 260">
+        <defs>
+          <linearGradient id="dg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d7e59b"/><stop offset=".55" stop-color="#c2e6d6"/><stop offset="1" stop-color="#f2a7a7"/></linearGradient>
+          <radialGradient id="hl" cx=".35" cy=".35" r=".5"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+        </defs>
+        <path d="M110 10C150 70 195 115 195 165a85 85 0 0 1-170 0C25 115 70 70 110 10Z" fill="url(#dg)"/>
+        <path d="M110 10C150 70 195 115 195 165a85 85 0 0 1-170 0C25 115 70 70 110 10Z" fill="url(#hl)"/>
+        <path d="M70 175a45 45 0 0 0 40 40" stroke="#101316" stroke-opacity=".35" stroke-width="9" fill="none" stroke-linecap="round"/>
+      </svg>
+      <div class="info">
+        <div class="h"><span class="u">lyric</span>@<span class="a">archy</span></div>
+        <div class="rule">─────────────────────────</div>
+        <div class="l"><span class="key" style="color:var(--lime)">󰣇</span><span class="lab">os</span>Fluidity <span style="color:var(--dim)">(arch)</span></div>
+        <div class="l"><span class="key" style="color:var(--cyan)"></span><span class="lab">kernel</span>7.2.14-arch1-1</div>
+        <div class="l"><span class="key" style="color:var(--blue)"></span><span class="lab">wm</span>Hyprland 0.56</div>
+        <div class="l"><span class="key" style="color:var(--violet)"></span><span class="lab">shell</span>bash · starship</div>
+        <div class="l"><span class="key" style="color:var(--pink)"></span><span class="lab">term</span>ghostty</div>
+        <div class="l"><span class="key" style="color:var(--yellow)">󰏘</span><span class="lab">theme</span>fluid <span style="color:var(--dim)">· 1 of 49</span></div>
+        <div class="l"><span class="key" style="color:var(--orange)"></span><span class="lab">font</span>JetBrains Mono · Geist</div>
+        <div class="l"><span class="key" style="color:var(--lime)">󰔟</span><span class="lab">uptime</span>2h 14m</div>
+        <div class="l"><span class="key" style="color:var(--cyan)">󰍛</span><span class="lab">cpu</span>Ryzen 7 5700G</div>
+        <div class="dots"><i style="background:var(--lime)"></i><i style="background:var(--cyan)"></i><i style="background:var(--blue)"></i><i style="background:var(--violet)"></i><i style="background:var(--pink)"></i><i style="background:var(--orange)"></i><i style="background:var(--yellow)"></i></div>
+      </div>
+    </div>
+    <div class="prompt"><span class="p">~/claude/fluidity</span> <span class="g">on  main</span> <span class="ch">❯</span> <span id="cmd"></span><span class="cur"></span></div>
+  </div>
+
+  <!-- editor -->
+  <div class="win code" id="w-code">
+    <div class="tabs"><span class="on">Island.qml</span><span>Picker.qml</span><span>fluidity-theme</span></div>
+    <div class="src">
+<div class="ln"><span class="n">1</span><span class="cm">// one shape that becomes every popup</span></div>
+<div class="ln"><span class="n">2</span><span class="kw">import</span> <span class="ty">QtQuick</span></div>
+<div class="ln"><span class="n">3</span><span class="kw">import</span> <span class="ty">Quickshell</span></div>
+<div class="ln"><span class="n">4</span> </div>
+<div class="ln"><span class="n">5</span><span class="ty">Rectangle</span> {</div>
+<div class="ln"><span class="n">6</span>    <span class="pr">id</span>: island</div>
+<div class="ln"><span class="n">7</span>    <span class="kw">property</span> <span class="ty">string</span> <span class="pr">state</span>: <span class="st">"idle"</span></div>
+<div class="ln cl"><span class="n">8</span>    <span class="pr">width</span>:  <span class="fn">Sizes</span>.<span class="fn">of</span>(state).w</div>
+<div class="ln"><span class="n">9</span>    <span class="pr">height</span>: <span class="fn">Sizes</span>.<span class="fn">of</span>(state).h</div>
+<div class="ln"><span class="n">10</span>    <span class="pr">radius</span>: <span class="fn">Math</span>.<span class="fn">min</span>(height / <span class="nu">2</span>, <span class="nu">36</span>)</div>
+<div class="ln"><span class="n">11</span>    <span class="pr">color</span>:  <span class="fn">Theme</span>.glass</div>
+<div class="ln"><span class="n">12</span> </div>
+<div class="ln"><span class="n">13</span>    <span class="kw">Behavior</span> <span class="kw">on</span> <span class="pr">width</span>  { <span class="ty">Spring</span> { <span class="pr">spring</span>: <span class="nu">4.2</span>; <span class="pr">damping</span>: <span class="nu">0.32</span> } }</div>
+<div class="ln"><span class="n">14</span>    <span class="kw">Behavior</span> <span class="kw">on</span> <span class="pr">height</span> { <span class="ty">Spring</span> { <span class="pr">spring</span>: <span class="nu">4.2</span>; <span class="pr">damping</span>: <span class="nu">0.32</span> } }</div>
+<div class="ln"><span class="n">15</span> </div>
+<div class="ln"><span class="n">16</span>    <span class="ty">Glow</span> { <span class="pr">color</span>: <span class="fn">Theme</span>.accent; <span class="pr">visible</span>: state !== <span class="st">"idle"</span> }</div>
+<div class="ln"><span class="n">17</span>    <span class="ty">Loader</span> { <span class="pr">source</span>: <span class="st">`views/${state}.qml`</span> }</div>
+<div class="ln"><span class="n">18</span>}</div>
+    </div>
+    <div class="status"><span class="m">NORMAL</span><span class="f"> main</span><span class="f">Island.qml</span><span class="r"><span>qml</span><span>utf-8</span><span>8:31</span></span></div>
+  </div>
+  </div>
+
+  <!-- desktop widgets -->
+  <div class="clock">
+    <div class="big">09<em>:</em>41</div>
+    <div class="date">Wednesday, <i>18 November</i></div>
+    <div class="quote">// stay fluid.</div>
+  </div>
+
+  <div class="card music">
+    <h3>now playing <span>󰎆</span></h3>
+    <div class="cover"><div class="vinyl"></div></div>
+    <div class="track"><div class="tt">Kokoro</div><div class="ar">Tycho · Weather</div></div>
+    <div class="prog"><i></i></div>
+    <div class="ctl"><span>1:42</span><span>❖ M</span><span>4:03</span></div>
+  </div>
+
+  <div class="card agenda">
+    <h3>today · calendio <span>❖ A</span></h3>
+    <div class="blk done"><span class="tm">09:00</span><span class="bar" style="background:var(--violet)"></span><div><div class="bt">Art · gesture drawing</div><div class="bs">45 min</div></div></div>
+    <div class="blk now"><span class="tm">10:00</span><span class="bar" style="background:var(--lime)"></span><div><div class="bt">Code · Fluidity shell</div><div class="bs">now · 1h 20m left</div></div></div>
+    <div class="blk"><span class="tm">13:00</span><span class="bar" style="background:var(--cyan)"></span><div><div class="bt">Chess · two rapid games</div><div class="bs">lichess</div></div></div>
+    <div class="blk"><span class="tm">15:00</span><span class="bar" style="background:var(--pink)"></span><div><div class="bt">Reading</div><div class="bs">one chapter</div></div></div>
+    <div class="blk"><span class="tm">18:00</span><span class="bar" style="background:var(--yellow)"></span><div><div class="bt">Math · linear algebra</div><div class="bs">chapter 4</div></div></div>
+  </div>
+
+  <div class="card sys">
+    <h3>system <span>❖ H</span></h3>
+    <div class="rings">
+      <div class="rg"><div class="o" style="background:conic-gradient(var(--lime) 0 23%, rgba(255,255,255,.07) 0)"><b>23<small>%</small></b></div><span>cpu</span></div>
+      <div class="rg"><div class="o" style="background:conic-gradient(var(--cyan) 0 61%, rgba(255,255,255,.07) 0)"><b>61<small>%</small></b></div><span>ram</span></div>
+      <div class="rg"><div class="o" style="background:conic-gradient(var(--pink) 0 47%, rgba(255,255,255,.07) 0)"><b>47<small>°</small></b></div><span>temp</span></div>
+      <div class="rg"><div class="o" style="background:conic-gradient(var(--blue) 0 38%, rgba(255,255,255,.07) 0)"><b>38<small>%</small></b></div><span>disk</span></div>
+    </div>
+  </div>
+
+  <div class="grain"></div>
+</div></div>
+<div class="legend">
+  <span><b>space</b> launcher</span><span><b>e</b> emoji</span><span><b>p</b> power</span><span><b>n</b> notification</span>
+  <span><b>↑↓←→</b> move</span><span><b>1–5</b> workspaces</span><span><b>esc</b> close</span><span><b>d</b> replay demo</span>
+</div>
+</div>
+
+<script>
+(() => {
+  const stage = document.getElementById("stage"), vp = document.getElementById("vp");
+  const fit = () => { stage.style.transform = `scale(${vp.clientWidth / 1920})`; };
+  addEventListener("resize", fit); fit();
+
+  const island = document.getElementById("island");
+  const states = ["idle", "launcher", "emoji", "power", "notify"];
+  const setState = (s) => { states.forEach(x => island.classList.toggle(x, x === s)); cur = s; };
+  let cur = "idle";
+
+  // launcher selection
+  const rows = [...document.querySelectorAll("#list .row")], sel = document.getElementById("sel");
+  let li = 0;
+  const setLi = (i) => { li = (i + rows.length) % rows.length; sel.style.transform = `translateY(${li * 52}px)`; rows.forEach((r, k) => r.classList.toggle("on", k === li)); };
+  setLi(0);
+  const typed = document.getElementById("typed");
+
+  // emoji selection
+  const eg = document.getElementById("eg"), cells = [...eg.querySelectorAll("span")], esel = document.getElementById("esel");
+  const names = ["loudly crying face","fire","skull","folded hands","sparkles","eyes","chess pawn","artist palette","books","huffing face","holding back tears","tears of joy","melting face","nail polish","pinched fingers","saluting face","face exhaling","handshake","hundred points","crescent moon","teacup","headphone","brain","high voltage","water wave","leaf in wind","bubbles","green heart","pink heart","white heart"];
+  let ei = 0;
+  const setEi = (i) => {
+    ei = (i + cells.length) % cells.length;
+    const c = cells[ei];
+    esel.style.transform = `translate(${c.offsetLeft + (c.offsetWidth - 52) / 2}px, ${c.offsetTop + (c.offsetHeight - 52) / 2}px)`;
+    cells.forEach((x, k) => x.classList.toggle("on", k === ei));
+    document.getElementById("ename").textContent = names[ei];
+  };
+
+  // power selection
+  const pbs = [...document.querySelectorAll(".pb")];
+  let pi = 0;
+  const setPi = (i) => { pi = (i + pbs.length) % pbs.length; pbs.forEach((b, k) => b.classList.toggle("on", k === pi)); };
+
+  // workspaces
+  const wsDots = [...document.querySelectorAll("#ws i")], desk = document.getElementById("desk");
+  const goWs = (n) => {
+    wsDots.forEach((d, k) => d.classList.toggle("on", k === n));
+    desk.classList.add("out");
+    setTimeout(() => desk.classList.remove("out"), n === 0 ? 260 : 900);
+  };
+
+  // terminal command typing
+  const cmd = document.getElementById("cmd");
+  const typeInto = (el, text, speed = 70) => new Promise(res => {
+    let i = 0; el.textContent = "";
+    const t = setInterval(() => { el.textContent = text.slice(0, ++i); if (i >= text.length) { clearInterval(t); res(); } }, speed);
+  });
+
+  // autoplay demo, stops on the first key you press
+  const wait = (ms) => new Promise(r => setTimeout(r, ms));
+  let demoId = 0;
+  const demo = async () => {
+    const id = ++demoId, alive = () => id === demoId;
+    while (alive()) {
+      setState("idle"); await wait(1400); if (!alive()) return;
+      await typeInto(cmd, "fluidity-theme current", 55); await wait(600); if (!alive()) return;
+      setState("launcher"); typed.textContent = ""; setLi(0); await wait(500);
+      await typeInto(typed, "ca", 160); await wait(500);
+      for (const i of [1, 2, 1, 0]) { if (!alive()) return; setLi(i); await wait(420); }
+      await wait(500); if (!alive()) return;
+      setState("idle"); await wait(900); if (!alive()) return;
+      setState("emoji"); setEi(0); await wait(600);
+      for (const i of [1, 2, 3, 13, 14, 26, 27]) { if (!alive()) return; setEi(i); await wait(330); }
+      await wait(500); if (!alive()) return;
+      setState("idle"); await wait(800); if (!alive()) return;
+      goWs(1); await wait(1100); goWs(0); await wait(700); if (!alive()) return;
+      setState("notify"); await wait(2600); if (!alive()) return;
+      setState("idle"); await wait(900); if (!alive()) return;
+      setState("power"); setPi(0); await wait(600);
+      for (const i of [1, 2, 3, 4, 0]) { if (!alive()) return; setPi(i); await wait(420); }
+      await wait(600); cmd.textContent = "";
+    }
+  };
+
+  addEventListener("keydown", (e) => {
+    const k = e.key;
+    if (k === "d") { demo(); return; }
+    demoId++; // any other key takes over from the demo
+    if (k === " " ) { e.preventDefault(); setState(cur === "launcher" ? "idle" : "launcher"); if (cur === "launcher") { typed.textContent = ""; setLi(0); } return; }
+    if (k === "Escape" || k === "Enter") { setState("idle"); return; }
+    if (cur === "launcher") {
+      if (k === "ArrowDown") return setLi(li + 1);
+      if (k === "ArrowUp") return setLi(li - 1);
+      if (k === "Backspace") { typed.textContent = typed.textContent.slice(0, -1); return; }
+      if (k.length === 1) { typed.textContent += k; return; }
+    }
+    if (cur === "emoji") {
+      if (k === "ArrowRight") return setEi(ei + 1);
+      if (k === "ArrowLeft") return setEi(ei - 1);
+      if (k === "ArrowDown") return setEi(ei + 10);
+      if (k === "ArrowUp") return setEi(ei - 10);
+    }
+    if (cur === "power") {
+      if (k === "ArrowRight") return setPi(pi + 1);
+      if (k === "ArrowLeft") return setPi(pi - 1);
+    }
+    if (k === "e") { setState(cur === "emoji" ? "idle" : "emoji"); requestAnimationFrame(() => setEi(ei)); return; }
+    if (k === "p") { setState(cur === "power" ? "idle" : "power"); return; }
+    if (k === "n") { setState(cur === "notify" ? "idle" : "notify"); return; }
+    if (/^[1-5]$/.test(k)) goWs(+k - 1);
+  });
+
+  // ?state=launcher for still screenshots, otherwise run the demo
+  const q = new URLSearchParams(location.search).get("state");
+  if (q && states.includes(q)) {
+    island.style.transition = "none";
+    document.querySelectorAll(".view").forEach(v => v.style.transition = "none");
+    setState(q);
+    if (q === "launcher") typed.textContent = "ca";
+    if (q === "emoji") setEi(0);
+    cmd.textContent = "fluidity-theme current";
+  } else {
+    setTimeout(() => setEi(0), 50);
+    demo();
+  }
+})();
+</script>
+</body>
+</html>
