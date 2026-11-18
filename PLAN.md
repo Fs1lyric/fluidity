@@ -220,3 +220,20 @@ Not verified / not done:
 - Needs your password (sudo): `fluidity-install wl-kbptr` (click hints), `fluidity-boot install` (the Fluidity
   boot screen replacing the lyric clock; preview in boot/plymouth/fluidity).
 - Cheat sheet can't replay a bind (Hyprland's Lua binds report function refs); Enter just closes it.
+
+## Next: the Fluid showcase apps in the Fluidity bar (asked 2026-11-18)
+User: "the video had so many showcased custom apps i want those too and easily accessible in my top bar".
+Source look: ilyamiro/nixos-configuration src/quickshell (the Fluid r/unixporn post). Rebuild in Fluidity's own
+shell (default/quickshell/fluidity, the live `qs -c fluidity`), not the Luminescent fluid shell. Already in
+Fluidity: launcher, emoji, clipboard, wallpaper, screenshot, notifications, power, control, timer, volume OSD.
+Every new view opens in the island, has a key (leader + one-chord), and a bar button. One commit per step,
+render test first (tests/render.test.sh + tools/render.py, off-screen; never open windows on the live screen).
+1. Bar app row: a third pill of icon buttons (launcher, music, calendar, wifi, bluetooth, wallpaper, clipboard,
+   screenshot, notes), click opens the island view; pure BarView props so render.py can draw it.
+2. Calendar dashboard: month grid + today's Calendio blocks + sun arc (sunrise/sunset); clock click opens it.
+3. Music player: art (vinyl spin), title/artist, seek bar, prev/play/next, cava strip; song pill click opens it.
+   Lyrics later (needs a lyrics source; lrclib.net, no key).
+4. Network cards: Wi-Fi list + connect (nmcli), Bluetooth devices + connect (bluetoothctl); wifi pill opens it.
+5. Desktop widgets (DesktopView, toggled by fluidity-widgets): weather (wttr.in), CPU/RAM/temp rings,
+   visualizer, quick notes (a text file in ~/.local/share/fluidity/notes.md).
+6. Dock: Fluid-theme only, bottom, keyboard reachable (user said include it).

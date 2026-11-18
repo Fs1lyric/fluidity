@@ -6,6 +6,6 @@
     "separator": "  ",
     "color": { "keys": "38;2;215;229;155", "title": "38;2;215;229;155", "output": "38;2;227;228;218" }
   },
-  "modules": ["title", "separator", "os", "kernel", "uptime", "packages", "shell", "wm", "terminal",
-              "cpu", "gpu", "memory", "disk", "break", "colors"]
+  "modules": ["title", "separator", "os", "kernel", "uptime", { "type": "packages", "format": "{pacman} pacman, {flatpak-all} flatpak, {appimage} appimage" }, "shell", "wm", "terminal",
+              "cpu", { "type": "gpu", "format": "{name}" }, "memory", "disk", "break", "colors"]
 }
