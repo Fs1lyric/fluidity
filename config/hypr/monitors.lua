@@ -1,0 +1,2 @@
+-- Your monitors overrides. Loaded after the Fluidity defaults.
+-- hl.monitor({ output = "", mode = "preferred", position = "auto", scale = "auto" })
