@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# The wallpaper (drawn by awww). Your images live in ~/Wallpapers for desktop.
+#   fluidity-wallpaper set FILE | restore | list | next | random | theme OLD NEW
+# Each theme keeps its own wallpaper: switching away remembers the one in use, and a theme you have
+# never used starts on the wallpaper.* in its folder.
+set -uo pipefail
+root=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)
+themes=${FLUIDITY_THEMES:-$root/themes}
+state=${FLUIDITY_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/fluidity}
+walls=${FLUIDITY_WALLS:-$HOME/Wallpapers for desktop}
+mkdir -p "$state"
+
+die() { echo "fluidity-wallpaper: $*" >&2; exit 1; }
+daemon() { pgrep -x awww-daemon >/dev/null 2>&1 || { setsid -f awww-daemon >/dev/null 2>&1; sleep 0.5; }; }
+images() { find "$walls" -maxdepth 1 \( -type f -o -type l \) \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.gif' \) 2>/dev/null | sort; }
+now() { cat "$state/wallpaper" 2>/dev/null; }
+
+draw() {
+  [[ -e $1 ]] || die "no such image: $1"
+  daemon
+  awww img "$1" --resize crop --transition-type grow --transition-pos 0.5,0.5 --transition-duration 0.8 --transition-fps 120 >/dev/null 2>&1
+  printf '%s\n' "$1" >"$state/wallpaper"
+  ln -sfn "$1" "$state/current-wallpaper"
+  # hyprlock's background: the same picture, blurred, in the background
+  (magick "$1[0]" -resize '2560x2560>' -blur 0x18 "$state/lock-wallpaper.png" >/dev/null 2>&1 &)
+}
+
+step() { # +1 / random
+  mapfile -t all < <(images)
+  ((${#all[@]})) || die "no images in $walls"
+  if [[ $1 == random ]]; then draw "${all[RANDOM % ${#all[@]}]}"; return; fi
+  local cur i=-1 j; cur=$(now)
+  for j in "${!all[@]}"; do [[ ${all[j]} == "$cur" ]] && i=$j; done
+  draw "${all[(i + 1) % ${#all[@]}]}"
+}
+
+theme_switch() { # OLD NEW
+  local saved own
+  [[ -n $1 && -n $(now) ]] && now >"$state/wallpaper-$1"
+  saved=$(cat "$state/wallpaper-$2" 2>/dev/null)
+  own=$(ls "$themes/$2"/wallpaper.* 2>/dev/null | head -1)
+  [[ -n ${saved:-$own} ]] && draw "${saved:-$own}"
+}
+
+case ${1:-} in
+  set) draw "${2:-}" ;;
+  restore) cur=$(now); [[ -n $cur ]] && draw "$cur" ;;
+  list) images ;;
+  next) step +1 ;;
+  random) step random ;;
+  theme) theme_switch "${2:-}" "${3:-}" ;;
+  *) sed -n '3p' "$0" | sed 's/^# //' >&2; exit 1 ;;
+esac

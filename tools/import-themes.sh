@@ -26,3 +26,7 @@ grep -rlI 'lyric' "$shells_dst" | while read -r f; do
          -e 's#\.local/share/lyric/#.local/share/fluidity/#g' -e 's#lyric-shell#fluidity-shell#g' -e 's#"qs", "-c", "lyric"#"qs", "-c", "fluidity"#g' -e 's#qs -c lyric#qs -c fluidity#g' -e 's#\.cache/lyric/#.cache/fluidity/#g' "$f"
 done
 echo "imported $(ls "$shells_dst" | wc -l) theme shells into $shells_dst"
+
+# Fluid's default wallpaper is your fern photo (approved 2026-11-18), when it is on this machine.
+fern="$HOME/Wallpapers for desktop/gruvbox-5-leaves.jpg"
+[[ -e $fern ]] && ln -sfn "$fern" "$dst/fluid/wallpaper.jpg"
