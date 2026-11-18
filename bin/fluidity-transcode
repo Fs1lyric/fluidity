@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Shrink the newest screen recording into a small, shareable MP4 (H.264, 1080p max) next to it.
+src=${1:-$(ls -t "$HOME"/Videos/Recordings/*.mp4 2>/dev/null | grep -v -- '-small\.mp4$' | head -1)}
+[[ -f $src ]] || { notify-send -u low -a Fluidity "Nothing to transcode" "No recordings in ~/Videos/Recordings"; exit 0; }
+out=${src%.mp4}-small.mp4
+notify-send -u low -a Fluidity "Transcoding" "$(basename "$src")"
+ffmpeg -y -loglevel error -i "$src" -vf "scale='min(1920,iw)':-2" -c:v libx264 -preset veryfast -crf 26 -c:a aac -b:a 128k "$out" &&
+  printf 'file://%s\n' "$out" | wl-copy -t text/uri-list &&
+  notify-send -a Fluidity "Transcoded" "$(basename "$out") · copied to the clipboard"

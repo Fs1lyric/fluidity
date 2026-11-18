@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Hardware keys: fluidity-hw kbd up|down|cycle   ·   fluidity-hw touchpad on|off|toggle
+state=${XDG_STATE_HOME:-$HOME/.local/state}/fluidity; mkdir -p "$state"
+case ${1:-} in
+  kbd)
+    dev=$(brightnessctl -l -m 2>/dev/null | awk -F, '/kbd_backlight/ {print $1; exit}')
+    [[ -n $dev ]] || exit 0
+    case ${2:-} in
+      up) brightnessctl -d "$dev" set +1 >/dev/null ;;
+      down) brightnessctl -d "$dev" set 1- >/dev/null ;;
+      cycle) max=$(brightnessctl -d "$dev" max); cur=$(brightnessctl -d "$dev" get); brightnessctl -d "$dev" set $(((cur + 1) % (max + 1))) >/dev/null ;;
+    esac
+    pct=$(brightnessctl -d "$dev" -m | cut -d, -f4 | tr -d %)
+    qs -c fluidity ipc call osd brightness "${pct:-0}" >/dev/null 2>&1 ;;
+  touchpad)
+    pad=$(hyprctl devices -j | jq -r '[.mice[] | select(.name | test("touchpad"; "i"))][0].name // empty')
+    [[ -n $pad ]] || exit 0
+    case ${2:-toggle} in
+      on) on=true ;; off) on=false ;;
+      *) [[ $(cat "$state/touchpad" 2>/dev/null) == off ]] && on=true || on=false ;;
+    esac
+    hyprctl eval "hl.device({ name = \"$pad\", enabled = $on })" >/dev/null
+    [[ $on == true ]] && echo on >"$state/touchpad" || echo off >"$state/touchpad"
+    qs -c fluidity ipc call island notify "Touchpad $(cat "$state/touchpad")" "" >/dev/null 2>&1 ;;
+  *) sed -n '2s/^# //p' "$0" >&2; exit 1 ;;
+esac

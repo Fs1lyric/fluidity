@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# The leader: the bar stretches into a row of keys; the next key runs one. Rows: (default) capture toggle hardware share
+exec qs -c fluidity ipc call island open leader "${1:-}"

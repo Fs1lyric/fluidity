@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Open (or close, if it is already open) a view of the island: the one shape every popup grows from.
+#   fluidity-island launcher|emoji|clipboard|cheatsheet|power|wallpaper|switcher|control|notifications [ARG]
+#   fluidity-island themes     the full-screen theme picker
+#   fluidity-island bar        show or hide the bar
+view=${1:-}; arg=${2:-}
+[[ -n $view ]] || { sed -n '3,5s/^# \?//p' "$0" >&2; exit 1; }
+case $view in
+  themes) exec qs -c fluidity ipc call themepicker toggle ;;
+  bar) exec qs -c fluidity ipc call bar toggle ;;
+  *) exec qs -c fluidity ipc call island toggle "$view" "$arg" ;;
+esac

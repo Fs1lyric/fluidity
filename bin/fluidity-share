@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Share over LocalSend: fluidity-share clipboard | file | screenshot
+command -v localsend >/dev/null || command -v localsend_app >/dev/null || { notify-send -u low -a Fluidity "Sharing needs LocalSend"; exit 0; }
+ls_bin=$(command -v localsend || command -v localsend_app)
+tmp=${XDG_RUNTIME_DIR:-/tmp}/fluidity-share; mkdir -p "$tmp"
+case ${1:-} in
+  clipboard) f="$tmp/clipboard-$(date +%s).txt"; wl-paste >"$f" && exec setsid "$ls_bin" "$f" ;;
+  file) f=$(zenity --file-selection 2>/dev/null) && exec setsid "$ls_bin" "$f" ;;
+  screenshot) f=$(ls -t "$HOME"/Pictures/screenshot-*.png 2>/dev/null | head -1); [[ -n $f ]] && exec setsid "$ls_bin" "$f" ;;
+  *) sed -n '2s/^# //p' "$0" >&2; exit 1 ;;
+esac

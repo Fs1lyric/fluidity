@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Dictation (voxtype): fluidity-dictate start|stop|toggle
+command -v voxtype >/dev/null || { [[ ${1:-} == stop ]] || notify-send -u low -a Fluidity "Dictation needs voxtype"; exit 0; }
+case ${1:-} in start | stop | toggle) exec voxtype record "$1" ;; *) echo "usage: fluidity-dictate start|stop|toggle" >&2; exit 1 ;; esac

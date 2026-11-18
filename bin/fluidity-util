@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Small desktop utilities for the keybindings.
+#   battery               battery left, as a notification
+#   time | weather        show as a notification
+#   remind | reminders | clear-reminders
+
+note() { notify-send -u low -a Fluidity "$@"; }
+
+case ${1:-} in
+  battery)
+    b=$(upower -e 2>/dev/null | grep -m1 BAT)
+    [[ -n $b ]] || { note "No battery"; exit 0; }
+    info=$(upower -i "$b"); pct=$(awk '/percentage/ {print $2}' <<<"$info"); left=$(awk -F': *' '/time to (empty|full)/ {print $2}' <<<"$info")
+    note "Battery $pct" "${left:-}" ;;
+  time) note "$(date +'%A %-d %B')" "$(date +'%H:%M')" ;;
+  weather) note "Weather" "$(curl -fsS --max-time 5 'https://wttr.in/?format=%l:+%c+%t+(feels+%f),+%w' || echo unavailable)" ;;
+  remind)
+    in=${2:-}
+    [[ -n $in ]] || in=$(zenity --entry --title=Reminder --text="Minutes, then the message (e.g. 25 stretch)" 2>/dev/null) || exit 0
+    mins=${in%% *}; msg=${in#* }
+    [[ $mins =~ ^[0-9]+$ ]] || { note "Reminder" "Start with a number of minutes"; exit 1; }
+    [[ $msg == "$in" ]] && msg="Reminder"
+    systemd-run --user --quiet --unit="fluidity-reminder-$(date +%s)" --on-active="${mins}m" \
+      --description="$msg" notify-send -u critical -a Reminder "Reminder" "$msg"
+    note "Reminder set" "$msg in ${mins} min" ;;
+  reminders)
+    now=$(date +%s%6N)
+    list=$(systemctl --user list-timers 'fluidity-reminder-*' --no-legend --output=json | jq -r '.[] | "\(.next) \(.activates)"' |
+      while read -r next unit; do
+        echo "$(( (next - now) / 60000000 )) min  $(systemctl --user show -p Description --value "$unit")"
+      done)
+    note "Reminders" "${list:-none}" ;;
+  clear-reminders)
+    systemctl --user stop 'fluidity-reminder-*.timer' 2>/dev/null
+    note "Reminders cleared" ;;
+  *) sed -n '2,6s/^# \?//p' "$0" >&2; exit 1 ;;
+esac

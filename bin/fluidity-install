@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Install packages: from the Arch repos with pacman, the rest from the AUR (yay or paru).
+#   fluidity-install PKG...
+# From a keybind (no terminal), it opens itself in a floating terminal so sudo can ask for the password.
+(($#)) || { sed -n '3s/^# //p' "$0" >&2; exit 1; }
+if [[ ! -t 0 && -z ${FLUIDITY_TTY:-} ]]; then exec fluidity-launch tui --app-id=fluidity.install "$0" "$@"; fi
+repo=() aur=()
+for p in "$@"; do
+  pacman -Q "$p" >/dev/null 2>&1 && continue
+  if pacman -Si "$p" >/dev/null 2>&1; then repo+=("$p"); else aur+=("$p"); fi
+done
+((${#repo[@]})) && sudo pacman -S --needed --noconfirm "${repo[@]}"
+if ((${#aur[@]})); then
+  helper=$(command -v yay || command -v paru) || { echo "fluidity-install: no AUR helper (yay or paru) for: ${aur[*]}" >&2; exit 1; }
+  # build with the system python: a mise/pyenv python on PATH breaks AUR builds
+  PATH=/usr/bin:$PATH "$helper" -S --needed --noconfirm "${aur[@]}"
+fi
+[[ -t 0 && -z ${FLUIDITY_TTY:-} ]] && read -rp "done. press enter " _
+exit 0

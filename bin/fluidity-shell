@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Shell actions outside the Quickshell config:
+#   fluidity-shell brightness up|down N | set N    monitor brightness (backlight, else DDC), with the island OSD
+#   fluidity-shell clipboard                       the clipboard island
+run=${XDG_RUNTIME_DIR:-/tmp}
+case ${1:-} in
+  brightness)
+    if brightnessctl -l -c backlight -m 2>/dev/null | grep -q .; then
+      case ${2:-} in up) brightnessctl -c backlight set "${3:-5}%+" >/dev/null ;; down) brightnessctl -c backlight set "${3:-5}%-" >/dev/null ;; set) brightnessctl -c backlight set "${3:-100}%" >/dev/null ;; esac
+      target=$(brightnessctl -c backlight -m | cut -d, -f4 | tr -d %)
+    else
+      # DDC is slow (~0.3 s a call): key repeats move a cached target, one background writer applies the latest
+      cache=$run/fluidity-brightness
+      [[ -s $cache ]] || ddcutil getvcp 10 --brief 2>/dev/null | awk '{print $4}' >"$cache"
+      now=$(<"$cache"); now=${now:-100}
+      case ${2:-} in up) target=$((now + ${3:-5})) ;; down) target=$((now - ${3:-5})) ;; set) target=${3:-100} ;; *) exit 1 ;; esac
+      ((target > 100)) && target=100; ((target < 1)) && target=1
+      echo "$target" >"$cache"
+      ( flock -n 9 || exit 0; applied=
+        while [[ $(<"$cache") != "$applied" ]]; do applied=$(<"$cache"); ddcutil setvcp 10 "$applied" --noverify >/dev/null 2>&1; done
+      ) 9>"$run/fluidity-brightness.lock" &
+    fi
+    qs -c fluidity ipc call osd brightness "$target" >/dev/null 2>&1 ;;
+  clipboard) exec fluidity-island clipboard ;;
+  *) sed -n '3,4s/^# \?//p' "$0" >&2; exit 1 ;;
+esac

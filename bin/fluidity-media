@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Media keys: fluidity-media play-pause|next|previous (MPRIS through playerctl, else the shell).
+case ${1:-} in
+  play-pause | toggle) playerctl play-pause 2>/dev/null || qs -c fluidity ipc call media toggle ;;
+  next) playerctl next 2>/dev/null || qs -c fluidity ipc call media next ;;
+  previous | prev) playerctl previous 2>/dev/null || qs -c fluidity ipc call media previous ;;
+  *) echo "usage: fluidity-media play-pause|next|previous" >&2; exit 1 ;;
+esac

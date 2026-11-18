@@ -17,6 +17,9 @@ for _, name in ipairs({ "monitors", "input", "bindings", "looknfeel", "autostart
   if io.open(path, "r") then dofile(path) end
 end
 
+-- runtime toggles (gaps, aspect ratio, per-workspace layouts)
+require("hypr.toggles")
+
 -- the theme's last word (some themes bring their own gaps, corners and motion)
 local final = home .. "/.config/fluidity/theme/hyprland-final.lua"
 if io.open(final, "r") then dofile(final) end

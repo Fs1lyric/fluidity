@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Toggles: fluidity-toggle nightlight|idle   ·   fluidity-toggle status nightlight|idle  (prints "NAME on|off")
+run=${XDG_RUNTIME_DIR:-/tmp}
+say() { qs -c fluidity ipc call island notify "$1" "$2" >/dev/null 2>&1 || notify-send -u low -a Fluidity "$1" "$2"; }
+night_on() { local t; t=$(hyprctl hyprsunset temperature 2>/dev/null | grep -oE '[0-9]+' | head -1); [[ -n $t && $t -lt 6000 ]]; }
+idle_on() { [[ -s $run/fluidity-awake.pid ]] && kill -0 "$(<"$run/fluidity-awake.pid")" 2>/dev/null; }
+case ${1:-} in
+  nightlight)
+    pgrep -x hyprsunset >/dev/null || { setsid uwsm-app -- hyprsunset >/dev/null 2>&1 & sleep 0.5; }
+    if night_on; then t=6500; else t=4000; fi
+    for _ in {1..10}; do
+      hyprctl hyprsunset temperature $t >/dev/null 2>&1; sleep 0.2
+      [[ $(hyprctl hyprsunset temperature 2>/dev/null | grep -oE '[0-9]+' | head -1) == "$t" ]] && break
+    done
+    if ((t < 6000)); then say "Night light on" "${t}K"; else say "Night light off" ""; fi ;;
+  idle)
+    if idle_on; then kill "$(<"$run/fluidity-awake.pid")"; rm -f "$run/fluidity-awake.pid"; say "Stay awake off" "The screen locks when idle again"
+    else
+      setsid systemd-inhibit --what=idle --who=fluidity --why="Stay awake" sleep infinity >/dev/null 2>&1 &
+      echo $! >"$run/fluidity-awake.pid"; say "Stay awake on" "The screen won't lock or sleep"
+    fi ;;
+  status)
+    case ${2:-} in
+      nightlight) night_on && echo "nightlight on" || echo "nightlight off" ;;
+      idle) idle_on && echo "idle on" || echo "idle off" ;;
+      *) exit 1 ;;
+    esac ;;
+  *) sed -n '2s/^# //p' "$0" >&2; exit 1 ;;
+esac

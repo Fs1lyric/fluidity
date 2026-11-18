@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# Launch apps the way the keybindings expect.
+#   fluidity-launch terminal [cmd...]        terminal in $HOME
+#   fluidity-launch tmux                     terminal attached to tmux session "Work"
+#   fluidity-launch browser [--private] [url]
+#   fluidity-launch editor [file...]         $EDITOR (nvim) in a terminal
+#   fluidity-launch files [--cwd]            the file manager (Burrow if installed, else Nautilus)
+#   fluidity-launch tui [--app-id=ID] cmd [args...]
+#   fluidity-launch webapp url [flags...]    a Helium app window
+#   fluidity-launch focus pattern cmd...     focus a window matching pattern, else run cmd
+#   fluidity-launch focus-tui cmd            focus the TUI window, else open it
+#   fluidity-launch focus-webapp name url    focus the web app window, else open it
+# A missing app says so in a notification instead of failing silently.
+
+missing() { notify-send -u low -a Fluidity "$1 isn't installed" "Install it, or rebind the key in ~/.config/hypr/bindings.lua"; exit 1; }
+app() {
+  [[ $1 == xdg-terminal-exec ]] || command -v "$1" >/dev/null 2>&1 || missing "$1"
+  exec setsid uwsm-app -- "$@"
+}
+
+# cwd of the shell running in the focused terminal (falls back to $HOME).
+terminal_cwd() {
+  local pid child
+  pid=$(hyprctl activewindow -j | jq -r '.pid // empty')
+  if [[ -n $pid ]]; then
+    while child=$(pgrep -P "$pid" | tail -1) && [[ -n $child ]]; do pid=$child; done
+    readlink "/proc/$pid/cwd" 2>/dev/null && return
+  fi
+  echo "$HOME"
+}
+
+focus_or() {
+  local pattern=$1; shift
+  local address
+  address=$(hyprctl clients -j | jq -r --arg p "$pattern" \
+    '.[] | select((.class | test("\\b" + $p + "\\b"; "i")) or (.title | test("\\b" + $p + "\\b"; "i"))) | .address' | head -n1)
+  if [[ -n $address ]]; then
+    hyprctl dispatch "hl.dsp.focus({ window = \"address:$address\" })" >/dev/null
+  else
+    # "uwsm-app -- CMD": check CMD exists first
+    if [[ $1 == uwsm-app && ${2:-} == -- && -n ${3:-} ]] && ! command -v "$3" >/dev/null 2>&1; then missing "$3"; fi
+    exec "$@"
+  fi
+}
+
+cmd=${1:-}; shift || true
+case $cmd in
+  terminal) app xdg-terminal-exec --dir="$HOME" "$@" ;;
+  tmux) app xdg-terminal-exec bash -c "tmux attach || tmux new -s Work" ;;
+  browser)
+    # xdg-mime, not xdg-settings: the latter misreports while $BROWSER is set.
+    desktop=$(xdg-mime query default x-scheme-handler/https)
+    # Whole Exec line minus %U-style field codes: it may be a wrapper (systemd-run … helium-browser).
+    read -ra exe <<<"$(sed -n 's/^Exec=//p' {~/.local,/usr}/share/applications/"$desktop" 2>/dev/null | head -1 | sed 's/ %[a-zA-Z]//g')"
+    ((${#exe[@]})) || exe=(zen-browser)
+    if "${exe[-1]}" --help 2>/dev/null | grep -q MOZ_LOG; then private=--private-window; else private=--incognito; fi
+    app "${exe[@]}" "${@/--private/$private}" ;;
+  editor) exec "$0" tui "${EDITOR:-nvim}" "$@" ;;
+  files)
+    fm=nautilus; command -v burrow >/dev/null 2>&1 && fm=burrow
+    if [[ ${1:-} == --cwd ]]; then app "$fm" "$(terminal_cwd)"; else app "$fm"; fi ;;
+  tui)
+    if [[ ${1:-} == --app-id=* ]]; then id=${1#--app-id=}; shift; else id="fluidity.$(basename "$1")"; fi
+    command -v "$1" >/dev/null 2>&1 || missing "$1"
+    app xdg-terminal-exec --app-id="$id" -e "$@" ;;
+  webapp) app helium-browser --app="$1" "${@:2}" ;;
+  focus) focus_or "$@" ;;
+  focus-tui) focus_or "fluidity.$(basename "$1")" "$0" tui "$@" ;;
+  focus-webapp) focus_or "$1" "$0" webapp "${@:2}" ;;
+  *) sed -n '2,13s/^# \?//p' "$0" >&2; exit 1 ;;
+esac

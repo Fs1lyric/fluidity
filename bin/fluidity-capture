@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Capture: fluidity-capture screenshot [region|full|window] | record [audio] | ocr | colour
+# Screenshots go to ~/Pictures and the clipboard; recordings to ~/Videos/Recordings (gpu-screen-recorder).
+say() { notify-send -a Fluidity "$@"; }
+pics="$HOME/Pictures"; vids="$HOME/Videos/Recordings"
+case ${1:-} in
+  screenshot)
+    mkdir -p "$pics"; file="$pics/screenshot-$(date +%F_%H-%M-%S).png"
+    case ${2:-region} in
+      region) hyprpicker -r -z >/dev/null 2>&1 & freeze=$!; sleep 0.1
+              geo=$(slurp -d -b 0a0c0e66 -c d7e59bff -w 2); kill $freeze 2>/dev/null; [[ -n $geo ]] || exit 0
+              grim -g "$geo" "$file" ;;
+      full) grim -o "$(hyprctl monitors -j | jq -r '.[] | select(.focused) | .name')" "$file" ;;
+      window) geo=$(hyprctl activewindow -j | jq -r '"\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"'); grim -g "$geo" "$file" ;;
+    esac || exit 1
+    wl-copy <"$file"
+    (action=$(notify-send -a Screenshot -i "$file" -A open=Open -A folder="Show in folder" "Screenshot saved" "Copied to the clipboard")
+     case $action in open) xdg-open "$file" ;; folder) xdg-open "$pics" ;; esac) >/dev/null 2>&1 &
+    ;;
+  record)
+    if pidof -q gpu-screen-recorder; then
+      kill -INT $(pidof gpu-screen-recorder); sleep 0.5
+      say "Recording saved" "$(ls -t "$vids"/*.mp4 2>/dev/null | head -1)"; exit 0
+    fi
+    command -v gpu-screen-recorder >/dev/null || { say "Recording needs gpu-screen-recorder"; exit 1; }
+    sound=(); [[ ${2:-} == audio ]] && sound=(-a default_output)
+    mon=$(hyprctl monitors -j | jq -c '[.[] | select(.focused)][0]')
+    geo=$(slurp -d -b 0a0c0e66 -c d7e59bff -w 2 -f "%wx%h+%x+%y") || exit 0
+    mkdir -p "$vids"
+    setsid gpu-screen-recorder -w region -region "$geo" -f "$(jq -r '.refreshRate | round' <<<"$mon")" "${sound[@]}" \
+      -o "$vids/recording-$(date +%Y%m%d_%H%M%S).mp4" >/dev/null 2>&1 </dev/null &
+    say "Recording" "Press the same key again to stop" ;;
+  ocr)
+    hyprpicker -r -z >/dev/null 2>&1 & freeze=$!; trap 'kill $freeze 2>/dev/null' EXIT; sleep 0.1
+    geo=$(slurp -d -b 0a0c0e66 -c d7e59bff -w 2) || exit 0
+    text=$(grim -g "$geo" - | tesseract stdin stdout --oem 1 --psm 6 -l "${OCR_LANGS:-eng}" --dpi 300 -c preserve_interword_spaces=1 2>/dev/null)
+    [[ -n $text ]] || { say "No text found"; exit 1; }
+    printf '%s' "$text" | wl-copy; say "Copied text" "${text:0:80}" ;;
+  colour | color)
+    pkill hyprpicker && exit 0
+    c=$(hyprpicker -a -f hex) && say "Copied $c" "" ;;
+  *) sed -n '2s/^# //p' "$0" >&2; exit 1 ;;
+esac

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Displays: fluidity-display internal toggle | mirror | lid closed|open
+internal=$(hyprctl monitors all -j | jq -r '[.[] | select(.name | test("^(eDP|LVDS|DSI)"))][0].name // empty')
+ev() { hyprctl eval "$1" >/dev/null; }
+case ${1:-} in
+  internal)
+    [[ -n $internal ]] || exit 0
+    if hyprctl monitors -j | jq -e --arg n "$internal" 'any(.name == $n)' >/dev/null; then ev "hl.monitor({ output = \"$internal\", disabled = true })"
+    else ev "hl.monitor({ output = \"$internal\", mode = \"preferred\", position = \"auto\", scale = \"auto\" })"; fi ;;
+  mirror)
+    mapfile -t mons < <(hyprctl monitors -j | jq -r '.[].name')
+    ((${#mons[@]} > 1)) || { notify-send -u low -a Fluidity "Mirroring needs a second display"; exit 0; }
+    ev "hl.monitor({ output = \"${mons[1]}\", mode = \"preferred\", position = \"auto\", scale = \"auto\", mirror = \"${mons[0]}\" })" ;;
+  lid)
+    [[ -n $internal ]] || exit 0
+    n=$(hyprctl monitors -j | jq 'length')
+    if [[ ${2:-} == closed ]]; then ((n > 1)) && ev "hl.monitor({ output = \"$internal\", disabled = true })"
+    else ev "hl.monitor({ output = \"$internal\", mode = \"preferred\", position = \"auto\", scale = \"auto\" })"; fi ;;
+  *) sed -n '2s/^# //p' "$0" >&2; exit 1 ;;
+esac

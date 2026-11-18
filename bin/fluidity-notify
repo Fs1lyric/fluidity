@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Notifications: fluidity-notify dnd | clear | dismiss
+case ${1:-} in
+  dnd)
+    qs -c fluidity ipc call notifications toggleDnd >/dev/null
+    state=$(qs -c fluidity ipc call notifications dndStatus 2>/dev/null)
+    qs -c fluidity ipc call island notify "Do not disturb ${state:-toggled}" "" >/dev/null 2>&1 ;;
+  clear) exec qs -c fluidity ipc call notifications clear ;;
+  dismiss) exec qs -c fluidity ipc call notifications dismiss ;;
+  *) echo "usage: fluidity-notify dnd|clear|dismiss" >&2; exit 1 ;;
+esac
