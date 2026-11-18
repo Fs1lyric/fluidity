@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# Move this machine onto Fluidity, or back to what it was before.
+#   fluidity-switch on     install over the old setup (every replaced file is backed up first), then reload
+#   fluidity-switch back   put the backed-up files back and restart the old shell
+# Your monitors.lua and input.lua are kept as they are (they describe your hardware).
+set -uo pipefail
+ROOT=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
+CONFIG=${XDG_CONFIG_HOME:-$HOME/.config}
+STATE=${XDG_STATE_HOME:-$HOME/.local/state}/fluidity
+rec=$STATE/switch
+live() { [[ -z ${FLUIDITY_NO_LIVE:-} && -n ${HYPRLAND_INSTANCE_SIGNATURE:-} ]]; }
+
+case ${1:-} in
+  on)
+    [[ -f $rec/backup ]] && { echo "already switched on (fluidity-switch back first)"; exit 0; }
+    mkdir -p "$rec" "$STATE"
+    backup=$STATE/backup/switch-$(date +%Y%m%d-%H%M%S)
+    echo "$backup" >"$rec/backup"
+    [[ -L $CONFIG/lyric-theme ]] && readlink "$CONFIG/lyric-theme" >"$rec/lyric-theme"
+    touch "$STATE/installed-files"
+    for keep in monitors input; do     # yours: hardware settings, never replaced
+      [[ -f $CONFIG/hypr/$keep.lua ]] && echo "$CONFIG/hypr/$keep.lua" >>"$STATE/installed-files"
+    done
+    FLUIDITY_TAKEOVER=1 FLUIDITY_BACKUP=$backup FLUIDITY_NO_LIVE=1 bash "$ROOT/install.sh" || exit 1
+    [[ -f $rec/lyric-theme ]] && ln -sfn "$CONFIG/fluidity/theme" "$CONFIG/lyric-theme"   # old apps follow the Fluidity theme
+    if live; then
+      for s in lyric luminescent dock $(cat "$ROOT"/themes/*/shell 2>/dev/null | sort -u); do pkill -f "qs -c $s\b" 2>/dev/null; done
+      hyprctl reload >/dev/null; "$ROOT/bin/fluidity-mode" start; "$ROOT/bin/fluidity-wallpaper" restore >/dev/null 2>&1
+    fi
+    echo "Fluidity is on. Backups: $backup. To undo: fluidity-switch back" ;;
+  back)
+    [[ -f $rec/backup ]] || { echo "nothing to switch back from"; exit 1; }
+    backup=$(cat "$rec/backup")
+    if [[ -d $backup ]]; then
+      (cd "$backup" && find . -mindepth 1 -maxdepth 4 \( -type f -o -type l \) -print0) | while IFS= read -r -d '' f; do
+        rel=${f#./}
+        # a backed-up folder (the old dock) comes back whole
+        top=$(cut -d/ -f1-3 <<<"$rel")
+        if [[ -d $backup/$top && $top == .config/quickshell/* ]]; then
+          [[ -L $HOME/$top ]] && rm -f "$HOME/$top"
+          [[ -d $HOME/$top ]] || cp -a "$backup/$top" "$HOME/$top"
+          continue
+        fi
+        rm -rf "${HOME:?}/$rel"; mkdir -p "$(dirname "$HOME/$rel")"; cp -a "$backup/$rel" "$HOME/$rel"
+      done
+    fi
+    [[ -f $rec/lyric-theme ]] && ln -sfn "$(cat "$rec/lyric-theme")" "$CONFIG/lyric-theme"
+    sed -i '\#/hypr/#d' "$STATE/installed-files" 2>/dev/null
+    rm -rf "$rec"
+    if live; then
+      pkill -f "qs -c fluidity" 2>/dev/null; pkill -f "qs -c tahoe-bar" 2>/dev/null
+      hyprctl reload >/dev/null
+      command -v lyric-shell >/dev/null && setsid -f uwsm-app -- qs -c lyric >/dev/null 2>&1
+      command -v lyric-theme >/dev/null && lyric-theme shell >/dev/null 2>&1
+    fi
+    echo "back to the old setup (Fluidity stays installed; fluidity-switch on to return)" ;;
+  *) sed -n '3,4s/^# \?//p' "$0" >&2; exit 1 ;;
+esac

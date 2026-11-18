@@ -311,7 +311,7 @@ Singleton {
             { k: "i", label: "idle", run: "fluidity-toggle idle" }, { k: "g", label: "gaps", run: "fluidity-window gaps" },
             { k: "t", label: "theme", run: "fluidity-theme next" }, { k: "m", label: "mode", run: "fluidity-mode toggle" },
             { k: "w", label: "wall", run: "fluidity-wallpaper next" }, { k: "l", label: "lock", run: "fluidity-lock" },
-            { k: "x", label: "power", open: "power" }] },
+            { k: "x", label: "power", open: "power" }, { k: "a", label: "windows", open: "switcher" }] },
         capture: { title: "capture", keys: [
             { k: "s", label: "region", run: "fluidity-capture screenshot" }, { k: "f", label: "full screen", run: "fluidity-capture screenshot full" },
             { k: "w", label: "window", run: "fluidity-capture screenshot window" }, { k: "r", label: "record", run: "fluidity-capture record" },

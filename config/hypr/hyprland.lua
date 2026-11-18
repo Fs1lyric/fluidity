@@ -12,9 +12,9 @@ package.path = FLUIDITY .. "/default/?.lua;" .. home .. "/.config/hypr/?.lua;" .
 require("hypr.init")
 
 -- yours (each file is optional)
-for _, name in ipairs({ "monitors", "input", "bindings", "looknfeel", "autostart" }) do
+for _, name in ipairs({ "monitors", "input", "bindings", "looknfeel", "autostart", "titlebars", "toolkit" }) do
   local path = home .. "/.config/hypr/" .. name .. ".lua"
-  if io.open(path, "r") then dofile(path) end
+  if io.open(path, "r") then local good, err = pcall(dofile, path); if not good then print("fluidity: " .. name .. ".lua: " .. tostring(err)) end end
 end
 
 -- runtime toggles (gaps, aspect ratio, per-workspace layouts)

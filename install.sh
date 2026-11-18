@@ -10,7 +10,7 @@ export ROOT
 CONFIG=${XDG_CONFIG_HOME:-$HOME/.config}
 STATE=${XDG_STATE_HOME:-$HOME/.local/state}/fluidity
 DATA=${XDG_DATA_HOME:-$HOME/.local/share}
-BACKUP=$STATE/backup/$(date +%Y%m%d-%H%M%S)
+BACKUP=${FLUIDITY_BACKUP:-$STATE/backup/$(date +%Y%m%d-%H%M%S)}
 MANIFEST=$STATE/installed-files
 export CONFIG STATE DATA BACKUP MANIFEST
 mkdir -p "$STATE"; touch "$MANIFEST"
