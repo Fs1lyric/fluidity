@@ -476,9 +476,10 @@ Singleton {
     function key(event) {
         const k = event.key, t = target, txt = event.text, n = items.length;
         const cols = t === "emoji" ? 10 : t === "control" ? 3 : 1;
+        if (Apps.views.includes(t) && Apps.key(event, t)) return true;
         if (k === Qt.Key_Escape) { if (query) { query = ""; } else { if (t === "wallpaper" && wallBefore) sh("fluidity-wallpaper set " + q(wallBefore)); close(); } return true; }
         if (t === "leader") { if (txt) leaderKey(txt.toLowerCase()); return true; }
-        if (Apps.views.includes(t)) return Apps.key(event, t);
+        if (Apps.views.includes(t)) return false;
         if (t === "power") {
             const byKey = powerItems.findIndex(p => p.key === txt);
             if (byKey >= 0) { power(byKey); return true; }

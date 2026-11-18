@@ -116,6 +116,15 @@ scenario("media", "IslandView", dict(view="media", index=1, app=dict(title="Koko
          progress=0.42, playing=True, player="spotify", bars=BARS, lyrics=["the light through the leaves", "we were never going back", "stay with me, stay fluid"], lyric=1)))
 scenario("media-none", "IslandView", dict(view="media", app=dict(title="", bars=[])))
 
+NETS = [dict(ssid="home", signal=82, secure=True, active=True, known=True), dict(ssid="Lyric's iPhone", signal=64, secure=True, known=True),
+        dict(ssid="cafe-free", signal=41, secure=False), dict(ssid="NETGEAR-5G", signal=23, secure=True)]
+scenario("network", "IslandView", dict(view="network", index=1, app=dict(on=True, nets=NETS, status="connected to home · 192.168.1.24")))
+scenario("network-password", "IslandView", dict(view="network", index=3, app=dict(on=True, nets=NETS, ask="NETGEAR-5G", secret="hunter2", status="")))
+DEVS = [dict(name="Galaxy Buds2", icon="󰋋", connected=True, paired=True, battery=74), dict(name="MX Keys", icon="󰌌", paired=True),
+        dict(name="Pixel 8", icon="󰄜", paired=False)]
+scenario("bluetooth", "IslandView", dict(view="bluetooth", index=0, app=dict(on=True, devs=DEVS, scanning=True)))
+scenario("bluetooth-off", "IslandView", dict(view="bluetooth", app=dict(on=False, devs=[])))
+
 PLACES = {"island": "anchors.horizontalCenter: parent.horizontalCenter; y: 14", "fill": "anchors.fill: parent"}
 MAIN = """import QtQuick
 import QtQuick.Window

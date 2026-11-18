@@ -35,6 +35,8 @@ PanelWindow {
         { icon: "\u{f003b}", view: "launcher" },
         { icon: "\u{f00ed}", view: "calendar" },
         { icon: "\u{f075a}", view: "media" },
+        { icon: "\u{f05a9}", view: "network" },
+        { icon: "\u{f00af}", view: "bluetooth" },
         { icon: "\u{f0e09}", view: "wallpaper" },
         { icon: "\u{f014c}", view: "clipboard" },
         { icon: "\u{f0e51}", view: "leader", arg: "capture" },

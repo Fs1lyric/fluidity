@@ -8,11 +8,11 @@ import Quickshell.Services.Mpris
 // Island.qml opens them like any view and hands their keys here (key() returns true when used).
 Singleton {
     id: apps
-    readonly property var views: ["calendar", "media"]
+    readonly property var views: ["calendar", "media", "network", "bluetooth"]
     property string open: ""       // the app on screen, "" when none (polling runs only then)
     property var data: ({})
     // leader ; u: one letter per app
-    readonly property var leaderKeys: [{ k: "c", label: "calendar", open: "calendar" }, { k: "m", label: "media", open: "media" }]
+    readonly property var leaderKeys: [{ k: "c", label: "calendar", open: "calendar" }, { k: "m", label: "media", open: "media" }, { k: "w", label: "wi-fi", open: "network" }, { k: "b", label: "bluetooth", open: "bluetooth" }]
     readonly property string home: Quickshell.env("HOME")
     readonly property string stateDir: (Quickshell.env("XDG_STATE_HOME") || (home + "/.local/state")) + "/fluidity"
     readonly property string calDb: home + "/.local/share/calendio/cal.db"
@@ -23,15 +23,21 @@ Singleton {
         data = ({}); open = v;
         if (v === "calendar") calOpen(arg);
         else if (v === "media") { Island.index = 1; mediaTick(); }
+        else if (v === "network") { netAsk = ""; netSecret = ""; netRefresh(); }
+        else if (v === "bluetooth") btRefresh();
     }
     function key(event, v) {
         if (v === "calendar") return calKey(event);
         if (v === "media") return mediaKey(event);
+        if (v === "network") return netKey(event);
+        if (v === "bluetooth") return btKey(event);
         return false;
     }
     function picked(v, i) {
         if (v === "calendar") { const c = calCells()[i]; if (c) calGo(c); }
         else if (v === "media") { Island.index = i; mediaPress(i); }
+        else if (v === "network") { Island.index = i; netPress(); }
+        else if (v === "bluetooth") { Island.index = i; btPress(); }
     }
 
     readonly property bool shown: Island.overlayShown && Island.target === open
@@ -95,6 +101,128 @@ Singleton {
         else if (k === Qt.Key_Tab || k === Qt.Key_Down) Island.index = (Island.index + 1) % 6;
         else if (k === Qt.Key_Backtab || k === Qt.Key_Up) Island.index = (Island.index + 5) % 6;
         else if (k === Qt.Key_Return || k === Qt.Key_Enter) mediaPress(Island.index);
+        else return false;
+        return true;
+    }
+
+    function say(msg) { Island.sh("notify-send -a Fluidity " + Island.q(msg)) }
+    // list keys shared by the list apps
+    function listMove(event, n) {
+        if (event.key === Qt.Key_Down || event.key === Qt.Key_Tab) { Island.index = Math.min(Math.max(0, n - 1), Island.index + 1); return true; }
+        if (event.key === Qt.Key_Up || event.key === Qt.Key_Backtab) { Island.index = Math.max(0, Island.index - 1); return true; }
+        return false;
+    }
+    Timer { interval: 4000; repeat: true; running: apps.open === "network" || apps.open === "bluetooth"
+        onTriggered: apps.open === "network" ? apps.netRefresh() : apps.btRefresh() }
+
+    // ================= network (nmcli) =================
+    property string netAsk: ""       // the network a password is being typed for
+    property string netSecret: ""
+    property var nets: []
+    function netRefresh() { if (!netProc.running) netProc.running = true }
+    // nmcli -t escapes ':' inside fields as '\:'
+    function nmSplit(line) {
+        const out = []; let cur = "";
+        for (let i = 0; i < line.length; i++) {
+            if (line[i] === "\\" && i + 1 < line.length) cur += line[++i];
+            else if (line[i] === ":") { out.push(cur); cur = ""; }
+            else cur += line[i];
+        }
+        out.push(cur);
+        return out;
+    }
+    Process {
+        id: netProc
+        command: ["sh", "-c", "export NMCLI=1; nmcli -w 3 -t -f WIFI radio; echo --; nmcli -t -f IN-USE,SSID,SIGNAL,SECURITY dev wifi list 2>/dev/null; echo --; " +
+                  "nmcli -t -f NAME,TYPE con show 2>/dev/null; echo --; d=$(nmcli -t -f DEVICE,TYPE dev | awk -F: '$2==\"wifi\"{print $1; exit}'); [ -n \"$d\" ] && nmcli -t -g IP4.ADDRESS dev show \"$d\" | head -1; echo --; nmcli -t -f TYPE,STATE dev | grep -q '^ethernet:connected' && echo wired"]
+        stdout: StdioCollector { onStreamFinished: {
+            const parts = String(text).split("--\n");
+            const on = (parts[0] || "").trim() === "enabled";
+            const known = (parts[2] || "").split("\n").filter(Boolean).map(apps.nmSplit).filter(f => /wireless/.test(f[1] || "")).map(f => f[0]);
+            const seen = {};
+            for (const l of (parts[1] || "").split("\n").filter(Boolean)) {
+                const f = apps.nmSplit(l), ssid = f[1];
+                if (!ssid) continue;
+                const n = { ssid: ssid, signal: Number(f[2]) || 0, secure: !!f[3] && f[3] !== "--", active: f[0] === "*", known: known.includes(ssid) };
+                if (!seen[ssid] || n.active || n.signal > seen[ssid].signal && !seen[ssid].active) seen[ssid] = n;
+            }
+            apps.nets = Object.values(seen).sort((a, b) => b.active - a.active || b.signal - a.signal);
+            const act = apps.nets.find(n => n.active), ip = (parts[3] || "").trim().replace(/\/\d+$/, "");
+            apps.patch({ on: on, nets: apps.nets.slice(0, 7), ask: apps.netAsk, secret: apps.netSecret,
+                         status: act ? "connected to " + act.ssid + (ip ? " · " + ip : "") : (parts[4] || "").trim() === "wired" ? "on ethernet" : on ? "not connected" : "" });
+            Island.index = Math.min(Island.index, Math.max(0, Math.min(7, apps.nets.length) - 1));
+        } }
+    }
+    function netPress() {
+        const n = nets[Island.index];
+        if (!n) return;
+        const id = Island.q(n.ssid);
+        if (n.active) Island.sh("nmcli con down id " + id);
+        else if (n.known) Island.sh("nmcli con up id " + id + " || notify-send -a Fluidity 'Could not join' " + id);
+        else if (n.secure) { netAsk = n.ssid; netSecret = ""; patch({ ask: netAsk, secret: "" }); return; }
+        else Island.sh("nmcli dev wifi connect " + id + " || notify-send -a Fluidity 'Could not join' " + id);
+        later(1500, netRefresh);
+    }
+    function netKey(event) {
+        const k = event.key, t = event.text;
+        if (netAsk) {
+            if (k === Qt.Key_Escape) { netAsk = ""; patch({ ask: "" }); return true; }
+            if (k === Qt.Key_Return || k === Qt.Key_Enter) {
+                Island.sh("nmcli dev wifi connect " + Island.q(netAsk) + " password " + Island.q(netSecret) + " || notify-send -a Fluidity 'Wrong password?' " + Island.q(netAsk));
+                netAsk = ""; netSecret = ""; patch({ ask: "", secret: "" }); later(2500, netRefresh); return true;
+            }
+            if (k === Qt.Key_Backspace) netSecret = netSecret.slice(0, -1);
+            else if (t && t >= " ") netSecret += t;
+            patch({ secret: netSecret });
+            return true;
+        }
+        if (listMove(event, Math.min(7, nets.length))) return true;
+        if (k === Qt.Key_Return || k === Qt.Key_Enter) netPress();
+        else if (t === "r") { Island.sh("nmcli dev wifi rescan"); later(2500, netRefresh); }
+        else if (t === "w") { Island.sh("nmcli radio wifi " + (data.on ? "off" : "on")); later(800, netRefresh); }
+        else if (t === "f") { const n = nets[Island.index]; if (n && n.known) { Island.sh("nmcli con delete id " + Island.q(n.ssid)); later(800, netRefresh); } }
+        else return false;
+        return true;
+    }
+
+    // ================= bluetooth (bluetoothctl) =================
+    property var devs: []
+    readonly property var btIcons: ({ "audio-headset": "󰋋", "audio-headphones": "󰋋", "audio-card": "󰓃", "input-keyboard": "󰌌", "input-mouse": "󰍽",
+        "input-gaming": "󰊴", phone: "󰄜", computer: "󰟀", "video-display": "󰍹" })
+    function btRefresh() { if (!btProc.running) btProc.running = true }
+    Process {
+        id: btProc
+        command: ["bash", "-c", "timeout 4 bluetoothctl show 2>/dev/null | grep -q 'Powered: yes' && echo on || echo off; " +
+            "timeout 4 bluetoothctl devices 2>/dev/null | while read -r _ mac name; do i=$(timeout 3 bluetoothctl info \"$mac\"); " +
+            "printf '%s\\t%s\\t%s\\t%s\\t%s\\t%s\\n' \"$mac\" \"$name\" \"$(grep -q 'Paired: yes' <<<\"$i\" && echo 1)\" \"$(grep -q 'Connected: yes' <<<\"$i\" && echo 1)\" " +
+            "\"$(sed -n 's/.*Icon: //p' <<<\"$i\")\" \"$(sed -n 's/.*Battery Percentage: .*(\\([0-9]*\\)).*/\\1/p' <<<\"$i\")\"; done"]
+        stdout: StdioCollector { onStreamFinished: {
+            const l = String(text).split("\n").filter(Boolean);
+            const on = l[0] === "on";
+            apps.devs = l.slice(1).map(r => r.split("\t")).map(f => ({ mac: f[0], name: f[1] || f[0], paired: f[2] === "1", connected: f[3] === "1",
+                icon: apps.btIcons[f[4]] || "󰂯", battery: f[5] ? Number(f[5]) : -1 }))
+                .sort((a, b) => b.connected - a.connected || b.paired - a.paired || a.name.localeCompare(b.name)).slice(0, 7);
+            apps.patch({ on: on, devs: apps.devs, scanning: btScan.running });
+            Island.index = Math.min(Island.index, Math.max(0, apps.devs.length - 1));
+        } }
+    }
+    Process { id: btScan; command: ["bluetoothctl", "--timeout", "12", "scan", "on"]; onRunningChanged: apps.patch({ scanning: running }) }
+    function btPress() {
+        const x = devs[Island.index];
+        if (!x) return;
+        const m = Island.q(x.mac);
+        if (x.connected) Island.sh("bluetoothctl disconnect " + m);
+        else if (x.paired) Island.sh("bluetoothctl connect " + m + " || notify-send -a Fluidity 'Could not connect' " + Island.q(x.name));
+        else Island.sh("bluetoothctl pair " + m + " && bluetoothctl trust " + m + " && bluetoothctl connect " + m + " || notify-send -a Fluidity 'Could not pair' " + Island.q(x.name));
+        later(2500, btRefresh);
+    }
+    function btKey(event) {
+        const k = event.key, t = event.text;
+        if (listMove(event, devs.length)) return true;
+        if (k === Qt.Key_Return || k === Qt.Key_Enter) btPress();
+        else if (t === "s") { if (!data.on) Island.sh("bluetoothctl power on"); btScan.running = true; }
+        else if (t === "b") { Island.sh("bluetoothctl power " + (data.on ? "off" : "on")); later(800, btRefresh); }
+        else if (t === "x") { const x = devs[Island.index]; if (x) { Island.sh("bluetoothctl remove " + Island.q(x.mac)); later(800, btRefresh); } }
         else return false;
         return true;
     }
