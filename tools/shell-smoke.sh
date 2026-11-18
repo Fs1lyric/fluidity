@@ -7,7 +7,7 @@ root=$(cd "$(dirname "$0")/.." && pwd)
 tmp=$(mktemp -d)
 cleanup() { kill ${xvfb:-} ${qsp:-} 2>/dev/null; for m in $(awk -v t="$tmp" 'index($2, t) == 1 {print $2}' /proc/mounts); do fusermount3 -u "$m" 2>/dev/null; done; rm -rf "$tmp"; }
 trap cleanup EXIT
-cp -r "$root/default/quickshell/fluidity" "$tmp/fluidity"
+cp -r "$root/default/quickshell/${SHELL_NAME:-fluidity}" "$tmp/fluidity"
 sed -i -E '/WlrLayershell\./d; /^\s*mask: Region/d' "$tmp"/fluidity/*.qml
 disp=":$((60 + RANDOM % 30))"
 Xvfb "$disp" -screen 0 1920x1080x24 -nolisten tcp >/dev/null 2>&1 & xvfb=$!

@@ -1,0 +1,18 @@
+{
+  "pins": [
+    "org.gnome.Nautilus",
+    "zen",
+    "calendio",
+    "md.obsidian.Obsidian",
+    "lyric.nvim",
+    "DaVinciResolve",
+    "vesktop",
+    "spotify"
+  ],
+  "autohide": true,
+  "magnify": true,
+  "size": 96,
+  "magnifySize": 114,
+  "indicators": true,
+  "position": "bottom"
+}

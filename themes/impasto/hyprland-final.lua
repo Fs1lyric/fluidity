@@ -39,23 +39,18 @@ hl.layer_rule({ match = { namespace = "qs-lum-.*" }, blur = true, ignore_alpha =
 -- Impasto runs its author's shell (qs -c impasto, https://github.com/andreumassanet/impasto @311b808) with its keys.
 hl.unbind("SUPER + SPACE")
 hl.bind("SUPER + SPACE", hl.dsp.global("quickshell:launcher"))
-hl.unbind("SUPER + X")
-hl.bind("SUPER + X", hl.dsp.global("quickshell:session"))
+hl.bind("SUPER + F1", hl.dsp.global("quickshell:session"))
 hl.unbind("SUPER + ESCAPE")
 hl.bind("SUPER + ESCAPE", hl.dsp.global("quickshell:session"))
-hl.unbind("SUPER + TAB")
-hl.bind("SUPER + TAB", hl.dsp.global("quickshell:overview"))
-hl.unbind("SUPER + comma")
-hl.bind("SUPER + comma", hl.dsp.global("quickshell:settings"))
-hl.unbind("SUPER + T")
-hl.bind("SUPER + T", hl.dsp.global("quickshell:appearance"))
-hl.unbind("SUPER + U")
-hl.bind("SUPER + U", hl.dsp.global("quickshell:stats"))
-hl.unbind("SUPER + CTRL + B")
-hl.bind("SUPER + CTRL + B", hl.dsp.global("quickshell:zen"))
-hl.unbind("SUPER + CTRL + W")
-hl.bind("SUPER + CTRL + W", hl.dsp.global("quickshell:widgets"))
+hl.bind("SUPER + F2", hl.dsp.global("quickshell:overview"))
+hl.bind("SUPER + F3", hl.dsp.global("quickshell:settings"))
+hl.bind("SUPER + F4", hl.dsp.global("quickshell:appearance"))
+hl.bind("SUPER + F5", hl.dsp.global("quickshell:stats"))
+hl.bind("SUPER + F6", hl.dsp.global("quickshell:zen"))
+hl.bind("SUPER + F7", hl.dsp.global("quickshell:widgets"))
 hl.unbind("SUPER + GRAVE")
 hl.bind("SUPER + GRAVE", hl.dsp.global("quickshell:controls"))
 
 if io.open(keyboard, "r") then dofile(keyboard) end
+
+-- Fluidity moved these off its own keys (tools/free-theme-keys.py): SUPER + X -> SUPER + F1, SUPER + TAB -> SUPER + F2, SUPER + comma -> SUPER + F3, SUPER + T -> SUPER + F4, SUPER + U -> SUPER + F5, SUPER + CTRL + B -> SUPER + F6, SUPER + CTRL + W -> SUPER + F7

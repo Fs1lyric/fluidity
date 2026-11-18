@@ -4,7 +4,7 @@ step "links: commands, shell, theme shells, fonts"
 [[ $(readlink -f "$DATA/fluidity" 2>/dev/null) == "$ROOT" ]] || own_link "$ROOT" "$DATA/fluidity"
 mkdir -p "$HOME/.local/bin"
 for b in "$ROOT"/bin/fluidity*; do own_link "$b" "$HOME/.local/bin/$(basename "$b")"; done
-own_link "$ROOT/default/quickshell/fluidity" "$CONFIG/quickshell/fluidity"
+for d in "$ROOT"/default/quickshell/*/; do own_link "${d%/}" "$CONFIG/quickshell/$(basename "$d")"; done   # fluidity, tahoe-bar, dock
 for d in "$ROOT"/shells/*/; do
   n=$(basename "$d"); l=$CONFIG/quickshell/$n
   # a theme shell another setup still links (the old Luminescent) is left alone until you switch over

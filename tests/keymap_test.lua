@@ -102,4 +102,20 @@ for _, b in ipairs(binds) do
 end
 if #leaks == 0 then ok("no lyric-/omarchy commands") else fail("no lyric-/omarchy commands", table.concat(leaks, "; ")) end
 
+-- themes may not take a Fluidity key, except to do the same job their own way (power screen, launcher)
+local SAME_JOB = { ["SUPER + ESCAPE"] = true, ["SUPER + SPACE"] = true }
+local clashes = {}
+local th = io.popen("ls " .. root .. "/themes/*/hyprland-final.lua " .. root .. "/themes/*/hyprland.lua 2>/dev/null")
+for f in th:lines() do
+  for line in io.lines(f) do
+    local chord = line:match('^%s*[%w.]*%.bind%("([^"]+)"')
+    if chord and not line:match("^%s*%-%-") then
+      local c = norm(chord)
+      if by[c] and not SAME_JOB[c] then clashes[#clashes + 1] = f:match("themes/([^/]+)/") .. ": " .. c end
+    end
+  end
+end
+th:close()
+if #clashes == 0 then ok("no theme takes a Fluidity key") else fail("no theme takes a Fluidity key", table.concat(clashes, "; ")) end
+
 os.exit(fails == 0 and 0 or 1)

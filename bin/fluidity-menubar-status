@@ -1,0 +1,226 @@
+#!/usr/bin/python3
+"""What the menu bar's extra items show (qs -c tahoe-bar Bar.qml polls this).
+
+  fluidity-menubar-status cpu | memory | vpn          -> {"text", "rows": [{"text", "detail"}], ...}
+  fluidity-menubar-status weather [c|f] [PLACE]       cached 15 min in ~/.cache/fluidity/weather.json
+  fluidity-menubar-status custom 'SHELL COMMAND'      first output line = label, lines = menu rows
+
+Items and their order live in ~/.local/state/fluidity/menubar.json (System Settings > Menu Bar).
+Tests: ~/claude/archy-cleanup/settings/test_lyric_menubar_status.py
+"""
+import json
+import os
+import subprocess
+import sys
+import time
+import urllib.parse
+import urllib.request
+
+CACHE = os.path.expanduser("~/.cache/fluidity")
+WEATHER_TTL = 900
+
+
+def run(args, timeout=5):
+    try:
+        return subprocess.run(args, capture_output=True, text=True, timeout=timeout).stdout
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+
+
+def read(path):
+    try:
+        with open(path) as f:
+            return f.read()
+    except OSError:
+        return ""
+
+
+# ---- parsers ------------------------------------------------------------------------------
+
+def cpu_times(stat):
+    for line in stat.splitlines():
+        if line.startswith("cpu "):
+            v = [int(x) for x in line.split()[1:]]
+            idle = v[3] + (v[4] if len(v) > 4 else 0)
+            return sum(v), idle
+    return 0, 0
+
+
+def cpu_percent(a, b):
+    (ta, ia), (tb, ib) = cpu_times(a), cpu_times(b)
+    dt = tb - ta
+    return round(100 * (dt - (ib - ia)) / dt) if dt > 0 else 0
+
+
+def parse_meminfo(text):
+    kb = {}
+    for line in text.splitlines():
+        k, _, v = line.partition(":")
+        if v.strip():
+            kb[k] = int(v.split()[0]) * 1024
+    total = kb.get("MemTotal", 0)
+    used = total - kb.get("MemAvailable", kb.get("MemFree", 0))
+    return {"used": used, "total": total, "percent": round(100 * used / total) if total else 0,
+            "swapUsed": kb.get("SwapTotal", 0) - kb.get("SwapFree", 0)}
+
+
+SELF = {"fluidity-menuba", "ps"}
+
+
+def busiest(a, b, dtotal, n=5):
+    """Per-name share of all CPU time between two {pid: (comm, ticks)} snapshots."""
+    use = {}
+    for pid, (comm, ticks) in b.items():
+        if pid in a and comm not in SELF:
+            use[comm] = use.get(comm, 0) + ticks - a[pid][1]
+    rows = sorted(((c, 100 * d / dtotal) for c, d in use.items() if d > 0 and dtotal > 0), key=lambda r: -r[1])
+    return [{"text": c, "detail": f"{round(v, 1):g}%"} for c, v in rows[:n]]
+
+
+def biggest(ps, n=5):
+    """`ps -eo comm,rss` (KiB) grouped by name, biggest first."""
+    use = {}
+    for line in ps.splitlines()[1:]:
+        parts = line.rsplit(None, 1)
+        if len(parts) == 2 and parts[1].isdigit() and parts[0].strip() not in SELF:
+            use[parts[0].strip()] = use.get(parts[0].strip(), 0) + int(parts[1]) * 1024
+    return [{"text": c, "detail": gb(v)} for c, v in sorted(use.items(), key=lambda r: -r[1])[:n]]
+
+
+def proc_ticks():
+    out = {}
+    for pid in os.listdir("/proc"):
+        if not pid.isdigit():
+            continue
+        stat = read(f"/proc/{pid}/stat")
+        l, r = stat.find("("), stat.rfind(")")
+        if l < 0 or r < 0:
+            continue
+        f = stat[r + 2:].split()
+        try:
+            out[int(pid)] = (stat[l + 1:r], int(f[11]) + int(f[12]))
+        except (IndexError, ValueError):
+            pass
+    return out
+
+
+def gb(n):
+    return f"{n / 2**30:.1f} GB"
+
+
+def parse_vpn(nmcli):
+    names = []
+    for line in nmcli.splitlines():
+        kind, _, rest = line.partition(":")
+        name, _, state = rest.rpartition(":")
+        if kind in ("wireguard", "vpn", "tun") and state == "activated":
+            names.append(name.replace("\\:", ":"))
+    return {"active": bool(names), "text": "",
+            "rows": [{"text": n, "detail": "Connected"} for n in names] or [{"text": "Not connected", "detail": ""}]}
+
+
+def parse_wttr(d, units):
+    try:
+        cur = d["current_condition"][0]
+        day = d["weather"][0]
+    except (KeyError, IndexError, TypeError):
+        return {"text": "", "rows": [{"text": "Weather unavailable", "detail": ""}]}
+    u = "F" if units == "f" else "C"
+    place = (d.get("nearest_area") or [{}])[0].get("areaName", [{}])[0].get("value", "Weather")
+    desc = (cur.get("weatherDesc") or [{}])[0].get("value", "")
+    return {"text": f"{cur[f'temp_{u}']}°",
+            "rows": [{"text": place, "detail": desc.strip()},
+                     {"text": "Feels like", "detail": f"{cur[f'FeelsLike{u}']}°"},
+                     {"text": "High / Low", "detail": f"{day[f'maxtemp{u}']}° / {day[f'mintemp{u}']}°"},
+                     {"text": "Humidity", "detail": f"{cur.get('humidity', '?')}%"}]}
+
+
+def custom_result(out, code):
+    lines = [x.strip() for x in out.splitlines() if x.strip()]
+    if not lines:
+        return {"text": "", "rows": [{"text": f"Command failed (exit {code})" if code else "No output", "detail": ""}]}
+    first = lines[0] if len(lines[0]) <= 40 else lines[0][:39] + "…"
+    return {"text": first, "rows": [{"text": x[:80], "detail": ""} for x in lines[:10]]}
+
+
+# ---- items --------------------------------------------------------------------------------
+
+def cpu():
+    a, pa = read("/proc/stat"), proc_ticks()
+    time.sleep(0.5)
+    b, pb = read("/proc/stat"), proc_ticks()
+    p = cpu_percent(a, b)
+    return {"text": f"{p}%", "value": p, "rows": busiest(pa, pb, cpu_times(b)[0] - cpu_times(a)[0])}
+
+
+def memory():
+    m = parse_meminfo(read("/proc/meminfo"))
+    rows = biggest(run(["ps", "-eo", "comm,rss"]))
+    return {"text": f"{m['percent']}%", "value": m["percent"],
+            "summary": f"{gb(m['used'])} of {gb(m['total'])} used · swap {gb(m['swapUsed'])}", "rows": rows}
+
+
+def vpn():
+    return parse_vpn(run(["nmcli", "-t", "-f", "TYPE,NAME,STATE", "connection", "show", "--active"]))
+
+
+def wttr_url(place):
+    return f"https://wttr.in/{urllib.parse.quote(place.strip())}?format=j1"
+
+
+def fetch_wttr(place):
+    try:
+        req = urllib.request.Request(wttr_url(place), headers={"User-Agent": "curl/8"})
+        with urllib.request.urlopen(req, timeout=8) as r:
+            return json.load(r)
+    except (OSError, ValueError):
+        return None
+
+
+def weather(units="c", place="", now=None):
+    """wttr.in, cached per place. An empty place means wttr.in's IP guess (a VPN's exit, if one is up)."""
+    now = time.time() if now is None else now
+    path = os.path.join(CACHE, "weather.json")
+    try:
+        cache = json.loads(read(path))
+    except ValueError:
+        cache = {}
+    cached = cache.get(place) if isinstance(cache.get(place), dict) else {}
+    data = cached.get("data")
+    if not data or now - cached.get("at", 0) > WEATHER_TTL:
+        fresh = fetch_wttr(place)
+        if fresh:
+            data = fresh
+            cache[place] = {"at": now, "data": data}
+            os.makedirs(CACHE, exist_ok=True)
+            with open(path + ".tmp", "w") as f:
+                json.dump(cache, f)
+            os.replace(path + ".tmp", path)
+    return parse_wttr(data or {}, units)
+
+
+def custom(cmd):
+    try:
+        p = subprocess.run(["sh", "-c", cmd], capture_output=True, text=True, timeout=10)
+        return custom_result(p.stdout, p.returncode)
+    except subprocess.TimeoutExpired:
+        return {"text": "", "rows": [{"text": "Command timed out", "detail": ""}]}
+
+
+def main(argv):
+    if not argv or argv[0] not in ("cpu", "memory", "vpn", "weather", "custom"):
+        print(__doc__.strip(), file=sys.stderr)
+        return 2
+    kind = argv[0]
+    if kind == "weather":
+        out = weather(argv[1] if len(argv) > 1 and argv[1] in ("c", "f") else "c", argv[2] if len(argv) > 2 else "")
+    elif kind == "custom":
+        out = custom(argv[1] if len(argv) > 1 else "true")
+    else:
+        out = globals()[kind]()
+    print(json.dumps(out, ensure_ascii=False))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

@@ -39,21 +39,18 @@ hl.layer_rule({ match = { namespace = "qs-lum-.*" }, blur = true, ignore_alpha =
 -- Nothing OS runs its author's shell (qs -c glyph, https://github.com/Nebelung-cloud/glyph-rice @0bab656) with its keys.
 hl.unbind("SUPER + SUPER_L")
 hl.bind("SUPER + SUPER_L", hl.dsp.global("shell:launcher"), { release = true })
-hl.unbind("SUPER + I")
-hl.bind("SUPER + I", hl.dsp.global("shell:settings"))
-hl.unbind("SUPER + P")
-hl.bind("SUPER + P", hl.dsp.global("shell:pact"))
-hl.unbind("SUPER + SHIFT + W")
-hl.bind("SUPER + SHIFT + W", hl.dsp.global("shell:wall"))
+hl.bind("SUPER + F1", hl.dsp.global("shell:settings"))
+hl.bind("SUPER + F2", hl.dsp.global("shell:pact"))
+hl.bind("SUPER + F3", hl.dsp.global("shell:wall"))
 hl.unbind("SUPER + ESCAPE")
 hl.bind("SUPER + ESCAPE", hl.dsp.global("shell:power"))
-hl.unbind("SUPER + SHIFT + S")
-hl.bind("SUPER + SHIFT + S", hl.dsp.global("shell:shot"))
-hl.unbind("SUPER + Period")
-hl.bind("SUPER + Period", hl.dsp.global("shell:charms"))
+hl.bind("SUPER + F4", hl.dsp.global("shell:shot"))
+hl.bind("SUPER + F5", hl.dsp.global("shell:charms"))
 hl.unbind("SUPER + GRAVE")
 hl.bind("SUPER + GRAVE", hl.dsp.global("shell:quick"))
 hl.layer_rule({ match = { namespace = "glyph-power" }, animation = "fade" })
 hl.layer_rule({ match = { namespace = "glyph-(launcher|edge|island|buds|quick|home|bar|caffeine|shot|clip|charms|vpn|deck|prefs|hot|cal|wall|back)" }, no_anim = true })
 
 if io.open(keyboard, "r") then dofile(keyboard) end
+
+-- Fluidity moved these off its own keys (tools/free-theme-keys.py): SUPER + I -> SUPER + F1, SUPER + P -> SUPER + F2, SUPER + SHIFT + W -> SUPER + F3, SUPER + SHIFT + S -> SUPER + F4, SUPER + Period -> SUPER + F5

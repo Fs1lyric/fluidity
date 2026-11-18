@@ -38,12 +38,11 @@ hl.layer_rule({ match = { namespace = "qs-lum-.*" }, blur = true, ignore_alpha =
 
 -- Pill runs its author's shell (qs -c pill, https://github.com/Gakuseei/Ricelin @b1bee73) with its keys.
 hl.unbind("SUPER + SPACE")
-hl.bind("SUPER + SPACE", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/share/lyric/rices/pill/configs/hypr/scripts/open-surface.sh launcher"))
-hl.unbind("SUPER + I")
-hl.bind("SUPER + I", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/share/lyric/rices/pill/configs/hypr/scripts/open-surface.sh settings"))
-hl.unbind("SUPER + C")
-hl.bind("SUPER + C", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/share/lyric/rices/pill/configs/hypr/scripts/open-surface.sh wallpaper"))
-hl.unbind("SUPER + G")
-hl.bind("SUPER + G", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/share/lyric/rices/pill/configs/hypr/scripts/open-surface.sh gameMode"))
+hl.bind("SUPER + SPACE", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/share/fluidity/shells/.pill-scripts/open-surface.sh launcher"))
+hl.bind("SUPER + F1", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/share/fluidity/shells/.pill-scripts/open-surface.sh settings"))
+hl.bind("SUPER + F2", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/share/fluidity/shells/.pill-scripts/open-surface.sh wallpaper"))
+hl.bind("SUPER + F3", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/share/fluidity/shells/.pill-scripts/open-surface.sh gameMode"))
 
 if io.open(keyboard, "r") then dofile(keyboard) end
+
+-- Fluidity moved these off its own keys (tools/free-theme-keys.py): SUPER + I -> SUPER + F1, SUPER + C -> SUPER + F2, SUPER + G -> SUPER + F3

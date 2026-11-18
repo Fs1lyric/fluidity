@@ -1,0 +1,447 @@
+#!/usr/bin/python3
+"""The non-app half of the launcher's search mode (Super+Alt+Space, Launcher.qml).
+
+  fluidity-search query <text>     {"query": <text>, "rows": [...]}: calculator, files, web, clipboard
+  fluidity-search copy-clip <id>   put a cliphist entry back on the clipboard
+  fluidity-search reveal <path>    show a file selected in the file manager
+  fluidity-search ask [--resume ID] -- QUESTION
+                                ask Claude (chat only, no tools); prints
+                                {"answer", "session", "error"}
+
+Rows: {"kind": "ask"|"calc"|"file"|"web"|"clip", "label", "hint", ...} plus "icon" (a Nerd Font
+glyph) or "iconName"/"iconFallback" (icon-theme names), and what Enter needs: "copy",
+"path", "url" or "id".
+
+Prefixes: g yt gh w = Google, YouTube, GitHub, Wikipedia; c = clipboard history.
+Files come from the plocate index (refreshed daily by plocate-updatedb.timer), basenames
+only, inside $HOME, hidden paths skipped unless the query starts with a dot.
+Tests: ~/claude/archy-cleanup/search/test_lyric_search.py. Stdlib only.
+"""
+import json
+import mimetypes
+import os
+import re
+import subprocess
+import sys
+import urllib.parse
+
+HOME = os.path.expanduser("~")
+FILE_LIMIT = 8
+CLIP_LIMIT = 30
+JUNK_DIRS = {"node_modules", "__pycache__", "site-packages", "venv", "target"}
+
+ENGINES = {
+    "g": ("Google", "\U000F02AD", "https://www.google.com/search?q="),
+    "yt": ("YouTube", "\U000F05C3", "https://www.youtube.com/results?search_query="),
+    "gh": ("GitHub", "\U000F02A4", "https://github.com/search?q="),
+    "w": ("Wikipedia", "\U000F05AC", "https://en.wikipedia.org/w/index.php?search="),
+}
+DEFAULT_ENGINE = "g"
+SNIP_ICON = "\U000F0AE8"
+
+
+def toolkit_extras():
+    """Quicklinks + snippets from System Settings > Toolkit > Spotlight Extras (~/.local/state/fluidity/toolkit.json)."""
+    try:
+        with open(os.path.join(HOME, ".local/state/fluidity/toolkit.json")) as f:
+            st = json.load(f)
+    except (OSError, ValueError):
+        st = {}
+    if not st.get("enabled", {}).get("spotlight", True):
+        return [], []
+    sp = st.get("spotlight", {})
+    links = sp.get("quicklinks", [{"key": "p", "name": "Perplexity", "url": "https://www.perplexity.ai/search?q={query}"}])
+    return links, sp.get("snippets", [])
+
+
+QUICKLINKS, SNIPPETS = toolkit_extras()
+for _q in QUICKLINKS:
+    if _q.get("key") and _q["key"] not in ENGINES and "{query}" in _q.get("url", ""):
+        ENGINES[_q["key"]] = (_q.get("name") or _q["key"], "\U000F0337", _q["url"])
+
+
+def expand_snippet(text):
+    import time
+    t = time.localtime()
+    text = text.replace("{date}", time.strftime("%Y-%m-%d", t)).replace("{time}", time.strftime("%H:%M", t))
+    if "{clipboard}" in text:
+        try:
+            clip = subprocess.run(["wl-paste", "-n"], capture_output=True, text=True, timeout=2).stdout
+        except (OSError, subprocess.TimeoutExpired):
+            clip = ""
+        text = text.replace("{clipboard}", clip)
+    return text
+
+
+def snippet_rows(term):
+    term = term.lower()
+    return [{"kind": "calc", "icon": SNIP_ICON, "label": s["name"] + "  —  " + " ".join(s.get("text", "").split())[:80],
+             "hint": "snippet  ·  enter copies", "copy": expand_snippet(s.get("text", ""))}
+            for s in SNIPPETS if term in s["name"].lower()]
+CALC_ICON = "\U000F00EC"
+CLIP_ICON = "\U000F0147"
+
+# ---- calculator (qalc) ---------------------------------------------------------------
+
+FUNCS = {"sqrt", "cbrt", "sin", "cos", "tan", "asin", "acos", "atan", "log", "ln", "exp",
+         "abs", "round", "floor", "ceil", "pi", "e", "mod"}
+CONVERT = re.compile(r"^\s*(-?[\d.,]+)\s*([^\d\s].*?)\s+(?:to|in|as)\s+(\S.*?)\s*$", re.I)
+PERCENT_OF = re.compile(r"^\s*([\d.]+)\s*%\s*of\s+(.+?)\s*$", re.I)
+
+
+def is_math(q):
+    """Digits and operators, plus a few function names. A lone number isn't math."""
+    words = re.findall(r"[a-zA-Z]+", q)
+    if any(w.lower() not in FUNCS for w in words):
+        return False
+    rest = re.sub(r"[a-zA-Z]+", "", q)
+    if not re.fullmatch(r"[\d\s+\-*/^%().,]*", rest):
+        return False
+    has_number = bool(re.search(r"\d", q)) or "pi" in (w.lower() for w in words)
+    has_op = bool(re.search(r"[+\-*/^%]", rest)) or bool(words)
+    return has_number and has_op
+
+
+def calc_expr(q):
+    """What to hand qalc for this query, or None when it isn't a sum or a conversion."""
+    q = q.strip()
+    m = PERCENT_OF.match(q)
+    if m and (is_math(m.group(2)) or re.fullmatch(r"[\d.]+", m.group(2))):
+        return f"({m.group(2)})*{m.group(1)}%"
+    m = CONVERT.match(q)
+    if m:
+        num, src, dst = m.groups()
+        # A leading "-" on the target unit stops qalc answering "3 mi + 188 yd + 2.39 in".
+        return f"{num} {src} to -{dst}"
+    return q if is_math(q) else None
+
+
+def clean_answer(out):
+    return out.strip().replace("−", "-")
+
+
+def good_answer(expr, out):
+    """qalc reads almost anything as units; keep only answers that look like answers."""
+    if not out or "\n" in out.strip():
+        return False
+    squash = lambda t: re.sub(r"\s", "", t)
+    if squash(out) == squash(expr):
+        return False
+    if re.search(r"[·²³⁴⁵⁶⁷⁸⁹]", out) and not re.search(r"[·²³]", expr):
+        return False
+    return not re.search(r"error|warning", out, re.I)
+
+
+def run_qalc(expr):
+    try:
+        r = subprocess.run(["qalc", "-t", expr], capture_output=True, text=True, timeout=2)
+    except (OSError, subprocess.TimeoutExpired):
+        return ""
+    return r.stdout.strip()
+
+
+def calc_row(q):
+    expr = calc_expr(q)
+    if not expr:
+        return None
+    out = run_qalc(expr)
+    if not good_answer(expr, out):
+        return None
+    out = clean_answer(out)
+    return {"kind": "calc", "icon": CALC_ICON, "label": out, "hint": "enter copies", "copy": out}
+
+# ---- files (plocate) -----------------------------------------------------------------
+
+
+def plocate(words):
+    try:
+        r = subprocess.run(["plocate", "-i", "-b", "--", *words],
+                           capture_output=True, text=True, timeout=3)
+    except (OSError, subprocess.TimeoutExpired):
+        return []
+    return r.stdout.splitlines()
+
+
+def name_score(name, words):
+    stem = name.rsplit(".", 1)[0] if "." in name[1:] else name
+    joined = " ".join(words)
+    if joined in (name, stem):
+        return 100
+    if name.startswith(words[0]):
+        return 80
+    if re.search(r"(^|[\s._\-])" + re.escape(words[0]), name):
+        return 60
+    return 40
+
+
+NAMED_KINDS = {"md": "Markdown document", "txt": "Plain text document", "py": "Python script",
+               "sh": "Shell script", "json": "JSON document", "pdf": "PDF document",
+               "html": "HTML document", "qml": "QML document"}
+
+
+def kind_name(path, isdir):
+    """Finder's Kind column, roughly."""
+    if isdir:
+        return "Folder"
+    name = os.path.basename(path)
+    ext = name.rsplit(".", 1)[1].lower() if "." in name[1:] else ""
+    if not ext:
+        return "Document"
+    if ext in NAMED_KINDS:
+        return NAMED_KINDS[ext]
+    major = (mimetypes.guess_type(path)[0] or "").split("/")[0]
+    word = major if major in ("image", "audio", "video") else "file"
+    return f"{ext.upper()} {word}"
+
+
+def pretty_size(n):
+    """Finder sizes: decimal units, one decimal from MB up."""
+    if n == 0:
+        return "Zero bytes"
+    if n < 1000:
+        return f"{n} bytes"
+    if n < 1_000_000:
+        return f"{round(n / 1000)} KB"
+    for unit, div in (("MB", 1e6), ("GB", 1e9), ("TB", 1e12)):
+        if n < div * 1000 or unit == "TB":
+            return f"{n / div:.1f} {unit}"
+
+
+def pretty_date(ts, now):
+    import datetime
+    d, today = datetime.datetime.fromtimestamp(ts), datetime.datetime.fromtimestamp(now).date()
+    clock = f"{d.hour % 12 or 12}:{d.minute:02d} {'AM' if d.hour < 12 else 'PM'}"
+    if d.date() == today:
+        return f"Today at {clock}"
+    if (today - d.date()).days == 1:
+        return f"Yesterday at {clock}"
+    return f"{d.day} {d.strftime('%B')} {d.year} at {clock}"
+
+
+def short_date(ts, now):
+    """Golden Gate's file subtitles: "Today, 9:32 AM", "Yesterday, 9:00 PM", "1 March 2026"."""
+    import datetime
+    d, today = datetime.datetime.fromtimestamp(ts), datetime.datetime.fromtimestamp(now).date()
+    clock = f"{d.hour % 12 or 12}:{d.minute:02d} {'AM' if d.hour < 12 else 'PM'}"
+    if d.date() == today:
+        return f"Today, {clock}"
+    if (today - d.date()).days == 1:
+        return f"Yesterday, {clock}"
+    return f"{d.day} {d.strftime('%B')} {d.year}"
+
+
+def file_row(path, home):
+    import time
+    parent = os.path.dirname(path)
+    hint = "~" + parent[len(home):] if parent == home or parent.startswith(home + "/") else parent
+    isdir = os.path.isdir(path)
+    if isdir:
+        icon, fallback = "folder", "folder"
+    else:
+        mime = mimetypes.guess_type(path)[0] or "text/plain"
+        icon, fallback = mime.replace("/", "-"), mime.split("/")[0] + "-x-generic"
+        if fallback not in ("text-x-generic", "image-x-generic", "audio-x-generic", "video-x-generic"):
+            fallback = "text-x-generic"
+    st = os.stat(path)
+    return {"kind": "file", "label": os.path.basename(path), "hint": hint, "path": path,
+            "iconName": icon, "iconFallback": fallback, "isDir": isdir,
+            "kindName": kind_name(path, isdir), "size": "" if isdir else pretty_size(st.st_size),
+            "modified": pretty_date(st.st_mtime, time.time()),
+            "when": short_date(st.st_mtime, time.time()), "folder": os.path.basename(parent)}
+
+
+def file_rows(paths, q, home):
+    words = q.lower().split()
+    if not words:
+        return []
+    show_hidden = q.lstrip().startswith(".")
+    scored = []
+    for p in paths:
+        if not p.startswith(home + "/"):
+            continue
+        rel = p[len(home) + 1:]
+        parts = rel.split("/")
+        if not show_hidden and any(x.startswith(".") for x in parts):
+            continue
+        if any(x in JUNK_DIRS for x in parts[:-1]):
+            continue
+        name = parts[-1].lower()
+        if not all(w in name for w in words):
+            continue
+        scored.append((-name_score(name, words), len(parts), len(rel), p))
+    scored.sort()
+    rows = []
+    for *_, p in scored:
+        try:  # the index can be a day old, so the file may be gone
+            rows.append(file_row(p, home))
+        except OSError:
+            continue
+        if len(rows) == FILE_LIMIT:
+            break
+    return rows
+
+
+def file_uri(path):
+    return "file://" + urllib.parse.quote(path)
+
+# ---- web + clipboard -----------------------------------------------------------------
+
+
+def split_prefix(q):
+    m = re.match(r"^(\S+)\s+(.*)$", q.lstrip(), re.S)
+    if m and (m.group(1) in ENGINES or m.group(1) == "c"):
+        return m.group(1), m.group(2).strip()
+    return None, q.strip()
+
+
+def web_row(key, term):
+    name, icon, base = ENGINES[key]
+    q = urllib.parse.quote_plus(term)
+    return {"kind": "web", "icon": icon, "label": f'Search {name} for "{term}"',
+            "hint": "web", "engine": name, "term": term, "url": base.replace("{query}", q) if "{query}" in base else base + q}
+
+
+def cliphist_lines():
+    try:
+        r = subprocess.run(["cliphist", "list"], capture_output=True, text=True,
+                           errors="replace", timeout=3)
+    except (OSError, subprocess.TimeoutExpired):
+        return []
+    return r.stdout.splitlines()
+
+
+def clip_rows(lines, term):
+    term = term.lower()
+    rows = []
+    for line in lines:
+        cid, tab, text = line.partition("\t")
+        if not tab or not cid.isdigit():
+            continue
+        if term and term not in text.lower():
+            continue
+        m = re.match(r"^\[\[ binary data (\S+ \S+) (\S+) (\S+) \]\]$", text.strip())
+        label = f"image  {m.group(2)} {m.group(3)}, {m.group(1)}" if m else " ".join(text.split())[:200]
+        rows.append({"kind": "clip", "icon": CLIP_ICON, "label": label, "hint": "clipboard", "id": cid})
+        if len(rows) == CLIP_LIMIT:
+            break
+    return rows
+
+# ---- Ask Claude ------------------------------------------------------------------------
+
+# Keep in step with looksLikeQuestion() in ~/.config/quickshell/lyric/Spotlight.qml.
+QUESTION_WORDS = {"what", "how", "why", "who", "when", "where", "which", "whose", "can", "could",
+                  "should", "would", "will", "is", "are", "was", "were", "does", "do", "did",
+                  "explain", "tell", "describe", "summarize", "summarise", "compare", "define"}
+
+
+def looks_like_question(q):
+    """Ends in "?" or starts with a question word followed by more words."""
+    words = q.split()
+    if not words or split_prefix(q)[0]:
+        return False
+    if q.rstrip().endswith("?"):
+        return any(ch.isalnum() for ch in q)
+    return len(words) >= 2 and words[0].lower() in QUESTION_WORDS
+
+
+def ask_row(q):
+    return {"kind": "ask", "label": "Ask Claude", "hint": "", "question": q.strip()}
+
+
+def ask_command(claude, resume):
+    """Chat only: no tools, no hooks (--bare would also skip the OAuth login, so --safe-mode).
+    The question goes in on stdin so one starting with "-" isn't read as a flag."""
+    cmd = [claude, "-p", "--output-format", "json", "--model", "sonnet", "--safe-mode"]
+    if resume:
+        cmd += ["--resume", resume]
+    return cmd + ["--tools", ""]
+
+
+def parse_ask(out, err, code):
+    try:
+        data = json.loads(out)
+    except ValueError:
+        lines = [l for l in (err or out).strip().splitlines() if l.strip()]
+        return {"answer": "", "session": "",
+                "error": lines[-1] if lines else f"claude exited with status {code}"}
+    text, session = data.get("result") or "", data.get("session_id") or ""
+    if data.get("is_error") or data.get("subtype", "success") != "success":
+        return {"answer": "", "session": session, "error": text or data.get("subtype") or "error"}
+    return {"answer": text, "session": session, "error": ""}
+
+
+def ask(question, resume):
+    claude = os.environ.get("LYRIC_SEARCH_CLAUDE", "claude")
+    cwd = os.environ.get("LYRIC_SEARCH_ASK_DIR", os.path.join(HOME, ".cache/fluidity/ask"))
+    os.makedirs(cwd, exist_ok=True)
+    try:
+        r = subprocess.run(ask_command(claude, resume), input=question, capture_output=True,
+                           text=True, cwd=cwd, timeout=300)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        return {"answer": "", "session": resume or "", "error": str(e)}
+    return parse_ask(r.stdout, r.stderr, r.returncode)
+
+# ---- entry points ----------------------------------------------------------------------
+
+
+def query(q):
+    if q.lstrip().startswith(";"):          # ;name -> snippets
+        return snippet_rows(q.lstrip()[1:].strip())
+    key, term = split_prefix(q)
+    if key == "c":
+        return clip_rows(cliphist_lines(), term)
+    if key:
+        return [web_row(key, term)] if term else []
+    if not term:
+        return []
+    rows = [ask_row(term)] if looks_like_question(term) else []
+    calc = calc_row(term)
+    if calc:
+        rows.append(calc)
+    if len(term) >= 3:  # shorter queries match tens of thousands of files and want an app anyway
+        rows += file_rows(plocate(term.lower().split()), term, HOME)
+    fallback = web_row(DEFAULT_ENGINE, term)
+    fallback["hint"] = "web  ·  or start with g yt gh w"
+    rows.append(fallback)
+    return rows
+
+
+def copy_clip(cid):
+    if not cid.isdigit():
+        sys.exit("copy-clip: bad id")
+    data = subprocess.run(["cliphist", "decode", cid], input=f"{cid}\t\n".encode(),
+                          capture_output=True).stdout
+    subprocess.run(["wl-copy"], input=data)
+
+
+def reveal(path):
+    arg = f"['{file_uri(path)}']"
+    r = subprocess.run(["gdbus", "call", "--session", "--dest", "org.freedesktop.FileManager1",
+                        "--object-path", "/org/freedesktop/FileManager1",
+                        "--method", "org.freedesktop.FileManager1.ShowItems", arg, ""],
+                       capture_output=True)
+    if r.returncode != 0:
+        subprocess.Popen(["xdg-open", os.path.dirname(path)])
+
+
+def main(argv):
+    if len(argv) >= 2 and argv[0] == "query":
+        # Echo the text back: the launcher may have moved on by the time this lands.
+        text = " ".join(argv[1:])
+        print(json.dumps({"query": text, "rows": query(text)}, ensure_ascii=False))
+    elif len(argv) == 2 and argv[0] == "copy-clip":
+        copy_clip(argv[1])
+    elif len(argv) == 2 and argv[0] == "reveal":
+        reveal(argv[1])
+    elif argv and argv[0] == "ask" and "--" in argv:
+        opts, words = argv[1:argv.index("--")], argv[argv.index("--") + 1:]
+        resume = opts[1] if len(opts) == 2 and opts[0] == "--resume" else None
+        if opts and not resume:
+            sys.exit(__doc__)
+        print(json.dumps(ask(" ".join(words), resume), ensure_ascii=False))
+    else:
+        sys.exit(__doc__)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
