@@ -41,4 +41,3 @@ o.bind("SUPER + GRAVE", "Sidebar", "qs -c minecraft ipc call sidebar toggle")
 hl.unbind("SUPER + ESCAPE")
 o.bind("SUPER + ESCAPE", "Exit screen", "qs -c minecraft ipc call exit toggle")
 
-if io.open(keyboard, "r") then dofile(keyboard) end

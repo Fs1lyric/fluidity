@@ -24,7 +24,14 @@ hl.animation = function(a) anims[a.leaf] = a end
 
 package.path = root .. "/default/?.lua;" .. package.path
 FLUIDITY = root
-local good, err = pcall(require, "hypr.init")
+local good, err
+if arg[2] == "full" then
+  -- the starter ~/.config/hypr/hyprland.lua: defaults, your files, the theme's final word
+  good, err = pcall(dofile, os.getenv("HOME") .. "/.config/hypr/hyprland.lua")
+  if good then ok("the starter hyprland.lua loads (with " .. (arg[3] or "fluid") .. ")") else fail("the starter hyprland.lua loads (" .. (arg[3] or "") .. ")", err) end
+  os.exit(good and 0 or 1)
+end
+good, err = pcall(require, "hypr.init")
 if good then ok("init.lua loads") else fail("init.lua loads", err) end
 
 local d, g = config.decoration or {}, config.general or {}

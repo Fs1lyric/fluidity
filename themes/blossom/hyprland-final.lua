@@ -43,4 +43,3 @@ hl.unbind("SUPER + ESCAPE")
 o.bind("SUPER + ESCAPE", "Exit screen", "qs -c blossom ipc call exit toggle")
 o.bind("SUPER + F1", "Dashboard", "qs -c blossom ipc call dashboard toggle")
 
-if io.open(keyboard, "r") then dofile(keyboard) end

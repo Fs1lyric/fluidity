@@ -51,6 +51,5 @@ hl.bind("SUPER + F7", hl.dsp.global("quickshell:widgets"))
 hl.unbind("SUPER + GRAVE")
 hl.bind("SUPER + GRAVE", hl.dsp.global("quickshell:controls"))
 
-if io.open(keyboard, "r") then dofile(keyboard) end
 
 -- Fluidity moved these off its own keys (tools/free-theme-keys.py): SUPER + X -> SUPER + F1, SUPER + TAB -> SUPER + F2, SUPER + comma -> SUPER + F3, SUPER + T -> SUPER + F4, SUPER + U -> SUPER + F5, SUPER + CTRL + B -> SUPER + F6, SUPER + CTRL + W -> SUPER + F7

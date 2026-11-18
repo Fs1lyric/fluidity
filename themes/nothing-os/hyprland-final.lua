@@ -51,6 +51,5 @@ hl.bind("SUPER + GRAVE", hl.dsp.global("shell:quick"))
 hl.layer_rule({ match = { namespace = "glyph-power" }, animation = "fade" })
 hl.layer_rule({ match = { namespace = "glyph-(launcher|edge|island|buds|quick|home|bar|caffeine|shot|clip|charms|vpn|deck|prefs|hot|cal|wall|back)" }, no_anim = true })
 
-if io.open(keyboard, "r") then dofile(keyboard) end
 
 -- Fluidity moved these off its own keys (tools/free-theme-keys.py): SUPER + I -> SUPER + F1, SUPER + P -> SUPER + F2, SUPER + SHIFT + W -> SUPER + F3, SUPER + SHIFT + S -> SUPER + F4, SUPER + Period -> SUPER + F5

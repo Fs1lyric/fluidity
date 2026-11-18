@@ -45,4 +45,3 @@ hl.unbind("SUPER + ESCAPE")
 o.bind("SUPER + ESCAPE", "Exit screen", "qs -c neon-80s ipc call exit toggle")
 o.bind("SUPER + F1", "Dashboard", "qs -c neon-80s ipc call dashboard toggle")
 
-if io.open(keyboard, "r") then dofile(keyboard) end

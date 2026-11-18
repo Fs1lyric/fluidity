@@ -43,6 +43,5 @@ hl.bind("SUPER + F1", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/share/fluidi
 hl.bind("SUPER + F2", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/share/fluidity/shells/.pill-scripts/open-surface.sh wallpaper"))
 hl.bind("SUPER + F3", hl.dsp.exec_cmd(os.getenv("HOME") .. "/.local/share/fluidity/shells/.pill-scripts/open-surface.sh gameMode"))
 
-if io.open(keyboard, "r") then dofile(keyboard) end
 
 -- Fluidity moved these off its own keys (tools/free-theme-keys.py): SUPER + I -> SUPER + F1, SUPER + C -> SUPER + F2, SUPER + G -> SUPER + F3

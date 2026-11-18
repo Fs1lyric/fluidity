@@ -43,4 +43,3 @@ o.bind("SUPER + ESCAPE", "Exit screen", "qs -c welcome-gabe ipc call exit toggle
 o.bind("SUPER + F1", "Dashboard", "qs -c welcome-gabe ipc call dashboard toggle")
 o.bind("SUPER + F2", "Welcome back splash", "qs -c welcome-gabe ipc call splash play")
 
-if io.open(keyboard, "r") then dofile(keyboard) end

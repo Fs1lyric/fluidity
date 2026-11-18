@@ -38,4 +38,3 @@ hl.layer_rule({ match = { namespace = "qs-lum-.*" }, blur = true, ignore_alpha =
 -- Keyboard-mode keys: Super+Alt+B hides the bar, Super+Ctrl+M goes back to mac mode.
 o.bind("SUPER + ALT + B", "Toggle the top bar", "qs -c luminescent ipc call bar toggle")
 
-if io.open(keyboard, "r") then dofile(keyboard) end

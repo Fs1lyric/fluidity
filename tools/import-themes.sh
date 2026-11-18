@@ -8,7 +8,7 @@ dst=$(cd "$(dirname "$0")/.." && pwd)/themes
 rm -rf "$dst"; mkdir -p "$dst"
 cp -a "$src"/. "$dst"/
 for f in "$dst"/*/hyprland-final.lua; do
-  sed -i -e '/keyboard\.lua/d' -e '/Productivity layer shared by every keyboard-mode theme/d' \
+  sed -i -e '/keyboard\.lua/d' -e '/io.open(keyboard/d' -e '/Productivity layer shared by every keyboard-mode theme/d' \
          -e '/Switch to mac mode", "lyric-theme set tahoe"/d' "$f"
 done
 /usr/bin/python3 -I "$(dirname "$0")/free-theme-keys.py" "$dst"

@@ -41,4 +41,3 @@ o.bind("SUPER + GRAVE", "Sidebar", "qs -c boring-dev ipc call sidebar toggle")
 hl.unbind("SUPER + ESCAPE")
 o.bind("SUPER + ESCAPE", "Exit screen", "qs -c boring-dev ipc call exit toggle")
 
-if io.open(keyboard, "r") then dofile(keyboard) end
