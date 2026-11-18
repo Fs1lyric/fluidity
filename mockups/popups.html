@@ -4,464 +4,349 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fluidity Popups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
-:root, [data-theme="fluid"] {
-  --bg: #111417; --bg-dark: #0c0e10; --bg-light: #1b1f23; --muted: #3a3f45;
-  --fg: #e3e4da; --fg-dim: #878880; --accent: #d7e59b; --red: #f2a7a7;
-  --yellow: #e8d98a; --green: #cfe3a8; --blue: #a9b8e8; --magenta: #c8a8e0; --cyan: #c2e6d6;
-  --wall: url("file:///home/lyric/claude/luminescent/themes/fluid/backgrounds/01.jpg");
-}
-[data-theme="kanagawa"] {
-  --bg: #1f1f28; --bg-dark: #1a1a22; --bg-light: #2a2a37; --muted: #54546d;
-  --fg: #dcd7ba; --fg-dim: #8a8980; --accent: #7e9cd8; --red: #e46876;
-  --yellow: #e6c384; --green: #98bb6c; --blue: #7fb4ca; --magenta: #957fb8; --cyan: #7aa89f;
-  --wall: url("file:///home/lyric/Wallpapers%20for%20desktop/kanagawa-1-kanagawa.jpg");
+:root {
+  --bg: #111417; --muted: #3a3f45; --fg: #e3e4da; --dim: #878880;
+  --lime: #d7e59b; --pink: #f2a7a7; --blue: #a9b8e8; --cyan: #c2e6d6; --violet: #c8a8e0; --yellow: #e8d98a; --orange: #f0c08a;
+  --ink: #101316;
+  --mono: "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
+  --sans: "Geist", Inter, "JetBrainsMono Nerd Font", sans-serif;
+  --serif: "Instrument Serif", Georgia, serif;
+  --wall: url("file:///home/lyric/Wallpapers%20for%20desktop/gruvbox-5-leaves.jpg");
+  --grad: linear-gradient(100deg, var(--lime), #c9e0a0 60%, var(--cyan));
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  background: #08090b; color: var(--fg);
-  font: 13px/1.4 "JetBrainsMono Nerd Font", "JetBrains Mono", monospace;
-  padding: 32px 16px 64px;
-}
-.page { max-width: 1040px; margin: 0 auto; }
-header { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
-h1 { font-size: 22px; font-weight: 700; letter-spacing: .02em; }
-h1 b { color: var(--accent); }
-.sub { color: var(--fg-dim); margin-top: 4px; }
-.switch { color: var(--fg-dim); }
-.switch button { font: inherit; color: var(--fg); background: var(--bg-light); border: 1px solid var(--muted); padding: 4px 10px; cursor: pointer; }
-.switch button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+body { background: #050607; color: var(--fg); font: 14px/1.45 var(--sans); padding: 36px 16px 80px; }
+.page { max-width: 1120px; margin: 0 auto; }
+h1 { font: 400 44px/1.05 var(--serif); }
+h1 i { color: var(--lime); }
+.lede { color: var(--dim); margin: 10px 0 36px; max-width: 700px; }
+section { margin-bottom: 44px; }
+.label { display: flex; gap: 12px; align-items: baseline; margin-bottom: 10px; flex-wrap: wrap; }
+.label .n { font: 600 12px var(--sans); color: var(--ink); background: var(--lime); padding: 2px 9px; border-radius: 99px; }
+.label h2 { font: italic 400 26px var(--serif); }
+.label .note { color: var(--dim); font-size: 13px; }
+.label kbd { font: 11px var(--mono); padding: 1px 7px; border-radius: 6px; background: #1b1f23; color: var(--fg); }
 
-section { margin-bottom: 36px; }
-.label { display: flex; gap: 12px; align-items: baseline; margin-bottom: 8px; flex-wrap: wrap; }
-.label h2 { font-size: 14px; font-weight: 700; }
-.label .note { color: var(--fg-dim); }
+/* every frame is a real 1920x1080 screen, scaled down */
+.vp { width: 100%; aspect-ratio: 16/9; position: relative; overflow: hidden; border-radius: 12px; box-shadow: 0 24px 60px rgba(0,0,0,.5); }
+.st { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; background: var(--wall) center/cover, #0d120d; overflow: hidden; }
+.st::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 60; opacity: .06;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+.dim::before { content: ""; position: absolute; inset: 0; background: rgba(4,6,4,.3); z-index: 15; }
 
-/* A fake screen: wallpaper, slim bar, the popup on top. */
-.screen {
-  position: relative; aspect-ratio: 16 / 9; overflow: hidden;
-  background: var(--wall) center / cover, var(--bg);
-  border: 1px solid #1e2226;
-}
-.screen.dim::after { content: ""; position: absolute; inset: 0; background: rgba(0,0,0,.28); z-index: 1; }
-.bar {
-  position: absolute; top: 0; left: 0; right: 0; height: 26px; z-index: 2;
-  display: flex; align-items: center; justify-content: space-between; padding: 0 10px;
-  background: color-mix(in srgb, var(--bg) 72%, transparent); backdrop-filter: blur(14px);
-  font-size: 11px; color: var(--fg-dim);
-}
-.bar .ws span { display: inline-block; width: 16px; text-align: center; }
-.bar .ws .on { color: var(--accent); }
-.bar .mid { color: var(--fg); }
+/* bar pills */
+.pill { position: absolute; top: 14px; height: 40px; border-radius: 20px; background: rgba(14,16,19,.72); backdrop-filter: blur(26px) saturate(1.4);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 10px 30px rgba(0,0,0,.35); display: flex; align-items: center; z-index: 20; }
+.pl { left: 24px; padding: 0 10px 0 6px; gap: 10px; }
+.logo { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 35% 30%, var(--lime), #8fb36b 60%, #4d6b3c); box-shadow: 0 0 16px rgba(215,229,155,.45); }
+.logo svg { width: 14px; height: 14px; }
+.ws { display: flex; gap: 6px; }
+.ws i { display: block; height: 8px; width: 8px; border-radius: 4px; background: rgba(227,228,218,.4); }
+.ws i.on { width: 30px; background: linear-gradient(90deg, var(--lime), var(--cyan)); box-shadow: 0 0 12px rgba(215,229,155,.5); }
+.pr { right: 24px; padding: 0 14px; gap: 16px; font: 12.5px var(--mono); }
+.pr .ic { color: var(--dim); margin-right: 8px; }
+.ring { width: 22px; height: 22px; border-radius: 50%; background: conic-gradient(var(--lime) 0 68%, rgba(255,255,255,.08) 0); display: inline-grid; place-items: center; vertical-align: -6px; margin-right: 7px; }
+.ring::after { content: ""; width: 14px; height: 14px; border-radius: 50%; background: #121518; }
 
-.glass {
-  background: color-mix(in srgb, var(--bg) 82%, transparent);
-  backdrop-filter: blur(22px) saturate(1.1);
-  border: 1px solid color-mix(in srgb, var(--muted) 80%, transparent);
-  box-shadow: 0 18px 50px rgba(0,0,0,.45);
-}
-.pop { position: absolute; z-index: 3; }
-.center { left: 50%; top: 52%; transform: translate(-50%, -50%); }
+/* background windows, just for context */
+.win { position: absolute; border-radius: 22px; background: rgba(12,14,17,.74); z-index: 10; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 24px 60px rgba(0,0,0,.45); overflow: hidden; }
+.win.focus { box-shadow: 0 0 0 2px var(--lime), 0 24px 60px rgba(0,0,0,.5), 0 0 60px -14px rgba(215,229,155,.35); }
+.wl { height: 10px; border-radius: 5px; background: rgba(255,255,255,.07); margin: 22px 30px 0; }
+.wl.a { background: rgba(215,229,155,.35); width: 30%; } .wl.s { width: 45%; } .wl.m { width: 65%; }
 
-.search { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--muted); }
-.search .ico { color: var(--accent); }
-.search .q { color: var(--fg); }
-.search .caret { display: inline-block; width: 7px; height: 15px; background: var(--accent); vertical-align: -3px; margin-left: 1px; }
-.search .hint { margin-left: auto; color: var(--fg-dim); font-size: 11px; }
+/* THE island: every popup is this one shape */
+.island { position: absolute; left: 50%; top: 14px; transform: translateX(-50%); z-index: 30; overflow: hidden;
+  background: rgba(10,12,14,.88); backdrop-filter: blur(30px) saturate(1.5); border-radius: 30px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), 0 30px 80px rgba(0,0,0,.55), 0 0 90px -20px rgba(215,229,155,.45); }
+.q { display: flex; align-items: center; gap: 12px; padding: 18px 24px 14px; font: 400 22px var(--sans); }
+.orb { width: 12px; height: 12px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 16px var(--lime); flex-shrink: 0; }
+.caret { width: 2px; height: 24px; background: var(--lime); border-radius: 2px; }
+.q .ph { color: var(--dim); }
+.q .count { margin-left: auto; font: 12px var(--mono); color: var(--dim); }
+.kc { display: inline-flex; gap: 4px; }
+.kc span { font: 11.5px var(--mono); padding: 2px 8px; border-radius: 8px; background: rgba(255,255,255,.07); color: var(--fg); }
+.kc span.a { background: var(--lime); color: var(--ink); }
+.row { height: 52px; display: flex; align-items: center; gap: 14px; padding: 0 14px; border-radius: 18px; margin: 0 12px; }
+.row .ic { width: 32px; height: 32px; border-radius: 11px; display: grid; place-items: center; font: 15px var(--mono); background: rgba(255,255,255,.06); flex-shrink: 0; }
+.row .t { font: 500 15px var(--sans); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .d { font: 12px var(--sans); color: var(--dim); }
+.row .meta { margin-left: auto; font: 11.5px var(--mono); color: var(--dim); flex-shrink: 0; }
+.row.on { background: var(--grad); color: var(--ink); box-shadow: 0 8px 30px -6px rgba(215,229,155,.55); }
+.row.on .d, .row.on .meta { color: rgba(16,19,22,.6); }
+.row.on .ic, .row.on .kc span { background: rgba(16,19,22,.12); color: var(--ink); }
+.grp { padding: 10px 26px 4px; font: 500 10.5px var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--dim); }
+.foot { display: flex; gap: 18px; padding: 12px 24px 16px; font: 11.5px var(--sans); color: var(--dim); }
 
-.row { display: flex; align-items: center; gap: 12px; padding: 7px 14px; border-left: 2px solid transparent; color: var(--fg); }
-.row .ic { width: 22px; text-align: center; color: var(--fg-dim); font-size: 15px; }
-.row .meta { margin-left: auto; color: var(--fg-dim); font-size: 11px; }
-.row.sel { background: var(--bg-light); border-left-color: var(--accent); }
-.row.sel .ic, .row.sel .name { color: var(--accent); }
-.group { padding: 8px 14px 3px; color: var(--fg-dim); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+/* emoji */
+.cats { display: flex; gap: 6px; padding: 0 22px 12px; }
+.cats span { padding: 6px 13px; border-radius: 99px; font: 12px var(--sans); color: var(--dim); background: rgba(255,255,255,.05); }
+.cats span.on { color: var(--ink); background: var(--lime); }
+.eg { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; padding: 0 18px; }
+.eg span { aspect-ratio: 1; display: grid; place-items: center; font-size: 26px; border-radius: 50%; }
+.eg span.on { transform: scale(1.2); background: radial-gradient(circle, rgba(215,229,155,.5), rgba(215,229,155,.12) 70%); box-shadow: 0 0 0 2px var(--lime), 0 0 30px rgba(215,229,155,.5); }
+.ename { display: flex; justify-content: space-between; align-items: center; padding: 14px 26px 18px; font: italic 400 24px var(--serif); }
+.ename small { font: 12px var(--mono); color: var(--dim); font-style: normal; }
 
-kbd {
-  display: inline-block; min-width: 20px; padding: 1px 6px; text-align: center;
-  font: 11px/16px inherit; font-family: inherit; color: var(--fg);
-  background: var(--bg-light); border: 1px solid var(--muted); border-bottom-width: 2px;
-}
-kbd.a { color: var(--bg); background: var(--accent); border-color: var(--accent); }
-.foot { display: flex; gap: 14px; padding: 8px 14px; border-top: 1px solid var(--muted); color: var(--fg-dim); font-size: 11px; flex-wrap: wrap; }
+/* clipboard */
+.split { display: grid; grid-template-columns: 1fr 1fr; }
+.split .list { padding-bottom: 10px; }
+.prev { margin: 0 16px 12px 0; padding: 16px 18px; border-radius: 22px; background: rgba(255,255,255,.035); display: flex; flex-direction: column; gap: 10px; font: 12px var(--sans); color: var(--dim); }
+.prev pre { font: 13px/1.6 var(--mono); color: var(--fg); white-space: pre; padding: 14px 16px; border-radius: 16px; background: rgba(0,0,0,.35); }
+.kw { color: var(--violet); } .s { color: var(--lime); } .c { color: #5d6268; font-style: italic; } .fn { color: var(--yellow); }
+.thumb { width: 150px; aspect-ratio: 16/9; border-radius: 14px; background: var(--wall) center/cover; box-shadow: 0 8px 20px rgba(0,0,0,.4); }
+.pin { color: var(--yellow) !important; }
 
-/* Launcher */
-.launcher { width: 46%; }
-.calc { display: flex; justify-content: space-between; padding: 9px 14px; color: var(--fg-dim); border-bottom: 1px solid var(--muted); }
-.calc b { color: var(--accent); font-weight: 400; }
+/* cheat sheet */
+.cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 6px; padding: 0 12px 6px; }
+.kb { display: flex; justify-content: space-between; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: 14px; font: 13.5px var(--sans); }
+.kb.on { background: var(--grad); color: var(--ink); box-shadow: 0 8px 24px -6px rgba(215,229,155,.5); }
+.kb.on .kc span { background: rgba(16,19,22,.14); color: var(--ink); }
+.col .grp { padding: 10px 14px 4px; }
+mark { background: none; color: inherit; text-decoration: underline 2px; text-underline-offset: 3px; }
 
-/* Emoji */
-.emoji { width: 50%; }
-.tabs { display: flex; gap: 2px; padding: 8px 10px 0; border-bottom: 1px solid var(--muted); }
-.tabs span { padding: 5px 9px; font-size: 15px; border-bottom: 2px solid transparent; filter: grayscale(.6); }
-.tabs span.on { border-bottom-color: var(--accent); filter: none; }
-.egrid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; padding: 8px 10px; }
-.egrid span { aspect-ratio: 1; display: grid; place-items: center; font-size: 20px; border: 1px solid transparent; }
-.egrid span.sel { background: var(--bg-light); border-color: var(--accent); }
-.erow-label { padding: 6px 12px 0; color: var(--fg-dim); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
-.ename { padding: 6px 14px 10px; display: flex; justify-content: space-between; color: var(--fg-dim); font-size: 11px; }
-.ename b { color: var(--accent); font-weight: 400; }
+/* leader */
+.leader { display: flex; align-items: center; gap: 10px; height: 64px; padding: 0 14px 0 12px; }
+.lead { display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 8px; border-radius: 99px; background: var(--grad); color: var(--ink); font: 600 13px var(--sans); box-shadow: 0 6px 20px -4px rgba(215,229,155,.55); }
+.lead .orb { background: var(--ink); box-shadow: none; width: 10px; height: 10px; }
+.li { display: flex; align-items: center; gap: 6px; font: 12.5px var(--sans); color: var(--dim); white-space: nowrap; }
+.li b { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font: 600 12px var(--mono); color: var(--fg); background: rgba(255,255,255,.08); }
 
-/* Clipboard */
-.clip { width: 70%; }
-.split { display: grid; grid-template-columns: 1fr 1.1fr; min-height: 230px; }
-.split .list { border-right: 1px solid var(--muted); }
-.row .pin { color: var(--yellow); }
-.preview { padding: 12px 14px; color: var(--fg-dim); font-size: 11px; display: flex; flex-direction: column; gap: 8px; }
-.preview pre { font: inherit; color: var(--fg); white-space: pre-wrap; background: var(--bg-dark); padding: 10px; border: 1px solid var(--muted); }
-.preview pre .k { color: var(--magenta); } .preview pre .s { color: var(--green); } .preview pre .c { color: var(--fg-dim); }
-.thumb { height: 54px; width: 96px; background: var(--wall) center / cover; border: 1px solid var(--muted); flex-shrink: 0; }
+/* click hints */
+.hint { position: absolute; z-index: 40; font: 700 13px/1 var(--mono); padding: 5px 9px; border-radius: 99px; color: var(--ink); background: var(--grad);
+  box-shadow: 0 4px 14px rgba(0,0,0,.45), 0 0 20px -4px rgba(215,229,155,.7); }
+.hint .t { opacity: .35; }
+.hint.gone { opacity: .25; filter: grayscale(1); }
 
-/* Cheat sheet */
-.cheat { width: 82%; }
-.cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
-.col { padding: 4px 0 8px; border-right: 1px solid var(--muted); }
-.col:last-child { border-right: 0; }
-.kb { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 3px 12px; font-size: 11px; }
-.kb .d { color: var(--fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.kb .k { display: flex; gap: 3px; flex-shrink: 0; }
-.kb.sel { background: var(--bg-light); box-shadow: inset 2px 0 var(--accent); }
-.kb.sel .d { color: var(--accent); }
-mark { background: none; color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+/* power */
+.power { display: flex; align-items: center; gap: 12px; height: 120px; padding: 0 24px; }
+.pb { height: 72px; width: 72px; border-radius: 36px; display: flex; align-items: center; justify-content: center; gap: 10px; background: rgba(255,255,255,.06); font: 24px var(--mono); }
+.pb b { font: 600 15px var(--sans); }
+.pb.danger { color: var(--pink); }
+.pb.on { width: 168px; background: var(--grad); color: var(--ink); box-shadow: 0 10px 30px -8px rgba(215,229,155,.6); }
 
-/* Leader strip */
-.leader { left: 0; right: 0; bottom: 0; display: flex; align-items: center; gap: 14px; padding: 9px 14px; flex-wrap: wrap; border-left: 0; border-right: 0; border-bottom: 0; font-size: 11px; }
-.leader .lead { color: var(--accent); }
-.leader .it { color: var(--fg-dim); white-space: nowrap; }
-.leader .it kbd { margin-right: 4px; }
+/* wallpaper */
+.walls { padding: 20px 24px 22px; }
+.wm { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+.wm .nm { font: italic 400 30px var(--serif); }
+.wm .nm small { font: 12px var(--mono); color: var(--dim); font-style: normal; margin-left: 12px; }
+.strip { display: flex; gap: 12px; align-items: center; }
+.w { width: 190px; aspect-ratio: 16/9; border-radius: 18px; background-size: cover; background-position: center; opacity: .55; filter: saturate(.7); }
+.w.on { width: 300px; opacity: 1; filter: none; box-shadow: 0 0 0 3px var(--lime), 0 14px 40px rgba(0,0,0,.5), 0 0 40px -6px rgba(215,229,155,.6); }
 
-/* Fake windows for click hints / alt-tab */
-.win { position: absolute; z-index: 2; background: var(--bg); border: 1px solid var(--muted); overflow: hidden; }
-.win.focus { border-color: var(--accent); }
-.wtop { height: 24px; display: flex; gap: 6px; align-items: center; padding: 0 8px; background: var(--bg-dark); border-bottom: 1px solid var(--muted); }
-.wtop .url { flex: 1; height: 14px; background: var(--bg-light); }
-.wtop .tab { width: 70px; height: 14px; background: var(--bg-light); }
-.blk { background: var(--bg-light); position: absolute; }
-.ch {
-  position: absolute; z-index: 4; font-size: 10px; line-height: 14px; padding: 0 4px; font-weight: 700;
-  color: var(--bg); background: var(--accent); box-shadow: 0 2px 6px rgba(0,0,0,.4);
-}
-.ch .t { opacity: .45; }
-.typed { left: 50%; bottom: 14px; transform: translateX(-50%); padding: 6px 12px; font-size: 11px; color: var(--fg-dim); }
-.typed b { color: var(--accent); }
+/* alt-tab */
+.tabs { display: flex; gap: 16px; padding: 22px 24px 20px; }
+.card .shot { width: 210px; height: 128px; border-radius: 18px; background: rgba(0,0,0,.4); position: relative; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
+.card .shot i { display: block; height: 7px; border-radius: 4px; background: rgba(255,255,255,.08); margin: 14px 16px 0; }
+.card .shot i.a { background: rgba(215,229,155,.45); width: 40%; }
+.card .cap { display: flex; gap: 8px; align-items: center; padding: 10px 4px 0; font: 13px var(--sans); color: var(--dim); }
+.card.on .shot { box-shadow: 0 0 0 3px var(--lime), 0 0 40px -6px rgba(215,229,155,.6); }
+.card.on .cap { color: var(--lime); }
 
-/* Power */
-.power { display: flex; gap: 10px; padding: 14px; }
-.tile { width: 92px; height: 92px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--muted); background: var(--bg-dark); font-size: 11px; color: var(--fg-dim); position: relative; }
-.tile .g { font-size: 24px; color: var(--fg); }
-.tile kbd { position: absolute; top: 5px; right: 5px; }
-.tile.sel { border-color: var(--accent); background: var(--bg-light); color: var(--accent); }
-.tile.sel .g { color: var(--accent); }
-.tile.danger .g { color: var(--red); }
+/* notification */
+.notify { display: flex; align-items: center; gap: 16px; height: 80px; padding: 0 18px; }
+.nic { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; font: 21px var(--mono); color: var(--ink); background: linear-gradient(135deg, var(--lime), var(--cyan)); flex-shrink: 0; }
+.nt { font: 600 15px var(--sans); } .nb { font: 12.5px var(--sans); color: var(--dim); }
+.stack2 { position: absolute; left: 50%; top: 104px; transform: translateX(-50%); width: 440px; height: 54px; z-index: 29; border-radius: 26px;
+  background: rgba(10,12,14,.72); backdrop-filter: blur(20px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); display: flex; align-items: center; gap: 12px; padding: 0 16px; font: 13px var(--sans); color: var(--dim); }
 
-/* Wallpaper */
-.walls { left: 0; right: 0; bottom: 0; padding: 12px 14px; border-left: 0; border-right: 0; border-bottom: 0; }
-.wstrip { display: flex; gap: 8px; align-items: end; }
-.w { flex: 1; aspect-ratio: 16/9; background-size: cover; background-position: center; border: 1px solid var(--muted); opacity: .7; }
-.w.sel { flex: 1.5; border: 2px solid var(--accent); opacity: 1; }
-.wmeta { display: flex; justify-content: space-between; color: var(--fg-dim); font-size: 11px; margin-bottom: 8px; }
-.wmeta b { color: var(--accent); font-weight: 400; }
-
-/* Alt-tab */
-.alttab { display: flex; gap: 12px; padding: 14px; }
-.card { width: 150px; }
-.card .shot { height: 86px; border: 1px solid var(--muted); background: var(--bg-dark); position: relative; overflow: hidden; }
-.card .cap { display: flex; gap: 6px; align-items: center; padding-top: 6px; font-size: 11px; color: var(--fg-dim); }
-.card.sel .shot { border: 2px solid var(--accent); }
-.card.sel .cap { color: var(--accent); }
-.line { height: 4px; background: var(--muted); margin: 6px 8px 0; }
-.line.s { width: 50%; } .line.a { background: var(--accent); width: 35%; }
-
-/* Notification + OSD */
-.notif { right: 12px; top: 38px; width: 34%; padding: 12px 14px; display: flex; gap: 12px; border-left: 2px solid var(--accent); }
-.notif .ic { font-size: 20px; color: var(--accent); }
-.notif .t { color: var(--fg); font-weight: 700; }
-.notif .b { color: var(--fg-dim); font-size: 11px; }
-.notif .acts { display: flex; gap: 6px; margin-top: 8px; }
-.notif2 { top: 132px; border-left-color: var(--muted); opacity: .85; }
-.notif2 .ic { color: var(--fg-dim); }
-.osd { left: 50%; bottom: 40px; transform: translateX(-50%); width: 30%; padding: 10px 14px; display: flex; align-items: center; gap: 12px; }
-.osd .ic { color: var(--accent); }
-.osd .track { flex: 1; height: 4px; background: var(--muted); }
-.osd .fill { height: 100%; width: 64%; background: var(--accent); }
-.osd .n { color: var(--fg); font-size: 11px; width: 26px; text-align: right; }
-
-@media (max-width: 720px) {
-  .screen { aspect-ratio: auto; min-height: 420px; }
-  .launcher, .emoji, .clip, .cheat { width: 94%; }
-  .cols { grid-template-columns: 1fr 1fr; }
-  .split { grid-template-columns: 1fr; }
-  .power { flex-wrap: wrap; justify-content: center; }
-  .notif, .osd { width: 80%; }
-}
+/* osd */
+.osd { display: flex; align-items: center; gap: 14px; height: 52px; padding: 0 20px; }
+.osd .ic { font: 18px var(--mono); color: var(--lime); }
+.osd .tr { flex: 1; height: 8px; border-radius: 4px; background: rgba(255,255,255,.08); overflow: hidden; }
+.osd .tr i { display: block; height: 100%; width: 64%; border-radius: 4px; background: var(--grad); box-shadow: 0 0 14px rgba(215,229,155,.6); }
+.osd .v { font: italic 400 24px var(--serif); width: 34px; text-align: right; }
 </style>
 </head>
 <body>
 <div class="page">
-<header>
-  <div>
-    <h1><b>Fluidity</b> popups</h1>
-    <p class="sub">Every little window, one look. Shown in Fluid; press <kbd>t</kbd> to see the same popups in Kanagawa.</p>
-  </div>
-  <div class="switch">
-    <button id="b-fluid" aria-pressed="true">fluid</button>
-    <button id="b-kanagawa" aria-pressed="false">kanagawa</button>
-  </div>
-</header>
+  <h1>Every popup is <i>the island</i></h1>
+  <p class="lede">One shape in the middle of the bar grows into every popup and shrinks back into the bar when it closes. All of them run from the keyboard, the selection is a lime pill that slides, and everything uses the current theme's colours on your wallpaper.</p>
 
-<!-- 1. Launcher -->
-<section>
-  <div class="label"><h2>1 · Launcher</h2><span class="note">Super+Space · recent first, <kbd>=</kbd> calculator, <kbd>?</kbd> web search</span></div>
-  <div class="screen dim">
-    <div class="bar"><div class="ws"><span class="on">1</span><span>2</span><span>3</span><span>4</span></div><div class="mid">Wed 18 Nov  09:41</div><div>&#xf1eb;&nbsp;&nbsp; 󰕾 64%  󰁹 88%</div></div>
-    <div class="pop center glass launcher">
-      <div class="search"><span class="ico">&#xf002;</span><span class="q">ca<span class="caret"></span></span><span class="hint">6 results</span></div>
-      <div class="group">Recent</div>
-      <div class="row sel"><span class="ic">&#xf073;</span><span class="name">Calendio</span><span class="meta">Super+A</span></div>
-      <div class="row"><span class="ic">&#xf1ec;</span><span class="name">Calculator</span><span class="meta"></span></div>
-      <div class="group">Apps</div>
-      <div class="row"><span class="ic">&#xf0eb;</span><span class="name">Claude</span><span class="meta">Super+I</span></div>
-      <div class="row"><span class="ic">&#xf245;</span><span class="name">Cursorify</span><span class="meta"></span></div>
-      <div class="row"><span class="ic">&#xf07b;</span><span class="name">Burrow <span style="color:var(--fg-dim)">· files</span></span><span class="meta">Super+E</span></div>
-      <div class="calc"><span>=12*48+7</span><b>583</b></div>
-      <div class="foot"><span><kbd>↵</kbd> open</span><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>Tab</kbd> actions</span><span><kbd>Esc</kbd> close</span></div>
+  <template id="base">
+    <div class="pill pl"><div class="logo"><svg viewBox="0 0 24 24"><path d="M12 2c4 5.2 7 8.8 7 12.3A7 7 0 0 1 5 14.3C5 10.8 8 7.2 12 2Z" fill="#101316"/></svg></div><div class="ws"><i class="on"></i><i></i><i></i><i></i></div></div>
+    <div class="pill pr"><span><span class="ic">&#xf1eb;</span>wifi</span><span><span class="ic">󰕾</span>64</span><span><span class="ic">󰁹</span>88</span><span><span class="ring"></span>claude 68%</span></div>
+    <div class="win focus" style="left:24px;top:74px;width:700px;height:560px"><div class="wl a"></div><div class="wl m"></div><div class="wl s"></div><div class="wl m"></div><div class="wl"></div><div class="wl s"></div></div>
+    <div class="win" style="left:1196px;top:74px;width:700px;height:270px"><div class="wl s"></div><div class="wl m"></div><div class="wl"></div></div>
+    <div class="win" style="left:1196px;top:360px;width:700px;height:274px"><div class="wl a"></div><div class="wl s"></div><div class="wl m"></div></div>
+  </template>
+
+  <section><div class="label"><span class="n">1</span><h2>Launcher</h2><span class="note"><kbd>❖ Space</kbd> · recent first · <kbd>=</kbd> maths · <kbd>?</kbd> web</span></div>
+  <div class="vp"><div class="st dim">
+    <div class="island" style="width:640px">
+      <div class="q"><span class="orb"></span>ca<span class="caret"></span><span class="count">5 results</span></div>
+      <div class="row on"><span class="ic">&#xf073;</span><div><div class="t">Calendio</div><div class="d">your day · math at 18:00</div></div><span class="meta kc"><span>❖</span><span>A</span></span></div>
+      <div class="row"><span class="ic">&#xf1ec;</span><div><div class="t">Calculator</div><div class="d">or type = in here</div></div></div>
+      <div class="row"><span class="ic">&#xf0eb;</span><div><div class="t">Claude</div><div class="d">ask anything</div></div><span class="meta kc"><span>❖</span><span>I</span></span></div>
+      <div class="row"><span class="ic">&#xf245;</span><div><div class="t">Cursorify</div><div class="d">cursor designer</div></div></div>
+      <div class="row"><span class="ic">&#xf07b;</span><div><div class="t">Burrow</div><div class="d">files</div></div><span class="meta kc"><span>❖</span><span>E</span></span></div>
+      <div class="foot"><span>↵ open</span><span>↑↓ move</span><span>tab actions</span><span>esc close</span></div>
     </div>
-  </div>
-</section>
+  </div></div></section>
 
-<!-- 2. Emoji -->
-<section>
-  <div class="label"><h2>2 · Emoji</h2><span class="note">Super+Period · grid, <kbd>Tab</kbd> next category, <kbd>Shift</kbd>+<kbd>↵</kbd> skin tone</span></div>
-  <div class="screen dim">
-    <div class="bar"><div class="ws"><span>1</span><span class="on">2</span><span>3</span><span>4</span></div><div class="mid">Wed 18 Nov  09:41</div><div>&#xf1eb;&nbsp;&nbsp; 󰕾 64%  󰁹 88%</div></div>
-    <div class="pop center glass emoji">
-      <div class="search"><span class="ico">󰞅</span><span class="q"><span class="caret"></span></span><span class="hint">type to search</span></div>
-      <div class="tabs"><span class="on">🕘</span><span>😀</span><span>👋</span><span>🐱</span><span>🍜</span><span>⚽</span><span>✈️</span><span>💡</span><span>❤️</span><span>🏳️</span></div>
-      <div class="erow-label">Recent</div>
-      <div class="egrid">
-        <span class="sel">😭</span><span>🔥</span><span>💀</span><span>🙏</span><span>✨</span><span>😤</span><span>👀</span><span>♟️</span><span>🎨</span><span>📚</span>
+  <section><div class="label"><span class="n">2</span><h2>Emoji</h2><span class="note"><kbd>❖ .</kbd> · arrows move the glow · <kbd>tab</kbd> next group · <kbd>⇧↵</kbd> skin tone</span></div>
+  <div class="vp"><div class="st dim">
+    <div class="island" style="width:600px">
+      <div class="q"><span class="orb"></span><span class="ph">search emoji</span><span class="caret"></span></div>
+      <div class="cats"><span class="on">recent</span><span>smileys</span><span>people</span><span>nature</span><span>food</span><span>objects</span></div>
+      <div class="eg">
+        <span class="on">😭</span><span>🔥</span><span>💀</span><span>🙏</span><span>✨</span><span>👀</span><span>♟️</span><span>🎨</span><span>📚</span><span>😤</span>
+        <span>🥹</span><span>😂</span><span>🫠</span><span>💅</span><span>🤌</span><span>🫡</span><span>😮‍💨</span><span>🤝</span><span>💯</span><span>🌙</span>
+        <span>🍵</span><span>🎧</span><span>🧠</span><span>⚡</span><span>🌊</span><span>🍃</span><span>🫧</span><span>💚</span><span>🩷</span><span>🤍</span>
       </div>
-      <div class="erow-label">Smileys</div>
-      <div class="egrid">
-        <span>😀</span><span>😃</span><span>😄</span><span>😁</span><span>😆</span><span>🥹</span><span>😅</span><span>😂</span><span>🤣</span><span>🥲</span>
-        <span>😊</span><span>😇</span><span>🙂</span><span>🙃</span><span>😉</span><span>😌</span><span>😍</span><span>🥰</span><span>😘</span><span>😋</span>
-      </div>
-      <div class="ename"><span><b>😭</b>  loudly crying face</span><span><kbd>↵</kbd> copy + paste</span></div>
+      <div class="ename"><span>loudly crying face</span><small>↵ paste</small></div>
     </div>
-  </div>
-</section>
+  </div></div></section>
 
-<!-- 3. Clipboard -->
-<section>
-  <div class="label"><h2>3 · Clipboard</h2><span class="note">Super+Ctrl+V · preview pane, images as thumbnails, <kbd>p</kbd> pin, <kbd>Del</kbd> remove</span></div>
-  <div class="screen dim">
-    <div class="bar"><div class="ws"><span>1</span><span>2</span><span class="on">3</span><span>4</span></div><div class="mid">Wed 18 Nov  09:41</div><div>&#xf1eb;&nbsp;&nbsp; 󰕾 64%  󰁹 88%</div></div>
-    <div class="pop center glass clip">
-      <div class="search"><span class="ico">󰅍</span><span class="q"><span class="caret"></span></span><span class="hint">48 items · 2 pinned</span></div>
+  <section><div class="label"><span class="n">3</span><h2>Clipboard</h2><span class="note"><kbd>❖ Ctrl V</kbd> · live preview · images as thumbnails · <kbd>p</kbd> pin · <kbd>del</kbd> remove</span></div>
+  <div class="vp"><div class="st dim">
+    <div class="island" style="width:960px">
+      <div class="q"><span class="orb"></span><span class="ph">search clipboard</span><span class="caret"></span><span class="count">48 items · 2 pinned</span></div>
       <div class="split">
         <div class="list">
-          <div class="group">Pinned</div>
-          <div class="row"><span class="ic pin">󰐃</span><span class="name">roohlyric57@…</span><span class="meta">text</span></div>
-          <div class="group">Today</div>
-          <div class="row sel"><span class="ic">&#xf121;</span><span class="name">fn open_or_focus(app…</span><span class="meta">2m</span></div>
-          <div class="row"><span class="ic">󰋩</span><span class="name">screenshot 1920×1080</span><span class="meta">9m</span></div>
-          <div class="row"><span class="ic">&#xf0c1;</span><span class="name">github.com/basecamp/om…</span><span class="meta">14m</span></div>
-          <div class="row"><span class="ic">&#xf040;</span><span class="name">Ch. 12, the ink pooled…</span><span class="meta">1h</span></div>
+          <div class="grp">pinned</div>
+          <div class="row"><span class="ic pin">󰐃</span><div class="t">roohlyric57@gmail.com</div><span class="meta">text</span></div>
+          <div class="grp">today</div>
+          <div class="row on"><span class="ic"></span><div class="t">fn open_or_focus(app…</div><span class="meta">2m</span></div>
+          <div class="row"><span class="ic">󰋩</span><div class="t">screenshot 1920×1080</div><span class="meta">9m</span></div>
+          <div class="row"><span class="ic"></span><div class="t">github.com/Fs1lyric/fluidity</div><span class="meta">14m</span></div>
+          <div class="row"><span class="ic"></span><div class="t">Ch. 12, the ink pooled…</div><span class="meta">1h</span></div>
         </div>
-        <div class="preview">
-          <span>text · 4 lines · copied from Ghostty</span>
+        <div class="prev">
+          <span>text · 5 lines · from ghostty</span>
 <pre><span class="c"># open the app, or focus it</span>
-<span class="k">fn</span> open_or_focus(app: &amp;str) {
-  <span class="k">if</span> focus(app) { <span class="k">return</span> }
-  spawn(<span class="s">"uwsm-app"</span>, app)
+<span class="kw">fn</span> <span class="fn">open_or_focus</span>(app: &amp;str) {
+    <span class="kw">if</span> <span class="fn">focus</span>(app) { <span class="kw">return</span> }
+    <span class="fn">spawn</span>(<span class="s">"uwsm-app"</span>, app)
 }</pre>
-          <span>older image</span>
-          <div style="display:flex;gap:10px;align-items:center"><div class="thumb"></div><span>screenshot · 1920×1080 · 412 KB</span></div>
+          <span>next image</span>
+          <div style="display:flex;gap:14px;align-items:center"><div class="thumb"></div><span>screenshot · 1920×1080 · 412 KB</span></div>
         </div>
       </div>
-      <div class="foot"><span><kbd>↵</kbd> paste</span><span><kbd>p</kbd> pin</span><span><kbd>Del</kbd> remove</span><span><kbd>Esc</kbd> close</span></div>
     </div>
-  </div>
-</section>
+  </div></div></section>
 
-<!-- 4. Cheat sheet -->
-<section>
-  <div class="label"><h2>4 · Cheat sheet</h2><span class="note">Super+K · grouped, drawn key caps, type to filter</span></div>
-  <div class="screen dim">
-    <div class="bar"><div class="ws"><span class="on">1</span><span>2</span><span>3</span><span>4</span></div><div class="mid">Wed 18 Nov  09:41</div><div>&#xf1eb;&nbsp;&nbsp; 󰕾 64%  󰁹 88%</div></div>
-    <div class="pop center glass cheat">
-      <div class="search"><span class="ico">󰌌</span><span class="q">sh<span class="caret"></span></span><span class="hint">filtering 142 binds</span></div>
+  <section><div class="label"><span class="n">4</span><h2>Cheat sheet</h2><span class="note"><kbd>❖ K</kbd> · every bind, grouped · type to filter · <kbd>↵</kbd> runs it</span></div>
+  <div class="vp"><div class="st dim">
+    <div class="island" style="width:1240px">
+      <div class="q"><span class="orb"></span>sh<span class="caret"></span><span class="count">filtering 142 binds</span></div>
       <div class="cols">
-        <div class="col">
-          <div class="group">Apps</div>
-          <div class="kb"><span class="d">Calendio</span><span class="k"><kbd>❖</kbd><kbd>A</kbd></span></div>
-          <div class="kb"><span class="d">Zen</span><span class="k"><kbd>❖</kbd><kbd>B</kbd></span></div>
-          <div class="kb"><span class="d">Spotify</span><span class="k"><kbd>❖</kbd><kbd>M</kbd></span></div>
-          <div class="kb"><span class="d">Obsidian</span><span class="k"><kbd>❖</kbd><kbd>N</kbd></span></div>
-          <div class="kb"><span class="d">Burrow</span><span class="k"><kbd>❖</kbd><kbd>E</kbd></span></div>
-          <div class="kb"><span class="d">Claude</span><span class="k"><kbd>❖</kbd><kbd>I</kbd></span></div>
-          <div class="kb"><span class="d">Terminal</span><span class="k"><kbd>❖</kbd><kbd>↵</kbd></span></div>
+        <div class="col"><div class="grp">apps</div>
+          <div class="kb">Calendio<span class="kc"><span>❖</span><span>A</span></span></div>
+          <div class="kb">Zen<span class="kc"><span>❖</span><span>B</span></span></div>
+          <div class="kb">Spotify<span class="kc"><span>❖</span><span>M</span></span></div>
+          <div class="kb">Obsidian<span class="kc"><span>❖</span><span>N</span></span></div>
+          <div class="kb">Burrow<span class="kc"><span>❖</span><span>E</span></span></div>
+          <div class="kb">Claude<span class="kc"><span>❖</span><span>I</span></span></div>
+          <div class="kb">Terminal<span class="kc"><span>❖</span><span>↵</span></span></div>
         </div>
-        <div class="col">
-          <div class="group">Windows</div>
-          <div class="kb"><span class="d">Close</span><span class="k"><kbd>❖</kbd><kbd>W</kbd></span></div>
-          <div class="kb"><span class="d">Float / tile</span><span class="k"><kbd>❖</kbd><kbd>T</kbd></span></div>
-          <div class="kb"><span class="d">Fullscreen</span><span class="k"><kbd>❖</kbd><kbd>F</kbd></span></div>
-          <div class="kb"><span class="d">Toggle split</span><span class="k"><kbd>❖</kbd><kbd>J</kbd></span></div>
-          <div class="kb"><span class="d">Group</span><span class="k"><kbd>❖</kbd><kbd>G</kbd></span></div>
-          <div class="kb"><span class="d">Pop out</span><span class="k"><kbd>❖</kbd><kbd>O</kbd></span></div>
-          <div class="kb"><span class="d">Move</span><span class="k"><kbd>❖</kbd><kbd>⇧</kbd><kbd>←</kbd></span></div>
+        <div class="col"><div class="grp">windows</div>
+          <div class="kb">Close<span class="kc"><span>❖</span><span>W</span></span></div>
+          <div class="kb">Float / tile<span class="kc"><span>❖</span><span>T</span></span></div>
+          <div class="kb">Fullscreen<span class="kc"><span>❖</span><span>F</span></span></div>
+          <div class="kb">Toggle split<span class="kc"><span>❖</span><span>J</span></span></div>
+          <div class="kb">Group<span class="kc"><span>❖</span><span>G</span></span></div>
+          <div class="kb">Pop out<span class="kc"><span>❖</span><span>O</span></span></div>
+          <div class="kb">Move<span class="kc"><span>❖</span><span>⇧</span><span>←</span></span></div>
         </div>
-        <div class="col">
-          <div class="group">Capture</div>
-          <div class="kb sel"><span class="d">Screen<mark>sh</mark>ot</span><span class="k"><kbd>❖</kbd><kbd>;</kbd><kbd class="a">S</kbd></span></div>
-          <div class="kb"><span class="d">Record</span><span class="k"><kbd>❖</kbd><kbd>;</kbd><kbd>R</kbd></span></div>
-          <div class="kb"><span class="d">OCR copy</span><span class="k"><kbd>❖</kbd><kbd>;</kbd><kbd>O</kbd></span></div>
-          <div class="kb"><span class="d">Colour pick</span><span class="k"><kbd>❖</kbd><kbd>;</kbd><kbd>P</kbd></span></div>
-          <div class="group">Workspaces</div>
-          <div class="kb"><span class="d">Go to 1–9</span><span class="k"><kbd>❖</kbd><kbd>1</kbd></span></div>
-          <div class="kb"><span class="d">Last</span><span class="k"><kbd>❖</kbd><kbd>Tab</kbd></span></div>
+        <div class="col"><div class="grp">capture</div>
+          <div class="kb on">Screen<mark>sh</mark>ot<span class="kc"><span>❖</span><span>;</span><span>S</span></span></div>
+          <div class="kb">Record<span class="kc"><span>❖</span><span>;</span><span>R</span></span></div>
+          <div class="kb">OCR copy<span class="kc"><span>❖</span><span>;</span><span>O</span></span></div>
+          <div class="kb">Colour pick<span class="kc"><span>❖</span><span>;</span><span>P</span></span></div>
+          <div class="grp">workspaces</div>
+          <div class="kb">Go to 1–9<span class="kc"><span>❖</span><span>1</span></span></div>
+          <div class="kb">Last<span class="kc"><span>❖</span><span>Tab</span></span></div>
         </div>
-        <div class="col">
-          <div class="group">System</div>
-          <div class="kb"><span class="d">Launcher</span><span class="k"><kbd>❖</kbd><kbd>Space</kbd></span></div>
-          <div class="kb"><span class="d">Emoji</span><span class="k"><kbd>❖</kbd><kbd>.</kbd></span></div>
-          <div class="kb"><span class="d">Clipboard</span><span class="k"><kbd>❖</kbd><kbd>^</kbd><kbd>V</kbd></span></div>
-          <div class="kb"><span class="d">Click hints</span><span class="k"><kbd>❖</kbd><kbd>Q</kbd></span></div>
-          <div class="kb"><span class="d">Themes</span><span class="k"><kbd>❖</kbd><kbd>^</kbd><kbd>⇧</kbd><kbd>Spc</kbd></span></div>
-          <div class="kb"><span class="d">Lock</span><span class="k"><kbd>❖</kbd><kbd>;</kbd><kbd>L</kbd></span></div>
-          <div class="kb"><span class="d">Power</span><span class="k"><kbd>❖</kbd><kbd>Esc</kbd></span></div>
+        <div class="col"><div class="grp">system</div>
+          <div class="kb">Launcher<span class="kc"><span>❖</span><span>Space</span></span></div>
+          <div class="kb">Emoji<span class="kc"><span>❖</span><span>.</span></span></div>
+          <div class="kb">Clipboard<span class="kc"><span>❖</span><span>^</span><span>V</span></span></div>
+          <div class="kb">Click hints<span class="kc"><span>❖</span><span>Q</span></span></div>
+          <div class="kb">Themes<span class="kc"><span>❖</span><span>^⇧</span><span>Spc</span></span></div>
+          <div class="kb">Lock<span class="kc"><span>❖</span><span>;</span><span>L</span></span></div>
+          <div class="kb">Power<span class="kc"><span>❖</span><span>Esc</span></span></div>
         </div>
       </div>
-      <div class="foot"><span><kbd>↵</kbd> run it</span><span><kbd>Tab</kbd> next group</span><span><kbd>Esc</kbd> close</span></div>
+      <div class="foot"><span>↵ run it</span><span>tab next group</span><span>esc close</span></div>
     </div>
-  </div>
-</section>
+  </div></div></section>
 
-<!-- 5. Leader strip -->
-<section>
-  <div class="label"><h2>5 · Leader strip</h2><span class="note">Super+; · one line at the bottom, gone on the next key</span></div>
-  <div class="screen">
-    <div class="bar"><div class="ws"><span class="on">1</span><span>2</span><span>3</span><span>4</span></div><div class="mid">Wed 18 Nov  09:41</div><div>&#xf1eb;&nbsp;&nbsp; 󰕾 64%  󰁹 88%</div></div>
-    <div class="win" style="left:2%;top:36px;width:47%;bottom:56px"><div class="wtop"><div class="tab"></div></div><div class="blk" style="left:10px;top:40px;width:60%;height:6px"></div><div class="blk" style="left:10px;top:54px;width:40%;height:6px"></div></div>
-    <div class="win focus" style="left:51%;top:36px;width:47%;bottom:56px"><div class="wtop"><div class="tab"></div></div><div class="blk" style="left:10px;top:40px;width:70%;height:6px"></div><div class="blk" style="left:10px;top:54px;width:30%;height:6px"></div></div>
-    <div class="pop glass leader">
-      <span class="lead"><kbd class="a">❖ ;</kbd></span>
-      <span class="it"><kbd>s</kbd>shot</span><span class="it"><kbd>r</kbd>record</span><span class="it"><kbd>o</kbd>ocr</span><span class="it"><kbd>p</kbd>colour</span>
-      <span class="it"><kbd>c</kbd>clipboard</span><span class="it"><kbd>e</kbd>emoji</span><span class="it"><kbd>n</kbd>night</span><span class="it"><kbd>d</kbd>dnd</span>
-      <span class="it"><kbd>i</kbd>idle</span><span class="it"><kbd>g</kbd>gaps</span><span class="it"><kbd>t</kbd>theme</span><span class="it"><kbd>m</kbd>mode</span>
-      <span class="it"><kbd>w</kbd>wallpaper</span><span class="it"><kbd>l</kbd>lock</span><span class="it"><kbd>x</kbd>power</span>
+  <section><div class="label"><span class="n">5</span><h2>Leader</h2><span class="note"><kbd>❖ ;</kbd> · the bar stretches into a row of keys, then snaps back on the next key</span></div>
+  <div class="vp"><div class="st">
+    <div class="island" style="width:1320px;border-radius:32px">
+      <div class="leader">
+        <span class="lead"><span class="orb"></span>❖ ;</span>
+        <span class="li"><b>s</b>shot</span><span class="li"><b>r</b>record</span><span class="li"><b>o</b>ocr</span><span class="li"><b>p</b>colour</span>
+        <span class="li"><b>c</b>clipboard</span><span class="li"><b>e</b>emoji</span><span class="li"><b>n</b>night</span><span class="li"><b>d</b>dnd</span>
+        <span class="li"><b>i</b>idle</span><span class="li"><b>g</b>gaps</span><span class="li"><b>t</b>theme</span><span class="li"><b>m</b>mode</span>
+        <span class="li"><b>w</b>wall</span><span class="li"><b>l</b>lock</span><span class="li"><b>x</b>power</span>
+      </div>
     </div>
-  </div>
-</section>
+  </div></div></section>
 
-<!-- 6. Click hints -->
-<section>
-  <div class="label"><h2>6 · Click hints</h2><span class="note">Super+Q · type the letters, it clicks there; typed letters fade</span></div>
-  <div class="screen">
-    <div class="bar"><div class="ws"><span>1</span><span class="on">2</span><span>3</span><span>4</span></div><div class="mid">Wed 18 Nov  09:41</div><div>&#xf1eb;&nbsp;&nbsp; 󰕾 64%  󰁹 88%</div></div>
-    <div class="win focus" style="left:2%;right:2%;top:34px;bottom:10px">
-      <div class="wtop"><div class="tab"></div><div class="tab"></div><div class="url"></div></div>
-      <div class="blk" style="left:3%;top:46px;width:18%;height:70%"></div>
-      <div class="blk" style="left:25%;top:46px;width:50%;height:14px"></div>
-      <div class="blk" style="left:25%;top:72px;width:40%;height:8px;background:var(--muted)"></div>
-      <div class="blk" style="left:25%;top:90px;width:45%;height:8px;background:var(--muted)"></div>
-      <div class="blk" style="left:25%;top:116px;width:22%;height:80px"></div>
-      <div class="blk" style="left:49%;top:116px;width:22%;height:80px"></div>
-      <div class="blk" style="left:79%;top:46px;width:17%;height:22px"></div>
-    </div>
-    <span class="ch" style="left:4%;top:38px">aa</span>
-    <span class="ch" style="left:10%;top:38px">as</span>
-    <span class="ch" style="left:17%;top:38px"><span class="t">d</span>f</span>
-    <span class="ch" style="left:4%;top:88px">ad</span>
-    <span class="ch" style="left:4%;top:118px">af</span>
-    <span class="ch" style="left:4%;top:148px">sa</span>
-    <span class="ch" style="left:26%;top:86px">sd</span>
-    <span class="ch" style="left:26%;top:154px"><span class="t">d</span>a</span>
-    <span class="ch" style="left:50%;top:154px"><span class="t">d</span>s</span>
-    <span class="ch" style="left:80%;top:84px"><span class="t">d</span>d</span>
-    <div class="pop glass typed">typed <b>d</b> · 4 left · <kbd>Esc</kbd> cancel</div>
-  </div>
-</section>
+  <section><div class="label"><span class="n">6</span><h2>Click hints</h2><span class="note"><kbd>❖ Q</kbd> · a glowing pill on everything clickable · type the letters and it clicks there</span></div>
+  <div class="vp"><div class="st">
+    <div class="island" style="width:420px;border-radius:24px"><div class="osd"><span class="ic">󰳽</span><span style="font:14px var(--sans)">typed <b style="color:var(--lime)">d</b> · 4 matches</span><span style="margin-left:auto;font:11.5px var(--mono);color:var(--dim)">esc cancel</span></div></div>
+    <span class="hint gone" style="left:60px;top:110px">aa</span><span class="hint gone" style="left:60px;top:200px">as</span><span class="hint gone" style="left:60px;top:290px">af</span>
+    <span class="hint" style="left:420px;top:170px"><span class="t">d</span>f</span><span class="hint gone" style="left:420px;top:380px">sa</span>
+    <span class="hint" style="left:1020px;top:110px"><span class="t">d</span>a</span><span class="hint gone" style="left:1400px;top:110px">sd</span>
+    <span class="hint" style="left:1020px;top:610px"><span class="t">d</span>s</span><span class="hint" style="left:1500px;top:610px"><span class="t">d</span>d</span><span class="hint gone" style="left:1020px;top:820px">sf</span>
+  </div></div></section>
 
-<!-- 7. Power -->
-<section>
-  <div class="label"><h2>7 · Power</h2><span class="note">Super+Esc · one letter each, arrows + Enter also work</span></div>
-  <div class="screen dim">
-    <div class="bar"><div class="ws"><span class="on">1</span><span>2</span><span>3</span><span>4</span></div><div class="mid">Wed 18 Nov  09:41</div><div>&#xf1eb;&nbsp;&nbsp; 󰕾 64%  󰁹 88%</div></div>
-    <div class="pop center glass power">
-      <div class="tile sel"><kbd class="a">L</kbd><span class="g">&#xf023;</span>lock</div>
-      <div class="tile"><kbd>S</kbd><span class="g">󰤄</span>suspend</div>
-      <div class="tile"><kbd>O</kbd><span class="g">󰍃</span>log out</div>
-      <div class="tile danger"><kbd>R</kbd><span class="g">󰜉</span>restart</div>
-      <div class="tile danger"><kbd>P</kbd><span class="g">󰐥</span>shut down</div>
-    </div>
-  </div>
-</section>
+  <section><div class="label"><span class="n">7</span><h2>Power</h2><span class="note"><kbd>❖ Esc</kbd> · one letter each · the picked bubble opens up and shows its name</span></div>
+  <div class="vp"><div class="st dim">
+    <div class="island" style="border-radius:40px"><div class="power">
+      <div class="pb on"><span>&#xf023;</span><b>lock</b></div><div class="pb"><span>󰤄</span></div><div class="pb"><span>󰍃</span></div><div class="pb danger"><span>󰜉</span></div><div class="pb danger"><span>󰐥</span></div>
+    </div></div>
+  </div></div></section>
 
-<!-- 8. Wallpaper -->
-<section>
-  <div class="label"><h2>8 · Wallpaper</h2><span class="note">Super+Ctrl+Space · your own walls, live preview behind it</span></div>
-  <div class="screen">
-    <div class="bar"><div class="ws"><span class="on">1</span><span>2</span><span>3</span><span>4</span></div><div class="mid">Wed 18 Nov  09:41</div><div>&#xf1eb;&nbsp;&nbsp; 󰕾 64%  󰁹 88%</div></div>
-    <div class="pop glass walls">
-      <div class="wmeta"><span><b>fluid</b> · 01.jpg · 3840×2160</span><span><kbd>←</kbd><kbd>→</kbd> browse  <kbd>↵</kbd> set  <kbd>Esc</kbd> keep old</span></div>
-      <div class="wstrip">
+  <section><div class="label"><span class="n">8</span><h2>Wallpaper</h2><span class="note"><kbd>❖ Ctrl Space</kbd> · your own walls · the desktop previews live behind it</span></div>
+  <div class="vp"><div class="st">
+    <div class="island" style="width:1240px"><div class="walls">
+      <div class="wm"><span class="nm">gruvbox leaves<small>3840×2160 · 12 of 112</small></span><span class="kc"><span>←</span><span>→</span><span>↵</span><span>esc</span></span></div>
+      <div class="strip">
         <div class="w" style="background-image:url('file:///home/lyric/claude/luminescent/themes/fluid/backgrounds/05.jpg')"></div>
         <div class="w" style="background-image:url('file:///home/lyric/claude/luminescent/themes/fluid/backgrounds/06.jpg')"></div>
-        <div class="w sel" style="background-image:var(--wall)"></div>
+        <div class="w on" style="background-image:var(--wall)"></div>
         <div class="w" style="background-image:url('file:///home/lyric/claude/luminescent/themes/fluid/backgrounds/04.jpg')"></div>
-        <div class="w" style="background-image:url('file:///home/lyric/claude/luminescent/themes/fluid/backgrounds/02.png')"></div>
+        <div class="w" style="background-image:url('file:///home/lyric/claude/luminescent/themes/fluid/backgrounds/01.jpg')"></div>
       </div>
-    </div>
-  </div>
-</section>
+    </div></div>
+  </div></div></section>
 
-<!-- 9. Alt-tab -->
-<section>
-  <div class="label"><h2>9 · Window switcher</h2><span class="note">Alt+Tab · live thumbnails, hold Alt, tap Tab</span></div>
-  <div class="screen dim">
-    <div class="bar"><div class="ws"><span class="on">1</span><span>2</span><span>3</span><span>4</span></div><div class="mid">Wed 18 Nov  09:41</div><div>&#xf1eb;&nbsp;&nbsp; 󰕾 64%  󰁹 88%</div></div>
-    <div class="pop center glass alttab">
-      <div class="card"><div class="shot"><div class="line a"></div><div class="line"></div><div class="line s"></div><div class="line"></div></div><div class="cap">&#xf120; Ghostty</div></div>
-      <div class="card sel"><div class="shot"><div class="line"></div><div class="line s"></div><div class="line a"></div><div class="line"></div><div class="line s"></div></div><div class="cap">&#xf073; Calendio</div></div>
-      <div class="card"><div class="shot"><div class="line s"></div><div class="line"></div><div class="line"></div></div><div class="cap">&#xf269; Zen</div></div>
-      <div class="card"><div class="shot"><div class="line"></div><div class="line a"></div><div class="line s"></div></div><div class="cap">&#xf249; Obsidian</div></div>
-    </div>
-  </div>
-</section>
+  <section><div class="label"><span class="n">9</span><h2>Window switcher</h2><span class="note"><kbd>Alt Tab</kbd> · live thumbnails · hold alt, tap tab</span></div>
+  <div class="vp"><div class="st dim">
+    <div class="island"><div class="tabs">
+      <div class="card"><div class="shot"><i class="a"></i><i></i><i style="width:50%"></i><i></i></div><div class="cap"> Ghostty</div></div>
+      <div class="card on"><div class="shot"><i></i><i style="width:60%"></i><i class="a"></i><i></i></div><div class="cap"> Calendio</div></div>
+      <div class="card"><div class="shot"><i style="width:50%"></i><i></i><i></i></div><div class="cap"> Zen</div></div>
+      <div class="card"><div class="shot"><i></i><i class="a"></i><i style="width:40%"></i></div><div class="cap"> Obsidian</div></div>
+    </div></div>
+  </div></div></section>
 
-<!-- 10. Notifications + OSD -->
-<section>
-  <div class="label"><h2>10 · Notifications + volume</h2><span class="note">same cards, accent edge on the newest; the OSD is one thin bar</span></div>
-  <div class="screen">
-    <div class="bar"><div class="ws"><span class="on">1</span><span>2</span><span>3</span><span>4</span></div><div class="mid">Wed 18 Nov  09:41</div><div>&#xf1eb;&nbsp;&nbsp; 󰕾 64%  󰁹 88%</div></div>
-    <div class="pop glass notif">
-      <span class="ic">&#xf073;</span>
-      <div><div class="t">Calendio · Math, 18:00</div><div class="b">Linear algebra, chapter 4 starts in 10 min</div>
-        <div class="acts"><kbd>❖</kbd><kbd>A</kbd><span class="b" style="align-self:center">open</span></div></div>
-    </div>
-    <div class="pop glass notif notif2">
-      <span class="ic">&#xf086;</span>
-      <div><div class="t">Vesktop</div><div class="b">2 new messages</div></div>
-    </div>
-    <div class="pop glass osd"><span class="ic">󰕾</span><div class="track"><div class="fill"></div></div><span class="n">64</span></div>
-  </div>
-</section>
+  <section><div class="label"><span class="n">10</span><h2>Notifications</h2><span class="note">the bar opens into the newest one · older ones hang underneath · <kbd>❖ A</kbd> opens it</span></div>
+  <div class="vp"><div class="st">
+    <div class="island" style="width:520px;border-radius:28px"><div class="notify">
+      <div class="nic">&#xf073;</div><div><div class="nt">Math in 10 minutes</div><div class="nb">Linear algebra · chapter 4 · Calendio</div></div>
+      <span class="kc" style="margin-left:auto"><span>❖</span><span>A</span></span>
+    </div></div>
+    <div class="stack2"><span style="font:16px var(--mono)">&#xf086;</span>Vesktop · 2 new messages<span style="margin-left:auto;font:11px var(--mono)">3m</span></div>
+  </div></div></section>
+
+  <section><div class="label"><span class="n">11</span><h2>Volume and brightness</h2><span class="note">the bar becomes a slider for a second, then goes back</span></div>
+  <div class="vp"><div class="st">
+    <div class="island" style="width:420px;border-radius:26px"><div class="osd"><span class="ic">󰕾</span><div class="tr"><i></i></div><span class="v">64</span></div></div>
+  </div></div></section>
 </div>
 
 <script>
-  const root = document.documentElement;
-  const set = (name) => {
-    root.dataset.theme = name;
-    for (const n of ["fluid", "kanagawa"]) document.getElementById("b-" + n).setAttribute("aria-pressed", String(n === name));
-  };
-  document.getElementById("b-fluid").onclick = () => set("fluid");
-  document.getElementById("b-kanagawa").onclick = () => set("kanagawa");
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "t") set(root.dataset.theme === "kanagawa" ? "fluid" : "kanagawa");
-  });
-  const q = new URLSearchParams(location.search).get("theme");
-  if (q) set(q);
+  const base = document.getElementById("base").innerHTML;
+  document.querySelectorAll(".st").forEach(st => st.insertAdjacentHTML("afterbegin", base));
+  const fit = () => document.querySelectorAll(".vp").forEach(vp => vp.firstElementChild.style.transform = `scale(${vp.clientWidth / 1920})`);
+  addEventListener("resize", fit); fit();
 </script>
 </body>
 </html>
