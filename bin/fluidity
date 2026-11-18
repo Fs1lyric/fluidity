@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# fluidity: the front door. `fluidity <cmd> [args]` runs `fluidity-<cmd> [args]`.
+set -euo pipefail
+
+root=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)
+
+usage() {
+  cat <<USAGE
+fluidity <command> [args]
+
+  version     print the Fluidity version
+  help        show this list
+$(compgen -c fluidity- 2>/dev/null | sort -u | sed 's/^fluidity-/  /')
+USAGE
+}
+
+cmd=${1:-help}
+case $cmd in
+  version | --version | -v) echo "Fluidity $(cat "$root/VERSION")" ;;
+  help | --help | -h) usage ;;
+  *)
+    shift
+    if command -v "fluidity-$cmd" >/dev/null 2>&1; then
+      exec "fluidity-$cmd" "$@"
+    fi
+    echo "fluidity: unknown command '$cmd' (try: fluidity help)" >&2
+    exit 2
+    ;;
+esac
