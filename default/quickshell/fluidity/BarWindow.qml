@@ -77,7 +77,11 @@ PanelWindow {
 
     IslandView {
         id: island
-        anchors.horizontalCenter: parent.horizontalCenter; y: 14
+        // centred in the free space between the app row and the right pill, so the song, the Calendio line and the clock fit
+        readonly property real gapL: bar.appsItem.visible ? bar.appsItem.x + bar.appsItem.width + 12 : 0
+        readonly property real gapR: bar.rightItem.x - 12
+        x: Math.max(gapL, Math.min(gapR - width, (gapL + gapR - width) / 2)); y: 14
+        Behavior on x { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
         pal: Theme.pal
         visible: Island.barShown
         opacity: Island.overlayShown && Island.screen === w.screen ? 0 : 1
@@ -86,6 +90,7 @@ PanelWindow {
         playing: Island.player?.isPlaying ?? false
         clock: Status.clock
         extra: Status.focusText || Status.nextText
+        maxW: Math.max(240, gapR - gapL)
         title: Island.passiveTitle; body: Island.passiveBody; icon: Island.passiveIcon; value: Island.passiveValue; keyHint: Island.passiveKeys
         MouseArea { anchors.fill: parent; onClicked: Island.toggle(Island.barView === "idle" ? "calendar" : "notifications", "") }
     }

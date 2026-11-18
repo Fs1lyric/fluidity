@@ -451,7 +451,7 @@ Singleton {
     Timer { interval: 1000; repeat: true; running: apps.open === "idlescreen"; onTriggered: apps.idleTick() }
     function idleTick() {
         const now = new Date();
-        patch({ hours: Qt.formatTime(now, "HH"), minutes: Qt.formatTime(now, "mm"), date: Qt.formatDate(now, "dddd, d MMMM"), song: Island.song, next: Status.nextText });
+        patch({ hours: Qt.formatTime(now, "h"), minutes: Qt.formatTime(now, "mm") + " " + Qt.formatTime(now, "AP"), date: Qt.formatDate(now, "dddd, d MMMM"), song: Island.song, next: Status.nextText });
     }
 
     // ================= calendar =================

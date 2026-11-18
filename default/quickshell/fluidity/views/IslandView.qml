@@ -47,7 +47,7 @@ Item {
 
     // width, height, corner radius per view
     readonly property var sizes: ({
-        idle: [360 + (song ? 0 : -120) + (extra ? 150 : 0), 40, 20], launcher: [640, calc ? 420 : 372, 30], emoji: [600, 318, 30], clipboard: [960, 396, 30],
+        idle: [idleW, 40, 20], launcher: [640, calc ? 420 : 372, 30], emoji: [600, 318, 30], clipboard: [960, 396, 30],
         cheatsheet: [1240, 56 + 30 + 38 * groups.reduce((m, g) => Math.max(m, (g.binds || []).length), 1) + 22, 30], leader: [1320, 64, 32], power: [520, 120, 40], wallpaper: [1240, 250, 30],
         switcher: [Math.max(360, 48 + items.length * 226), 210, 30], notify: [520, 80, 28], osd: [420, 52, 26],
         hints: [420, 52, 24], control: [640, 240 + (song ? 26 : 0), 30], notifications: [560, 420, 30],
@@ -59,6 +59,16 @@ Item {
         widgets: [560, 62 + 46 * 8 + 12, 30], polkit: [620, app.error ? 190 : 170, 30], dockkeys: [0, 0, 0], idlescreen: [screenW - 28, screenH - 28, 60]
     })
     readonly property var size: sizes[view] || sizes.idle
+    TextMetrics { id: mSong; font.family: root.sans; font.pixelSize: 13; text: root.song }
+    TextMetrics { id: mExtra; font.family: root.sans; font.pixelSize: 13; font.weight: Font.Medium; text: root.extra }
+    TextMetrics { id: mClock; font.family: root.sans; font.pixelSize: 13; font.weight: Font.Medium; text: root.clock }
+    property int maxW: 100000          // idle: the room between the bar's pills (the bar sets it)
+    readonly property real extraW: mExtra.advanceWidth + 2
+    readonly property real fixedW: 48 + mClock.advanceWidth + (extra ? extraW + 14 + 4 + 14 : 0)
+    // the song gets what is left (up to 300 px) and hides when that's under 80; the Calendio line and the clock are never cut
+    readonly property real songW: Math.min(mSong.advanceWidth + 2, 300, maxW - fixedW - (5 * 3 + 8 + 14 + 14 + 4 + 14))
+    readonly property bool songShown: song !== "" && songW >= 80
+    readonly property int idleW: Math.ceil(fixedW + (songShown ? 5 * 3 + 8 + 14 + songW + 14 + 4 + 14 : 0))
 
     width: size[0]; height: size[1]
     Behavior on width { enabled: root.animate; SpringAnimation { spring: 4.2; damping: 0.32; epsilon: 0.4 } }
@@ -176,7 +186,7 @@ Item {
             spacing: 14
             Row {
                 spacing: 2; height: 14; anchors.verticalCenter: parent.verticalCenter
-                visible: root.song !== ""
+                visible: root.songShown
                 Repeater {
                     model: 5
                     Rectangle {
@@ -192,9 +202,9 @@ Item {
                     }
                 }
             }
-            Text { visible: root.song !== ""; text: root.song; color: root.pal.dim; font.family: root.sans; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter; elide: Text.ElideRight; width: Math.min(implicitWidth, 170) }
-            Rectangle { visible: root.song !== ""; width: 4; height: 4; radius: 2; color: root.pal.muted; anchors.verticalCenter: parent.verticalCenter }
-            Text { visible: root.extra !== ""; text: root.extra; elide: Text.ElideRight; width: Math.min(implicitWidth, 230); color: root.pal.accent; font.family: root.sans; font.pixelSize: 13; font.weight: Font.Medium; anchors.verticalCenter: parent.verticalCenter }
+            Text { visible: root.songShown; text: root.song; color: root.pal.dim; font.family: root.sans; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter; elide: Text.ElideRight; width: root.songW }
+            Rectangle { visible: root.songShown; width: 4; height: 4; radius: 2; color: root.pal.muted; anchors.verticalCenter: parent.verticalCenter }
+            Text { visible: root.extra !== ""; text: root.extra; width: root.extraW; color: root.pal.accent; font.family: root.sans; font.pixelSize: 13; font.weight: Font.Medium; anchors.verticalCenter: parent.verticalCenter }
             Rectangle { visible: root.extra !== ""; width: 4; height: 4; radius: 2; color: root.pal.muted; anchors.verticalCenter: parent.verticalCenter }
             Text { text: root.clock; color: root.pal.fg; font.family: root.sans; font.pixelSize: 13; font.weight: Font.Medium; anchors.verticalCenter: parent.verticalCenter }
         } }

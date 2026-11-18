@@ -10,8 +10,8 @@ import Quickshell.Hyprland
 Singleton {
     id: st
     property date now: new Date()
-    readonly property string clock: Qt.formatDateTime(now, "ddd d · HH:mm")
-    readonly property string hours: Qt.formatDateTime(now, "HH")
+    readonly property string clock: Qt.formatDateTime(now, "ddd d · h:mm AP")
+    readonly property string hours: Qt.formatDateTime(now, "h")
     readonly property string minutes: Qt.formatDateTime(now, "mm")
     readonly property string weekday: Qt.formatDateTime(now, "dddd")
     readonly property string date: Qt.formatDateTime(now, "d MMMM")

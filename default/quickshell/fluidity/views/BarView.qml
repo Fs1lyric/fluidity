@@ -80,7 +80,7 @@ Item {
                     required property var modelData
                     required property int index
                     property bool lit: bar.appIndex === index || hover.containsMouse || !!btn.modelData.on
-                    width: 32; height: 30; radius: 15
+                    width: 28; height: 30; radius: 14
                     color: lit ? Qt.rgba(1, 1, 1, 0.10) : "transparent"
                     Behavior on color { enabled: bar.animate; ColorAnimation { duration: 120 } }
                     Text {
