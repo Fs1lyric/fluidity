@@ -19,6 +19,27 @@ Singleton {
     property var sys: ({ cpu: 0, ram: 0, temp: 0, disk: 0 })
     property var agenda: []
     property var cpuLast: null
+    // focus timer (fluidity-focus) and the next Calendio block, for the idle island
+    property int focusUntil: 0
+    readonly property string focusText: {
+        const left = focusUntil - Math.floor(now.getTime() / 1000);
+        return focusUntil && left > 0 ? "focus " + Math.floor(left / 60) + ":" + String(left % 60).padStart(2, "0") : "";
+    }
+    property var todayRows: []
+    readonly property string nextText: {
+        const hm = Qt.formatDateTime(now, "HH:mm"), mins = t => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5)), n = mins(hm);
+        const cur = todayRows.find(r => r[0] <= hm && hm < r[1]);
+        if (cur) return cur[2] + " · " + (mins(cur[1]) - n) + "m left";
+        const nx = todayRows.find(r => r[0] > hm);
+        return nx && mins(nx[0]) - n <= 60 ? nx[2] + " in " + (mins(nx[0]) - n) + "m" : "";
+    }
+    FileView {
+        path: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/fluidity/focus-until"
+        watchChanges: true
+        onFileChanged: reload()
+        onLoaded: st.focusUntil = parseInt(text()) || 0
+        onLoadFailed: st.focusUntil = 0
+    }
 
     Timer { interval: 1000; running: true; repeat: true; onTriggered: st.now = new Date() }
 
@@ -56,6 +77,7 @@ Singleton {
         stdout: StdioCollector { onStreamFinished: {
             const hm = Qt.formatDateTime(new Date(), "HH:mm");
             const rows = String(text).split("\n").filter(Boolean).map(r => r.split("\t"));
+            st.todayRows = rows;
             let start = rows.findIndex(r => r[1] > hm);       // the block on now, or the next one
             if (start < 0) start = Math.max(0, rows.length - 5);
             st.agenda = rows.slice(Math.max(0, start - 1), Math.max(0, start - 1) + 5).map(r => ({

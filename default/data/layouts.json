@@ -1,0 +1,6 @@
+{
+  "study": [{ "class": "calendio", "cmd": "calendio" }, { "class": "obsidian", "cmd": "obsidian" }],
+  "code":  [{ "class": "code-insiders", "cmd": "code-insiders" }, { "class": "com.mitchellh.ghostty", "cmd": "ghostty" }],
+  "web":   [{ "class": "zen", "cmd": "zen-browser" }, { "class": "calendio", "cmd": "calendio" }],
+  "chill": [{ "class": "spotify", "cmd": "spotify" }, { "class": "vesktop", "cmd": "vesktop" }]
+}

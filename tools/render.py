@@ -49,6 +49,8 @@ APPS = [dict(icon="", title="Calendio", desc="your day · math at 18:00", key
         dict(icon="", title="Burrow", desc="files", keys=K("❖", "E"))]
 HINT = ["↵ open", "↑↓ move", "tab actions", "esc close"]
 scenario("idle", "IslandView", dict(view="idle", song="Kokoro · Tycho", playing=True, clock="Wed 18 · 09:41"))
+scenario("idle-focus", "IslandView", dict(view="idle", song="Kokoro · Tycho", playing=True, clock="Wed 18 · 09:41", extra="focus 24:12"))
+scenario("idle-next", "IslandView", dict(view="idle", clock="Wed 18 · 17:48", extra="math · linear algebra in 12m"))
 scenario("launcher", "IslandView", dict(view="launcher", query="ca", items=APPS, index=0, calc=dict(expr="12 * 48 + 7", result="583"), keyHint=HINT))
 EMO = [dict(e=e, name=n) for e, n in zip("😭🔥💀🙏✨👀♟🎨📚😤🥹😂🫠💅🤌🫡😮🤝💯🌙🍵🎧🧠⚡🌊🍃🫧💚🩷🤍",
        ["loudly crying face", "fire", "skull", "folded hands", "sparkles", "eyes", "chess pawn", "artist palette", "books", "huffing"] + ["x"] * 20)]

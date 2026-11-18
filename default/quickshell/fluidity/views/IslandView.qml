@@ -29,6 +29,8 @@ Item {
     property string icon: ""
     property real value: 0         // osd 0..1
     property var keyHint: []
+    property string extra: ""          // idle: focus countdown or the next Calendio block (accent)
+    property Component thumbDelegate: null   // switcher: the shell gives live window thumbnails
 
     readonly property string ink: "#101316"
     readonly property string sans: "Geist"
@@ -37,7 +39,7 @@ Item {
 
     // width, height, corner radius per view
     readonly property var sizes: ({
-        idle: [360, 40, 20], launcher: [640, calc ? 420 : 372, 30], emoji: [600, 318, 30], clipboard: [960, 396, 30],
+        idle: [360 + (song ? 0 : -120) + (extra ? 150 : 0), 40, 20], launcher: [640, calc ? 420 : 372, 30], emoji: [600, 318, 30], clipboard: [960, 396, 30],
         cheatsheet: [1240, 56 + 30 + 38 * groups.reduce((m, g) => Math.max(m, (g.binds || []).length), 1) + 22, 30], leader: [1320, 64, 32], power: [520, 120, 40], wallpaper: [1240, 250, 30],
         switcher: [Math.max(360, 48 + items.length * 226), 210, 30], notify: [520, 80, 28], osd: [420, 52, 26],
         hints: [420, 52, 24], control: [640, 240 + (song ? 26 : 0), 30], notifications: [560, 420, 30]
@@ -163,6 +165,8 @@ Item {
             }
             Text { visible: root.song !== ""; text: root.song; color: root.pal.dim; font.family: root.sans; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter; elide: Text.ElideRight; width: Math.min(implicitWidth, 170) }
             Rectangle { visible: root.song !== ""; width: 4; height: 4; radius: 2; color: root.pal.muted; anchors.verticalCenter: parent.verticalCenter }
+            Text { visible: root.extra !== ""; text: root.extra; elide: Text.ElideRight; width: Math.min(implicitWidth, 230); color: root.pal.accent; font.family: root.sans; font.pixelSize: 13; font.weight: Font.Medium; anchors.verticalCenter: parent.verticalCenter }
+            Rectangle { visible: root.extra !== ""; width: 4; height: 4; radius: 2; color: root.pal.muted; anchors.verticalCenter: parent.verticalCenter }
             Text { text: root.clock; color: root.pal.fg; font.family: root.sans; font.pixelSize: 13; font.weight: Font.Medium; anchors.verticalCenter: parent.verticalCenter }
         } }
     }
@@ -370,7 +374,8 @@ Item {
                         width: 210; height: 128; radius: 18; color: Qt.rgba(0, 0, 0, 0.4); clip: true
                         border.width: parent.on ? 3 : 1; border.color: parent.on ? root.pal.accent : Qt.rgba(1, 1, 1, 0.06)
                         Image { anchors.fill: parent; anchors.margins: parent.border.width; source: modelData.thumb || ""; fillMode: Image.PreserveAspectCrop; visible: !!modelData.thumb }
-                        Text { anchors.centerIn: parent; visible: !modelData.thumb; text: modelData.icon || ""; font.family: root.mono; font.pixelSize: 40; color: parent.parent.on ? root.pal.accent : root.pal.dim }
+                        Loader { anchors.fill: parent; anchors.margins: parent.border.width; active: !!root.thumbDelegate; sourceComponent: root.thumbDelegate; property var win: modelData }
+                        Text { anchors.centerIn: parent; visible: !modelData.thumb && !root.thumbDelegate; text: modelData.icon || ""; font.family: root.mono; font.pixelSize: 40; color: parent.parent.on ? root.pal.accent : root.pal.dim }
                     }
                     Text { width: 210; elide: Text.ElideRight; text: (modelData.icon ? modelData.icon + "  " : "") + modelData.title; color: parent.on ? root.pal.accent : root.pal.dim; font.family: root.sans; font.pixelSize: 13 }
                 }

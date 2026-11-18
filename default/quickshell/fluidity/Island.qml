@@ -108,7 +108,7 @@ Singleton {
     // ================= data per view =================
     function load(v) {
         items = []; groups = []; preview = ({}); calc = null; title = ""; body = ""; keyHint = [];
-        if (v === "launcher") { placeholder = "open anything"; keyHint = ["↵ open", "↑↓ move", "= maths", "? web", "esc close"]; refreshLauncher(); }
+        if (v === "launcher") { placeholder = "open anything"; keyHint = ["↵ open", "= maths", "? web", "> run", "/ files", "+ calendio", "esc close"]; refreshLauncher(); }
         else if (v === "emoji") { placeholder = "search emoji"; cats = emojiCats; refreshEmoji(); }
         else if (v === "clipboard") { placeholder = "search clipboard"; clipProc.running = true; }
         else if (v === "cheatsheet") { placeholder = "search keys"; keyHint = ["type to filter", "esc close"]; bindsProc.running = true; }
@@ -160,6 +160,20 @@ Singleton {
             items = [{ icon: "", title: result ? "Copy " + result : "Type a sum", desc: "maths" }];
             return;
         }
+        if (qv.startsWith(">")) {   // run a command
+            items = [{ icon: "\uf120", title: qv.slice(1).trim() ? "Run " + qv.slice(1).trim() : "Type a command", desc: "runs in the background · ⇧↵ in a terminal" }];
+            return;
+        }
+        if (qv.startsWith("/")) {   // find files in your home
+            const term = qv.slice(1).trim();
+            items = term ? [] : [{ icon: "\uf002", title: "Type part of a file name", desc: "searches your home" }];
+            if (term) { fdProc.running = false; fdProc.command = ["fd", "-a", "-i", "--max-results", "5", "--", term, home]; fdProc.running = true; }
+            return;
+        }
+        if (qv.startsWith("+")) {   // add to Calendio
+            items = [{ icon: "\uf073", title: "Add to Calendio", desc: "opens Calendio's quick add", keys: ["❖", "A"] }];
+            return;
+        }
         if (qv.startsWith("?")) {
             items = [{ icon: "", title: "Search the web for “" + qv.slice(1).trim() + "”", desc: "duckduckgo" }];
             return;
@@ -172,6 +186,10 @@ Singleton {
             const r = recent.indexOf(e.id);
             scored.push({ e: e, s: s + (r >= 0 ? 40 - r : 0) });
         }
+        for (const w of webApps) {
+            const ws = score(w.name, qv) - 5;
+            if (ws >= 0 && qv) scored.push({ e: { name: w.name, id: "webapp:" + w.name, comment: "web app", execute: () => sh("fluidity-launch webapp " + q(w.url)) }, s: ws, web: true });
+        }
         scored.sort((a, b) => b.s - a.s || a.e.name.localeCompare(b.e.name));
         items = scored.slice(0, 5).map(x => {
             const k = appKeys[(x.e.id || "").replace(/\.desktop$/, "").toLowerCase()];
@@ -179,7 +197,27 @@ Singleton {
                      title: x.e.name, desc: x.e.comment || x.e.genericName || "", keys: k ? ["❖", k] : undefined };
         });
     }
-    function launch(it) {
+    readonly property var webApps: [
+        { name: "ChatGPT", url: "https://chatgpt.com" }, { name: "YouTube", url: "https://youtube.com" },
+        { name: "WhatsApp", url: "https://web.whatsapp.com" }, { name: "X", url: "https://x.com" },
+        { name: "Google Maps", url: "https://maps.google.com" }, { name: "Google Photos", url: "https://photos.google.com" },
+        { name: "Google Messages", url: "https://messages.google.com/web" }, { name: "Gmail", url: "https://mail.google.com" },
+        { name: "GitHub", url: "https://github.com" }, { name: "Lichess", url: "https://lichess.org" },
+        { name: "Chess.com", url: "https://chess.com" }, { name: "Claude", url: "https://claude.ai" }]
+    Process {
+        id: fdProc
+        stdout: StdioCollector { onStreamFinished: {
+            if (!island.query.trim().startsWith("/")) return;
+            const files = String(text).split("\n").filter(Boolean);
+            island.items = files.length ? files.map(p => ({ path: p, icon: p.endsWith("/") ? "\uf07b" : "\uf15b",
+                title: p.replace(/\/$/, "").split("/").pop(), desc: p.replace(island.home, "~") })) : [{ icon: "\uf002", title: "No files found", desc: "" }];
+        } }
+    }
+    function launch(it, shift) {
+        const qv = query.trim();
+        if (qv.startsWith(">")) { const c = qv.slice(1).trim(); if (c) sh(shift ? "fluidity-launch terminal bash -c " + q(c + "; exec bash") : c); return; }
+        if (qv.startsWith("/")) { if (it && it.path) sh("xdg-open " + q(it.path)); return; }
+        if (qv.startsWith("+")) { sh("calendio --quick-add"); return; }
         if (calc) { if (calc.result) sh("printf %s " + q(calc.result) + " | wl-copy"); return; }
         if (query.trim().startsWith("?")) { sh("xdg-open " + q("https://duckduckgo.com/?q=" + encodeURIComponent(query.trim().slice(1).trim()))); return; }
         if (!it || !it.entry) return;
@@ -314,7 +352,11 @@ Singleton {
             { k: "i", label: "idle", run: "fluidity-toggle idle" }, { k: "g", label: "gaps", run: "fluidity-window gaps" },
             { k: "t", label: "theme", run: "fluidity-theme next" }, { k: "m", label: "mode", run: "fluidity-mode toggle" },
             { k: "w", label: "wall", run: "fluidity-wallpaper next" }, { k: "l", label: "lock", run: "fluidity-lock" },
-            { k: "x", label: "power", open: "power" }, { k: "a", label: "windows", open: "switcher" }, { k: "b", label: "widgets", run: "fluidity-widgets toggle" }] },
+            { k: "x", label: "power", open: "power" }, { k: "a", label: "windows", open: "switcher" }, { k: "b", label: "widgets", run: "fluidity-widgets toggle" },
+            { k: "f", label: "focus 25", run: "fluidity-focus toggle" }, { k: "v", label: "layouts", open: "leader:layouts" }] },
+        layouts: { title: "layouts", keys: [
+            { k: "s", label: "study", run: "fluidity-layout study" }, { k: "c", label: "code", run: "fluidity-layout code" },
+            { k: "w", label: "web", run: "fluidity-layout web" }, { k: "h", label: "chill", run: "fluidity-layout chill" }] },
         capture: { title: "capture", keys: [
             { k: "s", label: "region", run: "fluidity-capture screenshot" }, { k: "f", label: "full screen", run: "fluidity-capture screenshot full" },
             { k: "w", label: "window", run: "fluidity-capture screenshot window" }, { k: "r", label: "record", run: "fluidity-capture record" },
@@ -337,7 +379,8 @@ Singleton {
         const hit = items.find(i => i.k === k);
         close();
         if (!hit) return;
-        if (hit.open) later(360, () => open(hit.open, ""));
+        if (hit.open && hit.open.startsWith("leader:")) later(360, () => open("leader", hit.open.slice(7)));
+        else if (hit.open) later(360, () => open(hit.open, ""));
         else later(120, () => sh(hit.run));
     }
 
@@ -458,9 +501,10 @@ Singleton {
         if (k === Qt.Key_Return || k === Qt.Key_Enter) {
             const it = items[index];
             if (t === "control") { control(index); return true; }
+            const shift = !!(event.modifiers & Qt.ShiftModifier);
             close();
             later(t === "emoji" || t === "clipboard" ? 0 : 120, () => {
-                if (t === "launcher") launch(it);
+                if (t === "launcher") launch(it, shift);
                 else if (t === "emoji") pickEmoji(it);
                 else if (t === "clipboard") pasteClip(it);
                 else if (t === "cheatsheet") runBind();

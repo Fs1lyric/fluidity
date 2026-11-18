@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Layouts: bring a set of apps onto the workspace you are on (open ones move here, closed ones start here).
+#   fluidity-layout NAME | list        (layouts: ~/.config/fluidity/layouts.json, else the defaults)
+ROOT=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
+file=${FLUIDITY_LAYOUTS:-${XDG_CONFIG_HOME:-$HOME/.config}/fluidity/layouts.json}
+[[ -f $file ]] || file=$ROOT/default/data/layouts.json
+[[ ${1:-} == list ]] && { jq -r 'keys[]' "$file"; exit 0; }
+name=${1:-}; jq -e --arg n "$name" 'has($n)' "$file" >/dev/null 2>&1 || { echo "no layout '$name' (fluidity-layout list)" >&2; exit 1; }
+ws=$(hyprctl activeworkspace -j | jq -r .id)
+move() { hyprctl dispatch "hl.dsp.window.move({ window = \"address:$1\", workspace = \"$ws\", follow = false })" >/dev/null; }
+addr_of() { hyprctl clients -j | jq -r --arg c "$1" '[.[] | select(.class | test("^" + $c + "$"; "i"))][0].address // empty'; }
+while IFS=$'\t' read -r cls cmd; do
+  a=$(addr_of "$cls")
+  if [[ -n $a ]]; then move "$a"; continue; fi
+  setsid uwsm-app -- $cmd >/dev/null 2>&1 &
+  # wait for it, then make sure it is here (some apps have a workspace rule, like Zen on 2)
+  for _ in $(seq 1 $(( ${FLUIDITY_LAYOUT_WAIT:-30} ))); do sleep 0.2; a=$(addr_of "$cls"); [[ -n $a ]] && { move "$a"; break; }; done
+done < <(jq -r --arg n "$name" '.[$n][] | [.class, .cmd] | @tsv' "$file")
+first=$(jq -r --arg n "$name" '.[$n][0].class' "$file"); a=$(addr_of "$first")
+[[ -n $a ]] && hyprctl dispatch "hl.dsp.focus({ window = \"address:$a\" })" >/dev/null
+qs -c fluidity ipc call island notify "Layout · $name" "" >/dev/null 2>&1
+exit 0

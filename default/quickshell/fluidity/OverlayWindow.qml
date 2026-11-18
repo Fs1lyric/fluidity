@@ -44,6 +44,10 @@ PanelWindow {
         song: Island.song
         playing: Island.player?.isPlaying ?? false
         clock: Status.clock
+        extra: Status.focusText || Status.nextText
+        thumbDelegate: Component {
+            ScreencopyView { captureSource: parent?.win?.toplevel?.wayland ?? null; live: true }
+        }
         Keys.onPressed: event => { if (Island.key(event)) event.accepted = true }
         MouseArea { anchors.fill: parent; acceptedButtons: Qt.NoButton }  // clicks on the island don't close it
     }

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Focus timer: do not disturb on, a countdown in the island, a notification when it ends.
+#   fluidity-focus start [MINUTES=25] | stop | toggle | status
+state=${FLUIDITY_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/fluidity}; mkdir -p "$state"
+f=$state/focus-until
+dnd() { # on|off: only flips when it isn't already that way
+  local now; now=$(qs -c fluidity ipc call notifications dndStatus 2>/dev/null)
+  [[ $now == "$1" ]] || qs -c fluidity ipc call notifications toggleDnd >/dev/null 2>&1
+}
+case ${1:-toggle} in
+  start)
+    m=${2:-25}; [[ $m =~ ^[0-9]+$ && $m -gt 0 && $m -le 600 ]] || { echo "minutes: 1-600" >&2; exit 1; }
+    echo $(( $(date +%s) + m * 60 )) >"$f"
+    dnd on
+    systemctl --user stop fluidity-focus.timer >/dev/null 2>&1
+    systemd-run --user --quiet --unit=fluidity-focus --on-active="${m}m" fluidity-focus done >/dev/null 2>&1
+    qs -c fluidity ipc call island notify "Focus · $m min" "Do not disturb is on" >/dev/null 2>&1 ;;
+  done) rm -f "$f"; dnd off; notify-send -a Fluidity "Focus done" "Take a break" ;;
+  stop) rm -f "$f"; systemctl --user stop fluidity-focus.timer >/dev/null 2>&1; dnd off
+        qs -c fluidity ipc call island notify "Focus stopped" "" >/dev/null 2>&1 ;;
+  toggle) if [[ -e $f ]]; then exec "$0" stop; else exec "$0" start; fi ;;
+  status) if [[ -e $f ]]; then echo "$(( ($(<"$f") - $(date +%s) + 59) / 60 )) min left"; else echo off; fi ;;
+  *) sed -n '3s/^# //p' "$0" >&2; exit 1 ;;
+esac

@@ -55,6 +55,7 @@ PanelWindow {
         song: Island.song
         playing: Island.player?.isPlaying ?? false
         clock: Status.clock
+        extra: Status.focusText || Status.nextText
         title: Island.passiveTitle; body: Island.passiveBody; icon: Island.passiveIcon; value: Island.passiveValue; keyHint: Island.passiveKeys
         MouseArea { anchors.fill: parent; onClicked: Island.toggle(Island.barView === "idle" ? "control" : "notifications", "") }
     }
