@@ -173,21 +173,37 @@ overwrites your changes.
 - Boot and login screens: Fluidity branding (name + logo), or keep your current lyric Plymouth clock?
 - A Fluidity logo: want one designed, or text only?
 
-## Status 2026-11-18
+## Status 2026-11-18 (end of the build session)
 
-- Done: plan, keymap, Liquid look approved (mockups/), **phase 0** (skeleton dirs, `bin/fluidity` dispatcher,
-  `tests/lib.sh` + `tests/run.sh`, `.github/workflows/ci.yml`). `bash tests/run.sh` is green locally.
-  shellcheck isn't installed on this PC; it only runs in CI.
-- Not pushed: no GitHub repo yet (open question: private `Fs1lyric/fluidity`?). Actions billing was blocked
-  on 2026-11-10; if it still is, use local headless checks only.
+Built, test-first, all in this repo (`bash tests/run.sh`: 18 test files, all green, on this PC headless):
+- **Phase 0** skeleton, `fluidity` dispatcher, test harness, CI workflow (never ran: no GitHub repo yet).
+- **Phase 1** keymap: all 190 upstream chords, one-chord apps, leader, hints, cheat sheet; Liquid look
+  (22 px round glass, turning gradient border, spring motion <= 300 ms); starter `~/.config/hypr` layering.
+- **Phase 2** 49 themes + 38 theme shells imported (`tools/import-themes.sh`, rerunnable), theme binds moved
+  off Fluidity keys (`tools/free-theme-keys.py`), `fluidity-theme`, `fluidity-mode`, `fluidity-wallpaper`.
+- **Phase 3** the Fluidity shell (`default/quickshell/fluidity`): bar pills, island with 14 views, desktop clock
+  + cards (Calendio today, read-only), notifications, OSD, slices theme picker. Pure views render off-screen
+  (`tools/render.py`); the real shell loads and opens views over IPC on a hidden display (`tools/shell-shot.sh`).
+- **Phase 4** mac mode in the repo: `tahoe-bar` + `dock` shells; their panels open the island.
+- **Phase 5** every `fluidity-*` command the binds/shell call (28 commands).
+- **Phase 6** app starters (ghostty, kitty, alacritty), Liquid hyprlock, hypridle, theme-derived colour files.
+- **Phase 7** `install.sh` (backs up what it replaces, never touches files you edited), `boot.sh`, packages.
+- **Phase 8** `fluidity-update` (pull, migrations once, re-install), `fluidity-doctor`.
+- **Phase 9 (ready, not run)** `fluidity-switch on` moves this PC over (backups first), `fluidity-switch back` undoes it.
 
-## Next session: phase 1 (Hyprland defaults + keymap)
+Not verified / not done:
+- Never run on the live desktop (on purpose: the user was away). Real Wayland behaviour is unchecked:
+  layer-shell keyboard focus and input masks, blur on the island layers, the `hyprctl eval` calls in
+  fluidity-display / fluidity-hw, wl-kbptr's config keys. Typed keys in the island weren't driven (no xdotool).
+- The Lua config is checked against a stub `hl`, not real Hyprland 0.56.
+- Not pushed: creating the GitHub repo was blocked by the permission system, so CI never ran and
+  `boot.sh`'s clone URL (Fs1lyric/fluidity) doesn't exist yet. shellcheck isn't installed here.
+- Login chain branding (Plymouth/Limine/SDDM) not done; your lyric Plymouth clock stays.
+- Calendio recurring events (rrule) don't show on the desktop card; Alt+Tab keeps upstream's cycle
+  (the island switcher is on leader `a`, glyph cards, no live thumbnails).
 
-1. Read how today's config is wired: `~/.config/hypr/hyprland.lua` and `~/.config/hypr/lyric/bindings/*.lua`
-   (the `o.bind(chord, desc, cmd)` helper), and `~/claude/luminescent/keyboard.lua`.
-2. Upstream reference: basecamp/omarchy master `default/hypr/bindings/{tiling-v2,utilities,media,clipboard}.conf`
-   and `config/hypr/bindings.conf` (fetch fresh; don't copy the name into files).
-3. Test first: `tests/keymap.test.sh` fails on duplicate chords, any upstream chord missing or rebound, and app
-   keys that aren't open-or-focus. Write it, watch it fail, then write `default/hypr/bindings/*.lua` to pass.
-4. Then input, look and feel (22 px rounding, gradient border, blur), the snappy motion, autostart, monitors.
-5. Nothing goes live in phase 1: the files live in the repo; the switch to them on this PC happens in phase 9.
+## Next session
+1. With the user at the screen: `~/claude/fluidity/bin/fluidity-switch on`, check every key and view,
+   fix what real Hyprland/Wayland shows; `fluidity-switch back` if anything is badly off.
+2. Push to a private GitHub repo (needs the user's OK for `gh repo create`), let CI run.
+3. Login chain branding, live Alt+Tab thumbnails (ScreencopyView), Calendio recurring events.
