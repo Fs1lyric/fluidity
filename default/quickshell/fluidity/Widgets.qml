@@ -10,8 +10,8 @@ Singleton {
     readonly property string home: Quickshell.env("HOME")
     readonly property string stateDir: (Quickshell.env("XDG_STATE_HOME") || (home + "/.local/state")) + "/fluidity"
     readonly property string confDir: (Quickshell.env("XDG_CONFIG_HOME") || (home + "/.config")) + "/fluidity"
-    readonly property var all: ["clock", "media", "agenda", "system", "weather", "github", "notes", "timer", "usage", "battery", "visualizer", "user", "image", "text"]
-    readonly property var defaults: ["clock", "media", "agenda", "system", "weather", "github", "notes"]
+    readonly property var all: ["clock", "media", "agenda", "system", "weather", "github", "notes", "dock", "timer", "usage", "battery", "visualizer", "user", "image", "text"]
+    readonly property var defaults: ["clock", "media", "agenda", "system", "weather", "github", "notes", "dock"]
     property var shown: defaults
     FileView {
         path: wg.stateDir + "/desktop-widgets"; watchChanges: true; onFileChanged: reload()

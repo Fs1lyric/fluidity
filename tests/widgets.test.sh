@@ -30,11 +30,11 @@ status "unknown command fails" 1 fluidity-widgets bogus
 
 # desktop widgets one by one
 fresh
-eq "default desktop widgets" "clock media agenda system weather github notes" "$(fluidity-widgets list | paste -sd' ')"
+eq "default desktop widgets" "clock media agenda system weather github notes dock" "$(fluidity-widgets list | paste -sd' ')"
 fluidity-widgets add timer >/dev/null; fluidity-widgets remove notes >/dev/null
-eq "add and remove" "clock media agenda system weather github timer" "$(fluidity-widgets list | paste -sd' ')"
+eq "add and remove" "clock media agenda system weather github dock timer" "$(fluidity-widgets list | paste -sd' ')"
 fluidity-widgets flip github >/dev/null
-has "flip turns one off" "clock media agenda system weather timer" "$(fluidity-widgets list | paste -sd' ')"
+has "flip turns one off" "clock media agenda system weather dock timer" "$(fluidity-widgets list | paste -sd' ')"
 status "an unknown widget fails" 1 fluidity-widgets add toaster
 has "every widget is named" "user" "$(fluidity-widgets all | paste -sd' ')"
 done_testing

@@ -166,6 +166,11 @@ scenario("polkit", "IslandView", dict(view="polkit", app=dict(message="Authentic
 scenario("polkit-wrong", "IslandView", dict(view="polkit", app=dict(message="Authentication is required to change system settings", user="lyric", prompt="Password:", secret="", error="That wasn't it. Try again.")))
 scenario("idlescreen", "IslandView", dict(view="idlescreen", app=dict(hours="23", minutes="47", date="Wednesday, 18 November", song="Kokoro · Tycho", next="math · linear algebra at 18:00")))
 
+DOCK = [dict(title=t, glyph=g, running=r, focused=f) for t, g, r, f in [("Calendio", "\uf073", True, False), ("Zen", "\U000f0239", True, True), ("Ghostty", "\uf120", True, False),
+        ("Obsidian", "\U000f0b8b", False, False), ("Spotify", "\uf1bc", True, False), ("Vesktop", "\U000f066f", False, False), ("Burrow", "\uf07b", False, False), ("Code", "\U000f0a1e", False, False)]]
+scenario("dock", "DockView", dict(items=DOCK, sel=-1), place="fill")
+scenario("dock-keys", "DockView", dict(items=DOCK, sel=3, active=True), place="fill")
+
 PLACES = {"island": "anchors.horizontalCenter: parent.horizontalCenter; y: 14", "fill": "anchors.fill: parent"}
 MAIN = """import QtQuick
 import QtQuick.Window

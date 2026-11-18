@@ -6,6 +6,7 @@ import Quickshell
 ShellRoot {
     Variants { model: Quickshell.screens; BarWindow {} }
     Variants { model: Quickshell.screens; DesktopWindow {} }
+    Variants { model: Quickshell.screens; DockWindow {} }
     OverlayWindow {}
     ThemePickerWindow {}
 }

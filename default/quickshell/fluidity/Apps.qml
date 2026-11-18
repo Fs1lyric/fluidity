@@ -9,11 +9,11 @@ import Quickshell.Services.Polkit
 // Island.qml opens them like any view and hands their keys here (key() returns true when used).
 Singleton {
     id: apps
-    readonly property var views: ["calendar", "media", "network", "bluetooth", "syspanel", "quickactions", "wellbeing", "guide", "widgets", "polkit", "idlescreen"]
+    readonly property var views: ["calendar", "media", "network", "bluetooth", "syspanel", "quickactions", "wellbeing", "guide", "widgets", "polkit", "idlescreen", "dockkeys"]
     property string open: ""       // the app on screen, "" when none (polling runs only then)
     property var data: ({})
     // leader ; u: one letter per app
-    readonly property var leaderKeys: [{ k: "c", label: "calendar", open: "calendar" }, { k: "m", label: "media", open: "media" }, { k: "w", label: "wi-fi", open: "network" }, { k: "b", label: "bluetooth", open: "bluetooth" }, { k: "s", label: "system", open: "syspanel" }, { k: "q", label: "quick", open: "quickactions" }, { k: "h", label: "wellbeing", open: "wellbeing" }, { k: "g", label: "guide", open: "guide" }, { k: "d", label: "widgets", open: "widgets" }]
+    readonly property var leaderKeys: [{ k: "c", label: "calendar", open: "calendar" }, { k: "m", label: "media", open: "media" }, { k: "w", label: "wi-fi", open: "network" }, { k: "b", label: "bluetooth", open: "bluetooth" }, { k: "s", label: "system", open: "syspanel" }, { k: "q", label: "quick", open: "quickactions" }, { k: "h", label: "wellbeing", open: "wellbeing" }, { k: "g", label: "guide", open: "guide" }, { k: "d", label: "widgets", open: "widgets" }, { k: "k", label: "dock", open: "dockkeys" }]
     readonly property string home: Quickshell.env("HOME")
     readonly property string stateDir: (Quickshell.env("XDG_STATE_HOME") || (home + "/.local/state")) + "/fluidity"
     readonly property string calDb: home + "/.local/share/calendio/cal.db"
@@ -32,6 +32,7 @@ Singleton {
         else if (v === "widgets") wgRows();
         else if (v === "polkit") pkShow();
         else if (v === "idlescreen") idleTick();
+        else if (v === "dockkeys") Dock.sel = 0;
         else if (v === "widgets") { Island.index = i; wgFlip(); }
         else if (v === "guide") { guidePage = 0; patch({ pages: guidePages, page: 0, focus: "pages" }); }
     }
@@ -47,6 +48,7 @@ Singleton {
         if (v === "widgets") return wgKey(event);
         if (v === "polkit") return pkKey(event);
         if (v === "idlescreen") { Island.close(); return true; }
+        if (v === "dockkeys") return Dock.key(event);
         return false;
     }
     function picked(v, i) {
@@ -60,7 +62,7 @@ Singleton {
     }
 
     readonly property bool shown: Island.overlayShown && Island.target === open
-    onShownChanged: if (!shown) { if (open === "polkit" && pkFlow && !pkFlow.isCompleted) pkFlow.cancelAuthenticationRequest(); open = "" }
+    onShownChanged: if (!shown) { if (open === "dockkeys") Dock.sel = -1; if (open === "polkit" && pkFlow && !pkFlow.isCompleted) pkFlow.cancelAuthenticationRequest(); open = "" }
 
     // ================= media =================
     readonly property MprisPlayer player: Island.player

@@ -31,6 +31,7 @@ PanelWindow {
         agenda: Status.agenda
         sys: Status.sys
         shown: Widgets.shown
+        bottomInset: Dock.shown ? 74 : 0
         w: Widgets.data
     }
 }

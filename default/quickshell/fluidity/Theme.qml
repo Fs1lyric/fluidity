@@ -20,12 +20,15 @@ Singleton {
         pal = p;
     }
 
+    property string name: ""   // the theme's folder name (fluid, ...)
+    Process { id: nameProc; command: ["readlink", "-f", Quickshell.env("HOME") + "/.config/fluidity/theme"]
+        stdout: StdioCollector { onStreamFinished: theme.name = String(text).trim().split("/").pop() } }
     FileView {
         id: file
         path: Quickshell.env("HOME") + "/.config/fluidity/theme/colors.toml"
         watchChanges: true
         onFileChanged: reload()
-        onLoaded: theme.parse(text())
+        onLoaded: { theme.parse(text()); nameProc.running = true }
     }
     IpcHandler {
         target: "theme"

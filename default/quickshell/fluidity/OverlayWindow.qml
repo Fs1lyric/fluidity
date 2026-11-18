@@ -20,7 +20,7 @@ PanelWindow {
     onVisibleChanged: if (visible) v.forceActiveFocus()
     Connections { target: Island; function onViewChanged() { if (Island.view !== "idle") v.forceActiveFocus() } }
 
-    Rectangle { anchors.fill: parent; color: "#000000"; opacity: Island.view === "idle" ? 0 : 0.22; Behavior on opacity { NumberAnimation { duration: 200 } } }
+    Rectangle { anchors.fill: parent; color: "#000000"; opacity: Island.view === "idle" || Island.view === "dockkeys" ? 0 : 0.22; Behavior on opacity { NumberAnimation { duration: 200 } } }
     MouseArea { anchors.fill: parent; onClicked: Island.close() }
 
     IslandView {

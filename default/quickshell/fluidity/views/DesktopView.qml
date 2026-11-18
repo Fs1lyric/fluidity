@@ -15,6 +15,7 @@ Item {
     property var agenda: []     // [{time, title, sub, color, now, done}]
     property var sys: ({ cpu: 0, ram: 0, temp: 0, disk: 0 })
     property var shown: ["clock", "media", "agenda", "system"]   // fluidity-widgets list
+    property int bottomInset: 0                                  // room for the dock
     property var w: ({})                                         // data for the optional widgets
     readonly property string sans: "Geist"
     readonly property string serif: "Instrument Serif"
@@ -44,7 +45,7 @@ Item {
 
     Row {
         id: cards
-        anchors.right: parent.right; anchors.rightMargin: 24; anchors.bottom: parent.bottom; anchors.bottomMargin: 24
+        anchors.right: parent.right; anchors.rightMargin: 24; anchors.bottom: parent.bottom; anchors.bottomMargin: 24 + desk.bottomInset
         spacing: 16
 
         // ---- now playing ----

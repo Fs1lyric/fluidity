@@ -4,7 +4,7 @@ import QtQuick
 AppBase {
     id: a
     readonly property var labels: ({ clock: ["󰥔", "The big clock"], media: ["󰝚", "Now playing"], agenda: ["󰃭", "Today from Calendio"], system: ["󰍛", "System rings"],
-        weather: ["󰖐", "Weather"], github: ["󰊤", "GitHub contributions"], notes: ["󰎚", "Notes (notes.md)"], timer: ["󰔟", "Focus timer"], usage: ["󰚩", "AI usage"],
+        weather: ["󰖐", "Weather"], github: ["󰊤", "GitHub contributions"], notes: ["󰎚", "Notes (notes.md)"], dock: ["󰞒", "Dock (Fluid theme)"], timer: ["󰔟", "Focus timer"], usage: ["󰚩", "AI usage"],
         battery: ["󰁹", "Battery"], visualizer: ["󰺢", "Visualizer"], user: ["󰀄", "You"], image: ["󰋩", "Image (~/.config/fluidity/widget-image)"], text: ["󰊄", "Text (~/.config/fluidity/widget-text)"] })
     Text { x: 24; y: 16; text: "Widgets"; color: a.pal.fg; font.family: a.serif; font.italic: true; font.pixelSize: 30 }
     Text { anchors.right: parent.right; anchors.rightMargin: 24; y: 28; text: "↵ flips · ❖ ⇧ Space hides all"; color: a.pal.dim; font.family: a.mono; font.pixelSize: 11 }
