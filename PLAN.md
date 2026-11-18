@@ -172,3 +172,22 @@ overwrites your changes.
 - GitHub repo: private `Fs1lyric/fluidity` (default) or public like Omarchy?
 - Boot and login screens: Fluidity branding (name + logo), or keep your current lyric Plymouth clock?
 - A Fluidity logo: want one designed, or text only?
+
+## Status 2026-11-18
+
+- Done: plan, keymap, Liquid look approved (mockups/), **phase 0** (skeleton dirs, `bin/fluidity` dispatcher,
+  `tests/lib.sh` + `tests/run.sh`, `.github/workflows/ci.yml`). `bash tests/run.sh` is green locally.
+  shellcheck isn't installed on this PC; it only runs in CI.
+- Not pushed: no GitHub repo yet (open question: private `Fs1lyric/fluidity`?). Actions billing was blocked
+  on 2026-11-10; if it still is, use local headless checks only.
+
+## Next session: phase 1 (Hyprland defaults + keymap)
+
+1. Read how today's config is wired: `~/.config/hypr/hyprland.lua` and `~/.config/hypr/lyric/bindings/*.lua`
+   (the `o.bind(chord, desc, cmd)` helper), and `~/claude/luminescent/keyboard.lua`.
+2. Upstream reference: basecamp/omarchy master `default/hypr/bindings/{tiling-v2,utilities,media,clipboard}.conf`
+   and `config/hypr/bindings.conf` (fetch fresh; don't copy the name into files).
+3. Test first: `tests/keymap.test.sh` fails on duplicate chords, any upstream chord missing or rebound, and app
+   keys that aren't open-or-focus. Write it, watch it fail, then write `default/hypr/bindings/*.lua` to pass.
+4. Then input, look and feel (22 px rounding, gradient border, blur), the snappy motion, autostart, monitors.
+5. Nothing goes live in phase 1: the files live in the repo; the switch to them on this PC happens in phase 9.
