@@ -9,7 +9,8 @@ commands, one update command. Made for you only.
 - **Fresh desktop layer, nothing of yours lost.** New repo, clean code written for it. Your files, apps and
   data stay exactly where they are (see "Never touched").
 - **Default look:** the `fluid` theme (charcoal `#111417`, pistachio `#d7e59b`, blush `#f2a7a7`,
-  off-white `#e3e4da`). Keyboard mode, square windows, slim top bar, snappy motion.
+  off-white `#e3e4da`) on your fern wallpaper (`gruvbox-5-leaves.jpg`). Keyboard mode, **Liquid** look:
+  see "Look: Liquid" below and `mockups/showcase.html` + `mockups/popups.html` (approved 2026-11-18).
 - **All 49 themes come along**, each with its own shell, wallpaper and theme picker slice.
 - **Mac mode stays** as a mode you switch to with one key (Tahoe dock, menu bar, Settings app).
 - **Keybinds:** the upstream Omarchy binds exactly, dwindle layout by default. Fill the ~20 that are still
@@ -60,7 +61,7 @@ and any app key that isn't open-or-focus.
 You use these dozens of times a day, so they matter as much as the bar. Today they're a mix: fuzzel text lists
 (emoji, clipboard, Super+K keybinds), the `qs -c lyric` launcher, and separate Quickshell panels (power,
 wallpaper). In Fluidity they're all **one Quickshell component, `Picker`**, with one design language in the
-current theme's colours (Fluid by default): square corners, dark glass, JetBrains Mono, the accent only on
+current theme's colours (Fluid by default), drawn as **the island** (see "Look: Liquid"): the accent only on
 the selected row, snappy 150 ms open, Esc closes, everything works from the keyboard, it opens on the
 visible workspace, and the first result is already selected.
 
@@ -71,8 +72,8 @@ visible workspace, and the first result is already selected.
 | Clipboard | Super+Ctrl+V | fuzzel list | list + preview pane, images shown as thumbnails, Delete removes, pin favourites |
 | Cheat sheet | Super+K | fuzzel list | grouped (apps, windows, workspaces, capture, leader), drawn key caps, type to filter |
 | Leader strip | Super+; | new | one-line strip of key caps at the bottom of the screen |
-| Click hints | Super+Q | new | small square key-cap labels in the accent colour |
-| Power | Super+Esc | qs panel | 5 square tiles (lock, suspend, log out, restart, shut down), one letter each |
+| Click hints | Super+Q | new | glowing accent pills; non-matching ones fade as you type |
+| Power | Super+Esc | qs panel | 5 bubbles, the selected one widens and shows its name, one letter each |
 | Wallpaper | Super+Ctrl+Space | qs panel | thumbnail strip, live preview, arrows + Enter |
 | Theme picker | Super+Ctrl+Shift+Space | slices view | kept (you liked it), restyled to match |
 | Window switcher | Alt+Tab | current | live thumbnails of the windows |
@@ -82,6 +83,23 @@ Process: **mock up first.** `mockups/popups.html` shows every surface in Fluid, 
 re-themes, rendered off-screen to PNG for checking. You open it yourself (`xdg-open`), pick or adjust,
 then it gets built. It's built in phase 3 with the shell. Tests cover keyboard paths (every surface opens,
 filters, selects, closes with keys only) under Xvfb.
+
+## Look: Liquid (approved 2026-11-18)
+
+The first mockup (square boxes, monospace, thin borders) looked like Omarchy, and you rejected it. Fluidity has
+its own look:
+
+- **The island.** The bar is three floating pills. The centre one shows the song + waveform and the time, and
+  *every* popup (launcher, emoji, clipboard, cheat sheet, leader, power, wallpaper, Alt+Tab, notifications,
+  volume OSD) is that pill growing into the popup with a spring (slight overshoot, ~0.45 s), then shrinking back.
+- **Selection** is a lime to mint gradient pill that slides between rows; never a jump.
+- **Round, glassy:** windows have 22 px corners, dark glass and blur; the focused window gets a slowly rotating
+  lime/mint/blue/pink gradient border.
+- **Type:** Geist (UI), Instrument Serif italic (big clock, names, numbers), JetBrains Mono Nerd Font (terminal,
+  key caps). Fonts ship as static instances (Qt renders variable Google fonts Thin).
+- **Desktop:** a huge italic serif clock with a glowing accent colon, plus music, Calendio-today and system-ring
+  cards; soft accent light drifts over the wallpaper, with a fine film grain on top.
+- Everything follows the current theme's colours, so all 49 themes get the island too.
 
 ## Never touched
 
