@@ -207,3 +207,16 @@ Not verified / not done:
    fix what real Hyprland/Wayland shows; `fluidity-switch back` if anything is badly off.
 2. Push to a private GitHub repo (needs the user's OK for `gh repo create`), let CI run.
 3. Login chain branding, live Alt+Tab thumbnails (ScreencopyView), Calendio recurring events.
+
+## Status 2026-11-18 evening: Fluidity is LIVE on this PC
+- `fluidity-switch on` ran (backups in ~/.local/state/fluidity/backup/switch-20261118-164248). `fluidity-doctor`
+  is green except wl-kbptr. Your autostart extras (hyprlock at boot, Proton VPN, cursor, toolkit daemon) were
+  carried into ~/.config/hypr/autostart.lua; monitors.lua and input.lua were kept.
+- Live fixes: `qs -c fluid` matched `qs -c fluidity` (bar was hidden), Hyprland 0.57 wants Lua dispatch
+  strings, layer blur rules (Fluidity + mac mode), the island's glow ring looked muddy (off).
+- Checked on the real screen: bar, idle island with song, desktop clock + Calendio cards, launcher (real apps,
+  icons, key hints), power, Liquid window borders. Not yet driven by hand: typing in the island, leader keys,
+  emoji paste, clipboard, cheat sheet, wallpaper picker, mac mode switch.
+- Needs your password (sudo): `fluidity-install wl-kbptr` (click hints), `fluidity-boot install` (the Fluidity
+  boot screen replacing the lyric clock; preview in boot/plymouth/fluidity).
+- Cheat sheet can't replay a bind (Hyprland's Lua binds report function refs); Enter just closes it.
