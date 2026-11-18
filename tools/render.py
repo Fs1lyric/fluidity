@@ -148,6 +148,19 @@ scenario("bar-faces", "BarView", dict(workspaces=[dict(id=1, active=True, occupi
          wifi="\U000f05a9", volume=64, battery=14, ai=68, apps=BAR_APPS, weather="\U000f0599 14°", cpu=23, viz=[0.3, 0.8, 0.5, 0.9, 0.4, 0.6],
          kb="us", bt=1, tray=[dict(icon="", title="Proton VPN"), dict(icon="", title="Vesktop")]), place="fill")
 
+import random
+random.seed(4)
+GH = [[random.choice([0, 0, 1, 2, 3, 4]) if (w * 7 + d) < 360 else -1 for d in range(7)] for w in range(53)]
+WIDGET_DATA = dict(weather=dict(now="\U000f0599 14°", text="Partly cloudy", feels="feels 12°", hi="16°", lo="8°"),
+                   github=dict(weeks=GH, total=1284, user="Fs1lyric"), notes=["# today", "- finish fluidity widgets", "- chess: two rapid", "- ch. 13 outline (weekend)"],
+                   timer="focus 24:12", usage=dict(percent=68, name="claude"), battery=dict(percent=88, charging=True), viz=BARS[:24],
+                   user=dict(name="lyric", host="archy", uptime="3h 12m", face=""), image="", text="stay fluid.")
+ALLW = ["clock", "media", "agenda", "system", "weather", "github", "notes", "timer", "usage", "battery", "visualizer", "user", "image", "text"]
+scenario("desktop-widgets", "DesktopView", dict(media=dict(title="Kokoro", artist="Tycho · Weather", progress=0.42, position="1:42", length="4:03", playing=True),
+         agenda=[dict(time="10:00", title="Code · Fluidity shell", sub="now", color=PAL["accent"], now=True)], sys=dict(cpu=23, ram=61, temp=47, disk=38),
+         shown=ALLW, w=WIDGET_DATA), place="fill")
+scenario("widgets", "IslandView", dict(view="widgets", index=2, app=dict(rows=[dict(name=n, on=n in ALLW[:7]) for n in ALLW])))
+
 PLACES = {"island": "anchors.horizontalCenter: parent.horizontalCenter; y: 14", "fill": "anchors.fill: parent"}
 MAIN = """import QtQuick
 import QtQuick.Window

@@ -34,7 +34,7 @@ Item {
     property var app: ({})             // a showcase app's data (Apps.qml)
 
     // the Fluid showcase apps: one file each, on AppBase
-    readonly property var appFiles: ({ calendar: "CalendarApp.qml", media: "MediaApp.qml", network: "NetworkApp.qml", bluetooth: "BluetoothApp.qml", syspanel: "SysApp.qml", quickactions: "QuickApp.qml", wellbeing: "WellbeingApp.qml", guide: "GuideApp.qml" })
+    readonly property var appFiles: ({ calendar: "CalendarApp.qml", media: "MediaApp.qml", network: "NetworkApp.qml", bluetooth: "BluetoothApp.qml", syspanel: "SysApp.qml", quickactions: "QuickApp.qml", wellbeing: "WellbeingApp.qml", guide: "GuideApp.qml", widgets: "WidgetsApp.qml" })
     readonly property bool isApp: !!appFiles[view]
     readonly property bool known: view === "idle" || !!sizes[view]
 
@@ -53,7 +53,8 @@ Item {
         network: [620, 64 + 50 * Math.max(1, Math.min(7, (app.nets || []).length)) + (app.ask ? 84 : 16), 30],
         bluetooth: [620, 64 + 50 * Math.max(1, Math.min(7, (app.devs || []).length)) + 16, 30],
         syspanel: [620, 306 + 50 * (app.sliders || []).length + 12, 30], quickactions: [640, 64 + 80 * Math.ceil((app.tiles || []).length / 3) + 76, 32],
-        wellbeing: [640, 200 + 36 * Math.max(1, Math.min(5, (app.apps || []).length)) + 14, 30], guide: [900, Math.max(400, 62 + 46 * (app.pages || []).length + 20), 30]
+        wellbeing: [640, 200 + 36 * Math.max(1, Math.min(5, (app.apps || []).length)) + 14, 30], guide: [900, Math.max(400, 62 + 46 * (app.pages || []).length + 20), 30],
+        widgets: [560, 62 + 46 * 8 + 12, 30]
     })
     readonly property var size: sizes[view] || sizes.idle
 

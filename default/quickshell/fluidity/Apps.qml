@@ -8,11 +8,11 @@ import Quickshell.Services.Mpris
 // Island.qml opens them like any view and hands their keys here (key() returns true when used).
 Singleton {
     id: apps
-    readonly property var views: ["calendar", "media", "network", "bluetooth", "syspanel", "quickactions", "wellbeing", "guide"]
+    readonly property var views: ["calendar", "media", "network", "bluetooth", "syspanel", "quickactions", "wellbeing", "guide", "widgets"]
     property string open: ""       // the app on screen, "" when none (polling runs only then)
     property var data: ({})
     // leader ; u: one letter per app
-    readonly property var leaderKeys: [{ k: "c", label: "calendar", open: "calendar" }, { k: "m", label: "media", open: "media" }, { k: "w", label: "wi-fi", open: "network" }, { k: "b", label: "bluetooth", open: "bluetooth" }, { k: "s", label: "system", open: "syspanel" }, { k: "q", label: "quick", open: "quickactions" }, { k: "h", label: "wellbeing", open: "wellbeing" }, { k: "g", label: "guide", open: "guide" }]
+    readonly property var leaderKeys: [{ k: "c", label: "calendar", open: "calendar" }, { k: "m", label: "media", open: "media" }, { k: "w", label: "wi-fi", open: "network" }, { k: "b", label: "bluetooth", open: "bluetooth" }, { k: "s", label: "system", open: "syspanel" }, { k: "q", label: "quick", open: "quickactions" }, { k: "h", label: "wellbeing", open: "wellbeing" }, { k: "g", label: "guide", open: "guide" }, { k: "d", label: "widgets", open: "widgets" }]
     readonly property string home: Quickshell.env("HOME")
     readonly property string stateDir: (Quickshell.env("XDG_STATE_HOME") || (home + "/.local/state")) + "/fluidity"
     readonly property string calDb: home + "/.local/share/calendio/cal.db"
@@ -28,6 +28,8 @@ Singleton {
         else if (v === "syspanel") { sysTick(); }
         else if (v === "quickactions") qaRefresh();
         else if (v === "wellbeing") wbProc.running = true;
+        else if (v === "widgets") wgRows();
+        else if (v === "widgets") { Island.index = i; wgFlip(); }
         else if (v === "guide") { guidePage = 0; patch({ pages: guidePages, page: 0, focus: "pages" }); }
     }
     function key(event, v) {
@@ -39,6 +41,7 @@ Singleton {
         if (v === "quickactions") return qaKey(event);
         if (v === "wellbeing") { if (event.text === "r") { wbProc.running = true; return true; } return false; }
         if (v === "guide") return guideKey(event);
+        if (v === "widgets") return wgKey(event);
         return false;
     }
     function picked(v, i) {
@@ -390,6 +393,16 @@ Singleton {
         else return false;
         patch({ page: guidePage });
         return true;
+    }
+
+    // ================= widgets picker =================
+    function wgRows() { patch({ rows: Widgets.all.map(n => ({ name: n, on: Widgets.shown.includes(n) })) }) }
+    Connections { target: Widgets; function onShownChanged() { if (apps.open === "widgets") apps.wgRows() } }
+    function wgFlip() { const n = Widgets.all[Island.index]; if (n) Island.sh("fluidity-widgets flip " + n); }
+    function wgKey(event) {
+        if (listMove(event, Widgets.all.length)) return true;
+        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.text === " ") { wgFlip(); return true; }
+        return false;
     }
 
     // ================= calendar =================

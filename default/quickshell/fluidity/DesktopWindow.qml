@@ -30,5 +30,7 @@ PanelWindow {
         }
         agenda: Status.agenda
         sys: Status.sys
+        shown: Widgets.shown
+        w: Widgets.data
     }
 }

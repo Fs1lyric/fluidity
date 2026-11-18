@@ -2,13 +2,26 @@
 # All widgets off or on with one key (Super+Shift+Space): the bar, the desktop clock and cards, a theme's own
 # bar, mac mode's dock and menu bar. Windows get the whole screen. Remembered across restarts.
 #   fluidity-widgets toggle | on | off | status
+#   fluidity-widgets list | all | add NAME | remove NAME | flip NAME | pick    the desktop widgets, one by one
 state=${FLUIDITY_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/fluidity}
 flag=$state/widgets-off
+all="clock media agenda system weather github notes timer usage battery visualizer user image text"
+default="clock media agenda system weather github notes"
+desk=$state/desktop-widgets
+known() { [[ " $all " == *" $1 "* ]] || { echo "unknown widget: $1 (one of: $all)" >&2; exit 1; }; }
+current() { if [[ -f $desk ]]; then cat "$desk"; else tr ' ' '\n' <<<"$default"; fi; }
+save() { mkdir -p "$state"; grep -v '^$' >"$desk.tmp"; mv "$desk.tmp" "$desk"; }
 say() { notify-send -u low -a Fluidity "$1" >/dev/null 2>&1; }
 case ${1:-toggle} in
   off) mkdir -p "$state"; touch "$flag"; fluidity-mode start ;;
   on) rm -f "$flag"; fluidity-mode start ;;
   toggle) if [[ -e $flag ]]; then exec "$0" on; else exec "$0" off; fi ;;
   status) [[ -e $flag ]] && echo off || echo on ;;
-  *) sed -n '4s/^# //p' "$0" >&2; exit 1 ;;
+  list) current ;;
+  all) tr ' ' '\n' <<<"$all" ;;
+  add) known "${2:-}"; { current | grep -vx -- "$2"; echo "$2"; } | save ;;
+  remove) known "${2:-}"; current | grep -vx -- "$2" | save ;;
+  flip) known "${2:-}"; if current | grep -qx -- "$2"; then exec "$0" remove "$2"; else exec "$0" add "$2"; fi ;;
+  pick) exec qs -c fluidity ipc call island toggle widgets "" ;;
+  *) sed -n '4,5s/^# //p' "$0" >&2; exit 1 ;;
 esac

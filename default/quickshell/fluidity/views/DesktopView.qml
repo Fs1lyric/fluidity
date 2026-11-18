@@ -14,12 +14,17 @@ Item {
     property var media: ({ title: "", artist: "", progress: 0, position: "", length: "", playing: false, art: "" })
     property var agenda: []     // [{time, title, sub, color, now, done}]
     property var sys: ({ cpu: 0, ram: 0, temp: 0, disk: 0 })
+    property var shown: ["clock", "media", "agenda", "system"]   // fluidity-widgets list
+    property var w: ({})                                         // data for the optional widgets
     readonly property string sans: "Geist"
     readonly property string serif: "Instrument Serif"
     readonly property string mono: "JetBrainsMono Nerd Font"
 
+    DesktopWidgets { anchors.fill: parent; pal: desk.pal; animate: desk.animate; shown: desk.shown; w: desk.w }
+
     // ---- clock ----
     Column {
+        visible: desk.shown.includes("clock")
         x: 44; anchors.bottom: parent.bottom; anchors.bottomMargin: 60
         Row {
             Text { text: desk.hours; color: "#eef0e4"; font.family: desk.serif; font.italic: true; font.pixelSize: 210; font.letterSpacing: -4 }
@@ -45,7 +50,7 @@ Item {
         // ---- now playing ----
         Glass {
             pal: desk.pal; tint: 0.66; radius: 28; width: 392; height: 392
-            visible: desk.media.title !== ""
+            visible: desk.media.title !== "" && desk.shown.includes("media")
             Column {
                 anchors.fill: parent; anchors.margins: 24; spacing: 14
                 Text { text: "NOW PLAYING"; color: desk.pal.dim; font.family: desk.mono; font.pixelSize: 11; font.letterSpacing: 2.2 }
@@ -77,7 +82,7 @@ Item {
         // ---- today (Calendio) ----
         Glass {
             pal: desk.pal; tint: 0.66; radius: 28; width: 420; height: 392
-            visible: desk.agenda.length > 0
+            visible: desk.agenda.length > 0 && desk.shown.includes("agenda")
             Column {
                 anchors.fill: parent; anchors.margins: 24; spacing: 4
                 Item { width: parent.width; height: 28
@@ -106,6 +111,7 @@ Item {
         // ---- system rings ----
         Glass {
             pal: desk.pal; tint: 0.66; radius: 28; width: 362; height: 392
+            visible: desk.shown.includes("system")
             Column {
                 anchors.fill: parent; anchors.margins: 24; spacing: 16
                 Item { width: parent.width; height: 14
