@@ -3,6 +3,7 @@
 # pgrep "succeeds" for qs -c NAME only when $SANDBOX/running-NAME exists.
 sandbox() {
   SANDBOX=$(mktemp -d)
+  SANDBOXES+=("$SANDBOX"); trap 'rm -rf "${SANDBOXES[@]}"' EXIT
   export FLUIDITY_THEMES=$SANDBOX/themes FLUIDITY_THEME_LINK=$SANDBOX/config/fluidity/theme
   export FLUIDITY_STATE=$SANDBOX/state FLUIDITY_CACHE=$SANDBOX/cache
   mkdir -p "$FLUIDITY_THEMES" "$SANDBOX/config/fluidity" "$SANDBOX/stubs"

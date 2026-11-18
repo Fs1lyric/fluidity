@@ -40,7 +40,7 @@ Item {
         idle: [360, 40, 20], launcher: [640, calc ? 420 : 372, 30], emoji: [600, 318, 30], clipboard: [960, 396, 30],
         cheatsheet: [1240, 56 + 30 + 38 * groups.reduce((m, g) => Math.max(m, (g.binds || []).length), 1) + 22, 30], leader: [1320, 64, 32], power: [520, 120, 40], wallpaper: [1240, 250, 30],
         switcher: [Math.max(360, 48 + items.length * 226), 210, 30], notify: [520, 80, 28], osd: [420, 52, 26],
-        hints: [420, 52, 24], control: [640, 344, 30], notifications: [560, 420, 30]
+        hints: [420, 52, 24], control: [640, 240 + (song ? 26 : 0), 30], notifications: [560, 420, 30]
     })
     readonly property var size: sizes[view] || sizes.idle
 
@@ -58,11 +58,11 @@ Item {
         glow: root.view !== "idle"
         tint: 0.88
         Behavior on radius { enabled: root.animate; NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
-        clip: true
 
         Loader {
             id: content
             anchors.fill: parent
+            clip: true
             sourceComponent: ({ idle: idleV, launcher: launcherV, emoji: emojiV, clipboard: clipV, cheatsheet: cheatV,
                 leader: leaderV, power: powerV, wallpaper: wallV, switcher: switchV, notify: notifyV, osd: osdV,
                 hints: hintsV, control: controlV, notifications: historyV })[root.view] || idleV
@@ -109,7 +109,8 @@ Item {
                         id: ic
                         x: 12; width: 32; height: 32; radius: 11; anchors.verticalCenter: parent.verticalCenter
                         color: parent.on ? Qt.rgba(0.06, 0.07, 0.09, 0.12) : Qt.rgba(1, 1, 1, 0.06)
-                        Text { anchors.centerIn: parent; text: modelData.icon || ""; font.family: root.mono; font.pixelSize: 15; color: parent.parent.on ? root.ink : (modelData.iconColor || root.pal.fg) }
+                        Text { anchors.centerIn: parent; visible: !modelData.image; text: modelData.icon || ""; font.family: root.mono; font.pixelSize: 15; color: parent.parent.on ? root.ink : (modelData.iconColor || root.pal.fg) }
+                        Image { anchors.fill: parent; anchors.margins: 4; visible: !!modelData.image; source: modelData.image || ""; sourceSize.width: 48; sourceSize.height: 48; smooth: true; asynchronous: true }
                     }
                     Column {
                         anchors.left: ic.right; anchors.leftMargin: 14; anchors.right: meta.left; anchors.rightMargin: 12
@@ -187,11 +188,11 @@ Item {
         Column {
             Loader { sourceComponent: searchRow }
             Row {
-                leftPadding: 22; spacing: 6; height: 40
+                leftPadding: 18; spacing: 4; height: 40
                 Repeater {
                     model: root.cats
                     Rectangle {
-                        height: 28; width: ct.implicitWidth + 26; radius: 14
+                        height: 28; width: ct.implicitWidth + 18; radius: 14
                         color: index === root.cat ? root.pal.accent : Qt.rgba(1, 1, 1, 0.05)
                         Text { id: ct; anchors.centerIn: parent; text: modelData; color: index === root.cat ? root.ink : root.pal.dim; font.family: root.sans; font.pixelSize: 12 }
                     }

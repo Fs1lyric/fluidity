@@ -1,0 +1,217 @@
+#!/usr/bin/python3
+"""Claude and Codex plan usage for the top bar, as one JSON line on stdout.
+
+  {"claude": {"session": 3, "sessionResets": 1793722200, "week": 4, "weekResets": ..., "stale": false},
+   "codex":  {...},
+   "worst": 4, "level": "ok", "tooltip": "AI Usage\n..."}
+
+session = the 5-hour window, week = the 7-day window, both in percent (null when unknown);
+*Resets are unix seconds. "stale" means the live read failed and the last good one is shown.
+
+Claude: the endpoint Claude Code's /usage reads, with the login in ~/.claude/.credentials.json.
+Codex:  the ChatGPT usage endpoint with ~/.codex/auth.json; when that token has lapsed (Codex
+        only refreshes it while running) it falls back to the newest rate-limit line Codex
+        wrote into ~/.codex/sessions.
+Neither login is ever refreshed or written here, so this can't log you out of anything.
+"""
+import glob
+import json
+import os
+import sys
+import time
+import urllib.request
+from datetime import datetime
+
+HOME = os.path.expanduser("~")
+CACHE = os.path.join(os.environ.get("XDG_CACHE_HOME", f"{HOME}/.cache"), "fluidity", "ai-usage.json")
+EMPTY = {"session": None, "sessionResets": None, "week": None, "weekResets": None}
+
+
+def pct(v):
+    return None if v is None else round(float(v))
+
+
+def iso_to_epoch(s):
+    return None if not s else int(datetime.fromisoformat(s).timestamp())
+
+
+# ---- parsing (pure, tested) -------------------------------------------------------------
+
+def parse_claude(resp):
+    five = resp.get("five_hour") or {}
+    week = resp.get("seven_day") or {}
+    return {
+        "session": pct(five.get("utilization")), "sessionResets": iso_to_epoch(five.get("resets_at")),
+        "week": pct(week.get("utilization")), "weekResets": iso_to_epoch(week.get("resets_at")),
+    }
+
+
+def _codex_window(w, now):
+    if not w:
+        return None, None
+    reset = w.get("reset_at")
+    if reset is None and w.get("reset_after_seconds") is not None:
+        reset = now + int(w["reset_after_seconds"])
+    return pct(w.get("used_percent")), reset
+
+
+def parse_codex_live(resp, now):
+    rl = resp.get("rate_limit") or {}
+    s, sr = _codex_window(rl.get("primary_window"), now)
+    w, wr = _codex_window(rl.get("secondary_window"), now)
+    return {"session": s, "sessionResets": sr, "week": w, "weekResets": wr}
+
+
+def parse_codex_log(rl):
+    p, s = rl.get("primary") or {}, rl.get("secondary") or {}
+    return {
+        "session": pct(p.get("used_percent")), "sessionResets": p.get("resets_at"),
+        "week": pct(s.get("used_percent")), "weekResets": s.get("resets_at"),
+    }
+
+
+def latest_rate_limits(lines):
+    found = None
+    for line in lines:
+        if '"rate_limits"' not in line:
+            continue
+        try:
+            rl = json.loads(line).get("payload", {}).get("rate_limits")
+        except (ValueError, AttributeError):
+            continue
+        if rl:
+            found = rl
+    return found
+
+
+def expire(entry, now):
+    """A window whose reset time has passed is back to 0%."""
+    out = dict(entry)
+    for key in ("session", "week"):
+        reset = out.get(key + "Resets")
+        if reset is not None and reset <= now:
+            out[key], out[key + "Resets"] = 0, None
+    return out
+
+
+# ---- display (the bar icon + tooltip, laid out like omarchy-ai-usage) -------------------
+
+NAMES = {"claude": "Claude", "codex": "Codex"}
+
+
+def bar6(p):
+    filled = min(6, max(0, (min(100, max(0, p)) * 6 + 50) // 100))
+    return "▰" * filled + "▱" * (6 - filled)
+
+
+def countdown(epoch, now):
+    if epoch is None:
+        return "-"
+    s = int(epoch) - now
+    if s <= 0:
+        return "expired"
+    d, h, m = s // 86400, s % 86400 // 3600, s % 3600 // 60
+    if d:
+        return f"{d}d {h}h"
+    if h:
+        return f"{h}h {m}m"
+    return f"{m}m" if m else "< 1m"
+
+
+def _shown(out):
+    return [(k, e) for k, e in out.items() if e.get("session") is not None]
+
+
+def worst(out):
+    shown = _shown(out)
+    if not shown:
+        return None
+    return max(max(e["session"] or 0, e.get("week") or 0) for _, e in shown)
+
+
+def level(p):
+    if p is None:
+        return "warn"
+    return "crit" if p >= 85 else "warn" if p >= 60 else "ok"
+
+
+def tooltip(out, now):
+    shown = _shown(out)
+    if not shown:
+        return "AI Usage: No data available\nCheck credentials"
+    lines = ["AI Usage", "─────────────────"]
+    for key, e in shown:
+        lines.append(f"{NAMES.get(key, key):<8}{bar6(e['session'])}  {e['session']}%"
+                     f"  5h↻{countdown(e['sessionResets'], now)}  7d↻{countdown(e['weekResets'], now)}")
+    return "\n".join(lines)
+
+
+# ---- fetching ---------------------------------------------------------------------------
+
+def get_json(url, headers):
+    req = urllib.request.Request(url, headers={"User-Agent": "fluidity-ai-usage", **headers})
+    with urllib.request.urlopen(req, timeout=8) as r:
+        return json.load(r)
+
+
+def read_json(path):
+    with open(path) as f:
+        return json.load(f)
+
+
+def claude_live():
+    token = read_json(f"{HOME}/.claude/.credentials.json")["claudeAiOauth"]["accessToken"]
+    return parse_claude(get_json("https://api.anthropic.com/api/oauth/usage", {
+        "Authorization": f"Bearer {token}", "anthropic-beta": "oauth-2025-04-20"}))
+
+
+def codex_live(now):
+    tokens = read_json(f"{HOME}/.codex/auth.json")["tokens"]
+    return parse_codex_live(get_json("https://chatgpt.com/backend-api/wham/usage", {
+        "Authorization": f"Bearer {tokens['access_token']}",
+        "ChatGPT-Account-Id": tokens.get("account_id") or ""}), now)
+
+
+def codex_from_logs():
+    files = sorted(glob.glob(f"{HOME}/.codex/sessions/**/*.jsonl", recursive=True),
+                   key=os.path.getmtime, reverse=True)
+    for path in files[:20]:
+        with open(path, errors="replace") as f:
+            rl = latest_rate_limits(f)
+        if rl:
+            return parse_codex_log(rl)
+    raise LookupError("no rate limits in codex session logs")
+
+
+def main():
+    now = int(time.time())
+    try:
+        cache = read_json(CACHE)
+    except (OSError, ValueError):
+        cache = {}
+
+    out = {}
+    for name, sources in (("claude", [claude_live]),
+                          ("codex", [lambda: codex_live(now), codex_from_logs])):
+        entry = None
+        for source in sources:
+            try:
+                entry = {**source(), "stale": False}
+                break
+            except Exception as e:  # network, auth, missing files: try the next source
+                print(f"{name}: {source.__name__}: {e}", file=sys.stderr)
+        if entry is None:
+            entry = {**EMPTY, **cache.get(name, {}), "stale": True}
+        out[name] = expire(entry, now)
+
+    os.makedirs(os.path.dirname(CACHE), exist_ok=True)
+    tmp = CACHE + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(cache | {k: v for k, v in out.items() if not v["stale"]}, f)
+    os.replace(tmp, CACHE)
+    w = worst(out)
+    print(json.dumps(out | {"worst": w, "level": level(w), "tooltip": tooltip(out, now)}))
+
+
+if __name__ == "__main__":
+    main()
