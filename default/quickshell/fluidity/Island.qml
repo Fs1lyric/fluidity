@@ -70,6 +70,7 @@ Singleton {
     function open(v, a) {
         if (v === "themes") { ThemePickerState.toggle(); return; }
         if (v === "bar") { barShown = !barShown; return; }
+        if (v === "dock") { sh("fluidity-widgets flip dock"); return; }
         if (!interactive.includes(v)) return;
         target = v; arg = a || ""; query = ""; index = 0; cat = 0;
         screen = focusedScreen();

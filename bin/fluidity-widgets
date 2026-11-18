@@ -6,7 +6,7 @@
 state=${FLUIDITY_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/fluidity}
 flag=$state/widgets-off
 all="clock media agenda system weather github notes dock timer usage battery visualizer user image text"
-default="clock media agenda system weather github notes dock"
+default="clock media agenda system weather github notes"
 desk=$state/desktop-widgets
 known() { [[ " $all " == *" $1 "* ]] || { echo "unknown widget: $1 (one of: $all)" >&2; exit 1; }; }
 current() { if [[ -f $desk ]]; then cat "$desk"; else tr ' ' '\n' <<<"$default"; fi; }

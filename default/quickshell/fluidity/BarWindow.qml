@@ -42,6 +42,7 @@ PanelWindow {
         { icon: "\u{f140b}", view: "quickactions" },
         { icon: "\u{f051f}", view: "wellbeing" },
         { icon: "\u{f02d6}", view: "guide" },
+        { icon: "\u{f0792}", view: "dock", on: Widgets.shown.includes("dock") },   // the dock: add or remove it
         { icon: "\u{f0e09}", view: "wallpaper" },
         { icon: "\u{f014c}", view: "clipboard" },
         { icon: "\u{f0e51}", view: "leader", arg: "capture" },
@@ -70,7 +71,7 @@ PanelWindow {
         onTrayClicked: (i, b) => { const t = Array.from(Tray.SystemTray.items?.values ?? [])[i]; if (!t) return;
             if (b === Qt.RightButton && t.hasMenu) t.display(w, bar.rightItem.x, 56); else if (b === Qt.MiddleButton) t.secondaryActivate(); else t.activate() }
         onFaceClicked: v => Island.toggle(v, "")
-        onAppClicked: (v, a) => Island.toggle(v, a)
+        onAppClicked: (v, a) => { if (v === "dock") Island.sh("fluidity-widgets flip dock"); else Island.toggle(v, a) }
         onWorkspaceClicked: id => Hyprland.dispatch(`hl.dsp.focus({ workspace = "${id}" })`)
     }
 
