@@ -233,6 +233,11 @@ Already in Fluidity: launcher, emoji, clipboard, wallpaper, screenshot, notifica
 focus timer, volume OSD, switcher, cheat sheet, layouts, desktop clock + Calendio cards.
 Step 1 DONE: bar app row (BarView apps/appIndex/appClicked, BarWindow apps list), buttons for the views that exist.
 
+Build approach (2026-11-18, second pass): each app is a pure view `views/<Name>App.qml` on `AppBase.qml`
+(pal, d = the app's data, sel = selected index); IslandView loads it by view name (`appFiles`) and holds its size;
+the shell side is one singleton `Apps.qml` (data, polling while open, keys), Island.qml delegates to it.
+Keys: bar app row, leader `;` `u` = apps row (a letter per app). render.py fails on an unknown island view.
+
 His apps still to build, in this order:
 2. calendar: month grid + today's Calendio blocks + sun arc; clock click opens it.
 3. media: music player (art, title, seek, prev/play/next, cava strip; lyrics via lrclib.net later).

@@ -20,7 +20,7 @@ Item {
     implicitHeight: 54
 
     signal workspaceClicked(int id)
-    signal appClicked(string view)
+    signal appClicked(string view, string arg)
 
     Glass {
         id: left
@@ -79,7 +79,7 @@ Item {
                         color: btn.lit ? bar.pal.accent : bar.pal.fg
                         font.family: bar.mono; font.pixelSize: 15
                     }
-                    MouseArea { id: hover; anchors.fill: parent; hoverEnabled: true; onClicked: bar.appClicked(btn.modelData.view) }
+                    MouseArea { id: hover; anchors.fill: parent; hoverEnabled: true; onClicked: bar.appClicked(btn.modelData.view, btn.modelData.arg || "") }
                 }
             }
         }

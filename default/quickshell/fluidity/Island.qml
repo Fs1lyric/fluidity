@@ -25,7 +25,7 @@ Singleton {
     property string query: ""
     property int index: 0
     property ShellScreen screen: Quickshell.screens[0]
-    readonly property var interactive: ["launcher", "emoji", "clipboard", "cheatsheet", "leader", "power", "wallpaper", "switcher", "control", "notifications"]
+    readonly property var interactive: ["launcher", "emoji", "clipboard", "cheatsheet", "leader", "power", "wallpaper", "switcher", "control", "notifications"].concat(Apps.views)
 
     // ---------- bar island (passive) ----------
     property string barView: "idle"
@@ -118,6 +118,7 @@ Singleton {
         else if (v === "switcher") { refreshSwitcher(); }
         else if (v === "control") { refreshControl(); }
         else if (v === "notifications") { refreshHistory(); }
+        else if (Apps.views.includes(v)) Apps.load(v, arg);
     }
     onQueryChanged: {
         index = 0;
@@ -353,7 +354,8 @@ Singleton {
             { k: "t", label: "theme", run: "fluidity-theme next" }, { k: "m", label: "mode", run: "fluidity-mode toggle" },
             { k: "w", label: "wall", run: "fluidity-wallpaper next" }, { k: "l", label: "lock", run: "fluidity-lock" },
             { k: "x", label: "power", open: "power" }, { k: "a", label: "windows", open: "switcher" }, { k: "b", label: "widgets", run: "fluidity-widgets toggle" },
-            { k: "f", label: "focus 25", run: "fluidity-focus toggle" }, { k: "v", label: "layouts", open: "leader:layouts" }] },
+            { k: "f", label: "focus 25", run: "fluidity-focus toggle" }, { k: "v", label: "layouts", open: "leader:layouts" }, { k: "u", label: "apps", open: "leader:apps" }] },
+        apps: { title: "apps", keys: Apps.leaderKeys },
         layouts: { title: "layouts", keys: [
             { k: "s", label: "study", run: "fluidity-layout study" }, { k: "c", label: "code", run: "fluidity-layout code" },
             { k: "w", label: "web", run: "fluidity-layout web" }, { k: "h", label: "chill", run: "fluidity-layout chill" }] },
@@ -476,6 +478,7 @@ Singleton {
         const cols = t === "emoji" ? 10 : t === "control" ? 3 : 1;
         if (k === Qt.Key_Escape) { if (query) { query = ""; } else { if (t === "wallpaper" && wallBefore) sh("fluidity-wallpaper set " + q(wallBefore)); close(); } return true; }
         if (t === "leader") { if (txt) leaderKey(txt.toLowerCase()); return true; }
+        if (Apps.views.includes(t)) return Apps.key(event, t);
         if (t === "power") {
             const byKey = powerItems.findIndex(p => p.key === txt);
             if (byKey >= 0) { power(byKey); return true; }

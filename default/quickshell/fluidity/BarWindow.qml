@@ -33,9 +33,10 @@ PanelWindow {
     // The app row. Each button opens its island view; views land here as they are built (PLAN.md, showcase apps).
     readonly property var apps: [
         { icon: "\u{f003b}", view: "launcher" },
+        { icon: "\u{f00ed}", view: "calendar" },
         { icon: "\u{f0e09}", view: "wallpaper" },
         { icon: "\u{f014c}", view: "clipboard" },
-        { icon: "\u{f0e51}", view: "screenshot" },
+        { icon: "\u{f0e51}", view: "leader", arg: "capture" },
         { icon: "\u{f009a}", view: "notifications" },
         { icon: "\u{f0493}", view: "control" }
     ]
@@ -52,7 +53,7 @@ PanelWindow {
         battery: Status.battery
         ai: Status.ai
         apps: w.apps
-        onAppClicked: v => Island.toggle(v, "")
+        onAppClicked: (v, a) => Island.toggle(v, a)
         onWorkspaceClicked: id => Hyprland.dispatch(`hl.dsp.focus({ workspace = "${id}" })`)
     }
     Item { id: rightHit; anchors.right: parent.right; y: 14; width: 420; height: 40 }
@@ -69,6 +70,6 @@ PanelWindow {
         clock: Status.clock
         extra: Status.focusText || Status.nextText
         title: Island.passiveTitle; body: Island.passiveBody; icon: Island.passiveIcon; value: Island.passiveValue; keyHint: Island.passiveKeys
-        MouseArea { anchors.fill: parent; onClicked: Island.toggle(Island.barView === "idle" ? "control" : "notifications", "") }
+        MouseArea { anchors.fill: parent; onClicked: Island.toggle(Island.barView === "idle" ? "calendar" : "notifications", "") }
     }
 }

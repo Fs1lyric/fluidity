@@ -101,6 +101,15 @@ scenario("desktop", "DesktopView", dict(media=dict(title="Kokoro", artist="Tycho
                  dict(time="18:00", title="Math · linear algebra", sub="chapter 4", color=PAL["yellow"])],
          sys=dict(cpu=23, ram=61, temp=47, disk=38)), place="fill")
 
+# ---- the Fluid showcase apps (island views on AppBase; d = the app's data) ----
+BLOCKS = [dict(time="09:00", end="09:45", title="Art · gesture drawing", color=PAL["magenta"], done=True),
+          dict(time="10:00", end="11:20", title="Code · Fluidity shell", color=PAL["accent"], now=True),
+          dict(time="13:00", end="14:00", title="Chess · two rapid games", color=PAL["cyan"]),
+          dict(time="18:00", end="20:00", title="Math · linear algebra", color=PAL["yellow"])]
+scenario("calendar", "IslandView", dict(view="calendar", app=dict(year=2026, month=10, today="2026-11-18", sel="2026-11-18",
+         marks=["2026-11-03", "2026-11-10", "2026-11-18", "2026-11-19", "2026-11-24"], blocks=BLOCKS, sunrise="06:21", sunset="17:12", now="10:24")))
+scenario("calendar-empty", "IslandView", dict(view="calendar", app=dict(year=2026, month=11, today="2026-11-18", sel="2026-12-25", marks=[], blocks=[], sunrise="", sunset="", now="10:24")))
+
 PLACES = {"island": "anchors.horizontalCenter: parent.horizontalCenter; y: 14", "fill": "anchors.fill: parent"}
 MAIN = """import QtQuick
 import QtQuick.Window
@@ -112,7 +121,7 @@ Window {{
     {view} {{
         id: v
         {place}
-        Component.onCompleted: {{ const p = {props}; for (const k in p) v[k] = p[k]; }}
+        Component.onCompleted: {{ const p = {props}; for (const k in p) v[k] = p[k]; if (v.known === false) console.error("unknown island view " + v.view); }}
     }}
     Timer {{ interval: 900; running: true; onTriggered: win.contentItem.grabToImage(r => {{ r.saveToFile("{out}"); Qt.quit(); }}) }}
 }}
@@ -157,7 +166,7 @@ def main():
             env = dict(os.environ, QT_QPA_PLATFORM="xcb", DISPLAY=disp, FONTCONFIG_FILE=conf, QT_FORCE_STDERR_LOGGING="1")
             env.pop("WAYLAND_DISPLAY", None)
             r = subprocess.run([QML_TOOL, os.path.join(work, "main.qml")], cwd=work, capture_output=True, text=True, env=env, timeout=40)
-            errs = [l for l in r.stderr.splitlines() if (".qml:" in l and "Warning" not in l) or "rror" in l]
+            errs = [l for l in r.stderr.splitlines() if (".qml:" in l and "Warning" not in l) or "rror" in l or "unknown island view" in l]
             if errs or not os.path.exists(png):
                 bad += 1
                 print(f"FAIL {name}: " + (" | ".join(errs[:4]) or "no image"))

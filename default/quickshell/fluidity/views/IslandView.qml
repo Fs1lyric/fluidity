@@ -31,6 +31,12 @@ Item {
     property var keyHint: []
     property string extra: ""          // idle: focus countdown or the next Calendio block (accent)
     property Component thumbDelegate: null   // switcher: the shell gives live window thumbnails
+    property var app: ({})             // a showcase app's data (Apps.qml)
+
+    // the Fluid showcase apps: one file each, on AppBase
+    readonly property var appFiles: ({ calendar: "CalendarApp.qml" })
+    readonly property bool isApp: !!appFiles[view]
+    readonly property bool known: view === "idle" || !!sizes[view]
 
     readonly property string ink: "#101316"
     readonly property string sans: "Geist"
@@ -42,7 +48,8 @@ Item {
         idle: [360 + (song ? 0 : -120) + (extra ? 150 : 0), 40, 20], launcher: [640, calc ? 420 : 372, 30], emoji: [600, 318, 30], clipboard: [960, 396, 30],
         cheatsheet: [1240, 56 + 30 + 38 * groups.reduce((m, g) => Math.max(m, (g.binds || []).length), 1) + 22, 30], leader: [1320, 64, 32], power: [520, 120, 40], wallpaper: [1240, 250, 30],
         switcher: [Math.max(360, 48 + items.length * 226), 210, 30], notify: [520, 80, 28], osd: [420, 52, 26],
-        hints: [420, 52, 24], control: [640, 240 + (song ? 26 : 0), 30], notifications: [560, 420, 30]
+        hints: [420, 52, 24], control: [640, 240 + (song ? 26 : 0), 30], notifications: [560, 420, 30],
+        calendar: [900, 440, 32]
     })
     readonly property var size: sizes[view] || sizes.idle
 
@@ -62,9 +69,24 @@ Item {
         Behavior on radius { enabled: root.animate; NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
 
         Loader {
+            id: appContent
+            anchors.fill: parent
+            clip: true
+            active: root.isApp
+            source: root.isApp ? root.appFiles[root.view] : ""
+            onLoaded: {
+                item.pal = Qt.binding(() => root.pal); item.animate = Qt.binding(() => root.animate)
+                item.d = Qt.binding(() => root.app); item.sel = Qt.binding(() => root.index)
+                item.picked.connect(i => root.activated(i))
+                if (root.animate) { opacity = 0; appFade.restart() }
+            }
+            NumberAnimation { id: appFade; target: appContent; property: "opacity"; from: 0; to: 1; duration: 180; easing.type: Easing.OutCubic }
+        }
+        Loader {
             id: content
             anchors.fill: parent
             clip: true
+            active: !root.isApp
             sourceComponent: ({ idle: idleV, launcher: launcherV, emoji: emojiV, clipboard: clipV, cheatsheet: cheatV,
                 leader: leaderV, power: powerV, wallpaper: wallV, switcher: switchV, notify: notifyV, osd: osdV,
                 hints: hintsV, control: controlV, notifications: historyV })[root.view] || idleV
