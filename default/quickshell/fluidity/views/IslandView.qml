@@ -38,7 +38,7 @@ Item {
     // width, height, corner radius per view
     readonly property var sizes: ({
         idle: [360, 40, 20], launcher: [640, calc ? 420 : 372, 30], emoji: [600, 318, 30], clipboard: [960, 396, 30],
-        cheatsheet: [1240, 56 + 30 + 38 * groups.reduce((m, g) => Math.max(m, g.binds.length), 1) + 22, 30], leader: [1320, 64, 32], power: [520, 120, 40], wallpaper: [1240, 250, 30],
+        cheatsheet: [1240, 56 + 30 + 38 * groups.reduce((m, g) => Math.max(m, (g.binds || []).length), 1) + 22, 30], leader: [1320, 64, 32], power: [520, 120, 40], wallpaper: [1240, 250, 30],
         switcher: [Math.max(360, 48 + items.length * 226), 210, 30], notify: [520, 80, 28], osd: [420, 52, 26],
         hints: [420, 52, 24], control: [640, 344, 30], notifications: [560, 420, 30]
     })
