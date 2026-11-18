@@ -17,6 +17,44 @@ commands, one update command. Made for you only.
 - **Keyboard only:** every panel, widget and picker can be driven from the keyboard.
 - **No lyric menu.** You nuked it on 2026-11-13; it stays gone. Launcher stays omenu.
 
+## Keymap: one chord per app (decided 2026-11-18)
+
+Super only (no Hyper/CapsLock daemon), apps only (navigation stays on the Omarchy binds).
+Checked against upstream `basecamp/omarchy` master `default/hypr/bindings/*.conf` + `config/hypr/bindings.conf`.
+Upstream uses plain Super on C F G J K L O P S T V W X (+ Return, Space, Tab, Esc, Backspace, comma, digits).
+Free plain-Super letters: **A B D E H I M N Q R U Y Z**. The fastest tier (one modifier) goes there.
+Every app key is **open-or-focus** (never a second copy, never on a hidden workspace).
+
+| Key | App | Note |
+|---|---|---|
+| Super+A | Calendio | agenda, your daily app (kept) |
+| Super+B | Zen | browser, workspace 2 (kept) |
+| Super+D | Vesktop | chat (kept) |
+| Super+M | Spotify | music (kept) |
+| Super+N | Obsidian | notes (kept) |
+| Super+H | btop | system monitor (kept) |
+| Super+E | Burrow | files ("explore") |
+| Super+I | Claude | AI ("intelligence") |
+| Super+U | Flowday | tasks ("up next") |
+| Super+Z | VS Code Insiders | code (Zed isn't installed) |
+| Super+R, Super+Y | free | yours to fill |
+| Super+Q | click hints | a letter on every clickable spot, type it to click (wl-kbptr, new package) |
+| Super+; | leader | next letter does a rare action; a small hint strip shows the letters |
+| Super+K | cheat sheet | upstream already shows keybinds here; rebuilt as a searchable, keyboard-only overlay |
+
+Upstream's Super+Shift app slots stay where they are and point at your apps where the job matches
+(Shift+B Zen, Shift+F Burrow, Shift+M Spotify, Shift+O Obsidian, Shift+C Calendio, Shift+N nvim).
+
+**Leader (Super+; then one letter).** The hint strip is one line at the bottom of the screen. It isn't a menu,
+it can't be navigated, and it disappears on the next key or Esc.
+s screenshot · r record · o OCR copy · p colour picker · c clipboard history · e emoji ·
+n night light · d do not disturb · i idle inhibit · g gaps · t next theme · m mac/keyboard mode ·
+w next wallpaper · l lock · x power.
+(Super+; is emoji today, which is a duplicate of Super+Period; emoji stays on Period.)
+
+Test: `tests/keymap.test.sh` fails on any duplicate chord, any upstream chord that's missing or rebound,
+and any app key that isn't open-or-focus.
+
 ## Never touched
 
 Fluidity only owns the desktop config. It never moves, edits or deletes:
@@ -53,7 +91,7 @@ overwrites your changes.
 ## Build order (one phase per session, small commits, tests first)
 
 0. **Skeleton.** Repo, this plan, CI workflow, `bin/` and `tests/` harness, Fs1lyric identity.
-1. **Hyprland defaults.** Binds rewritten from upstream with a test that diffs them against the upstream
+1. **Hyprland defaults + keymap.** The keymap section above, Binds rewritten from upstream with a test that diffs them against the upstream
    list (fails while any of the ~20 are missing), input, look and feel, snappy "snap" motion
    (every speed <= 2), autostart, monitors. Dwindle default, Super+L flips a workspace to scrolling.
 2. **Theme engine.** `fluidity-theme list|current|set|next`, a clean rewrite of lyric-theme. Move the 49
