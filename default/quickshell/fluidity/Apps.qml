@@ -8,11 +8,11 @@ import Quickshell.Services.Mpris
 // Island.qml opens them like any view and hands their keys here (key() returns true when used).
 Singleton {
     id: apps
-    readonly property var views: ["calendar", "media", "network", "bluetooth"]
+    readonly property var views: ["calendar", "media", "network", "bluetooth", "syspanel", "quickactions"]
     property string open: ""       // the app on screen, "" when none (polling runs only then)
     property var data: ({})
     // leader ; u: one letter per app
-    readonly property var leaderKeys: [{ k: "c", label: "calendar", open: "calendar" }, { k: "m", label: "media", open: "media" }, { k: "w", label: "wi-fi", open: "network" }, { k: "b", label: "bluetooth", open: "bluetooth" }]
+    readonly property var leaderKeys: [{ k: "c", label: "calendar", open: "calendar" }, { k: "m", label: "media", open: "media" }, { k: "w", label: "wi-fi", open: "network" }, { k: "b", label: "bluetooth", open: "bluetooth" }, { k: "s", label: "system", open: "syspanel" }, { k: "q", label: "quick", open: "quickactions" }]
     readonly property string home: Quickshell.env("HOME")
     readonly property string stateDir: (Quickshell.env("XDG_STATE_HOME") || (home + "/.local/state")) + "/fluidity"
     readonly property string calDb: home + "/.local/share/calendio/cal.db"
@@ -25,12 +25,16 @@ Singleton {
         else if (v === "media") { Island.index = 1; mediaTick(); }
         else if (v === "network") { netAsk = ""; netSecret = ""; netRefresh(); }
         else if (v === "bluetooth") btRefresh();
+        else if (v === "syspanel") { sysTick(); }
+        else if (v === "quickactions") qaRefresh();
     }
     function key(event, v) {
         if (v === "calendar") return calKey(event);
         if (v === "media") return mediaKey(event);
         if (v === "network") return netKey(event);
         if (v === "bluetooth") return btKey(event);
+        if (v === "syspanel") return sysKey(event);
+        if (v === "quickactions") return qaKey(event);
         return false;
     }
     function picked(v, i) {
@@ -38,6 +42,8 @@ Singleton {
         else if (v === "media") { Island.index = i; mediaPress(i); }
         else if (v === "network") { Island.index = i; netPress(); }
         else if (v === "bluetooth") { Island.index = i; btPress(); }
+        else if (v === "syspanel") Island.index = i;
+        else if (v === "quickactions") { Island.index = i; qaPress(i); }
     }
 
     readonly property bool shown: Island.overlayShown && Island.target === open
@@ -223,6 +229,101 @@ Singleton {
         else if (t === "s") { if (!data.on) Island.sh("bluetoothctl power on"); btScan.running = true; }
         else if (t === "b") { Island.sh("bluetoothctl power " + (data.on ? "off" : "on")); later(800, btRefresh); }
         else if (t === "x") { const x = devs[Island.index]; if (x) { Island.sh("bluetoothctl remove " + Island.q(x.mac)); later(800, btRefresh); } }
+        else return false;
+        return true;
+    }
+
+    // ================= system =================
+    property var cpuHist: []
+    property var brightness: -1
+    // the history fills all the time (cheap: Status already polls every 5 s), so the line is there on open
+    Connections { target: Status; function onSysChanged() { apps.cpuHist = apps.cpuHist.concat([Status.sys.cpu]).slice(-40); if (apps.open === "syspanel") apps.sysTick(true) } }
+    Timer { interval: 3000; repeat: true; running: apps.open === "syspanel"; onTriggered: apps.sysTick() }
+    Process {
+        id: sysProc
+        command: ["sh", "-c", "cut -d. -f1 /proc/uptime; grep -E '^(MemTotal|MemAvailable):' /proc/meminfo | awk '{print $2}'; " +
+                  "b=$(brightnessctl -m -c backlight 2>/dev/null | cut -d, -f4 | tr -d %); echo ${b:--1}; echo --; ps -eo comm,%cpu --sort=-%cpu --no-headers | grep -v '^ps ' | head -3"]
+        stdout: StdioCollector { onStreamFinished: {
+            const parts = String(text).split("--\n"), l = parts[0].split("\n");
+            const up = Number(l[0]) || 0, mt = Number(l[1]) || 1, ma = Number(l[2]) || 0;
+            apps.brightness = Number(l[3]);
+            const gib = k => (k / 1048576).toFixed(1);
+            apps.patch({ uptime: (up >= 86400 ? Math.floor(up / 86400) + "d " : "") + Math.floor(up % 86400 / 3600) + "h " + Math.floor(up % 3600 / 60) + "m",
+                         ramText: gib(mt - ma) + " / " + gib(mt) + " GiB",
+                         top: (parts[1] || "").split("\n").filter(Boolean).map(r => { const m = r.trim().match(/^(.*\S)\s+([\d.]+)$/); return m ? { name: m[1], cpu: Number(m[2]) } : null }).filter(Boolean) });
+            apps.sysTick(true);
+        } }
+    }
+    function sysTick(noPoll) {
+        if (!noPoll && !sysProc.running) sysProc.running = true;
+        const st = Status.sys, sink = Island.sink?.audio;
+        const sliders = [{ icon: sink?.muted ? "󰝟" : "󰕾", label: "volume", value: sink ? sink.volume : 0 }];
+        if (brightness >= 0) sliders.push({ icon: "󰃠", label: "brightness", value: brightness / 100 });
+        patch({ cpu: st.cpu, ram: st.ram, temp: st.temp, disk: st.disk, battery: Status.battery, hist: cpuHist, sliders: sliders });
+    }
+    function sysKey(event) {
+        const k = event.key, t = event.text, n = (data.sliders || []).length;
+        if (listMove(event, n)) return true;
+        if (k === Qt.Key_Left || k === Qt.Key_Right || t === "-" || t === "=" || t === "+") {
+            const up = k === Qt.Key_Right || t === "=" || t === "+";
+            if (Island.index === 0) Island.volume(up ? 0.05 : -0.05);
+            else { brightness = Math.max(1, Math.min(100, brightness + (up ? 5 : -5))); Island.sh("brightnessctl -q set " + brightness + "%"); Island.osd("󰃠", brightness / 100); }
+            sysTick(true); return true;
+        }
+        if (t === "h") { Island.close(); Island.sh("fluidity-launch focus-tui btop"); return true; }
+        return false;
+    }
+
+    // ================= quick actions =================
+    property var qa: ({})
+    Process {
+        id: qaProc
+        command: ["sh", "-c", "fluidity-toggle status nightlight; fluidity-toggle status idle; " +
+            "timeout 3 nmcli -t -f NAME,TYPE con show --active 2>/dev/null | awk -F: '$2 ~ /vpn|wireguard/ {print \"vpn \" $1; exit}'; " +
+            "wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null | grep -q MUTED && echo mic-muted; " +
+            "o=$(timeout 3 rfkill -n -o SOFT 2>/dev/null); [ -n \"$o\" ] && ! echo \"$o\" | grep -q unblocked && echo airplane; " +
+            "[ -e \"${XDG_STATE_HOME:-$HOME/.local/state}/fluidity/toggles/window-no-gaps.lua\" ] && echo gaps-off; true"]
+        stdout: StdioCollector { onStreamFinished: {
+            const t = String(text);
+            const vpn = (t.match(/^vpn (.*)$/m) || [])[1] || "";
+            apps.qa = { night: t.includes("nightlight on"), awake: t.includes("idle on"), vpn: vpn, mic: !t.includes("mic-muted"), airplane: /^airplane$/m.test(t), gaps: !t.includes("gaps-off") };
+            apps.qaRefresh(true);
+        } }
+    }
+    function qaTiles() {
+        const s = qa;
+        return [
+            { icon: "󰖔", label: "Night light", on: !!s.night, run: "fluidity-toggle nightlight" },
+            { icon: "󰂛", label: "Do not disturb", on: Notifs.dnd, state: Notifs.dnd ? "no popups" : "off", dnd: true },
+            { icon: "󰅶", label: "Caffeine", on: !!s.awake, state: s.awake ? "stays awake" : "off", run: "fluidity-toggle idle" },
+            { icon: "󰖂", label: "VPN", on: !!s.vpn, state: s.vpn || "off", run: s.vpn ? "nmcli con down id " + Island.q(s.vpn) : "fluidity-launch focus protonvpn protonvpn-app" },
+            { icon: s.mic === false ? "󰍭" : "󰍬", label: "Mic", on: s.mic !== false, state: s.mic === false ? "muted" : "live", run: "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle" },
+            { icon: "󰀝", label: "Airplane", on: !!s.airplane, run: "rfkill " + (s.airplane ? "unblock" : "block") + " all" },
+            { icon: "󰹑", label: "Screen record", once: true, run: "fluidity-capture record", close: true },
+            { icon: "󰈊", label: "Colour pick", once: true, run: "fluidity-capture colour", close: true },
+            { icon: "󰕰", label: "Gaps", on: s.gaps !== false, run: "fluidity-window gaps" }];
+    }
+    readonly property var qaPower: [{ icon: "\uf023", label: "lock", key: "l" }, { icon: "󰤄", label: "sleep", key: "s" }, { icon: "󰜉", label: "restart", key: "r" }, { icon: "󰐥", label: "shut down", key: "p" }]
+    function qaRefresh(noPoll) {
+        if (!noPoll && !qaProc.running) qaProc.running = true;
+        patch({ tiles: qaTiles(), power: qaPower });
+    }
+    function qaPress(i) {
+        const tiles = qaTiles(), t = tiles[i];
+        if (!t) { const p = qaPower[i - tiles.length]; if (p) Island.power(Island.powerItems.findIndex(x => x.key === p.key)); return; }
+        if (t.dnd) Notifs.dnd = !Notifs.dnd; else if (t.close) { Island.close(); later(300, () => Island.sh(t.run)); return; } else Island.sh(t.run);
+        later(500, () => qaRefresh());
+        qaRefresh(true);
+    }
+    function qaKey(event) {
+        const k = event.key, t = event.text, nt = qaTiles().length, n = nt + qaPower.length, i = Island.index;
+        const p = qaPower.findIndex(x => x.key === t);
+        if (p >= 0) { qaPress(nt + p); return true; }
+        if (k === Qt.Key_Right || k === Qt.Key_Tab) Island.index = Math.min(n - 1, i + 1);
+        else if (k === Qt.Key_Left || k === Qt.Key_Backtab) Island.index = Math.max(0, i - 1);
+        else if (k === Qt.Key_Down) Island.index = i < nt ? Math.min(n - 1, i + 3 >= nt ? nt + Math.min(qaPower.length - 1, i % 3) : i + 3) : i;
+        else if (k === Qt.Key_Up) Island.index = i >= nt ? nt - 3 + Math.min(2, i - nt) : Math.max(0, i - 3);
+        else if (k === Qt.Key_Return || k === Qt.Key_Enter || t === " ") qaPress(i);
         else return false;
         return true;
     }

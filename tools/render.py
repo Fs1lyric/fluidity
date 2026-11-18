@@ -125,6 +125,16 @@ DEVS = [dict(name="Galaxy Buds2", icon="󰋋", connected=True, paired=True, batt
 scenario("bluetooth", "IslandView", dict(view="bluetooth", index=0, app=dict(on=True, devs=DEVS, scanning=True)))
 scenario("bluetooth-off", "IslandView", dict(view="bluetooth", app=dict(on=False, devs=[])))
 
+HIST = [round(20 + 30 * abs(math.sin(i / 3.0)), 1) for i in range(40)]
+scenario("syspanel", "IslandView", dict(view="syspanel", index=0, app=dict(cpu=23, ram=61, temp=47, disk=38, battery=-1, uptime="3h 12m", ramText="9.4 / 15.5 GiB",
+         hist=HIST, top=[dict(name="zen-bin", cpu=12.4), dict(name="qs", cpu=3.1), dict(name="Hyprland", cpu=2.2)],
+         sliders=[dict(icon="󰕾", label="volume", value=0.64), dict(icon="󰃠", label="brightness", value=0.8)])))
+QA = [dict(icon="󰖔", label="Night light", on=True), dict(icon="󰂛", label="Do not disturb"), dict(icon="󰅶", label="Caffeine"),
+      dict(icon="󰖂", label="VPN", on=True, state="RO-FREE#25"), dict(icon="󰍬", label="Mic", on=True, state="live"), dict(icon="󰀝", label="Airplane"),
+      dict(icon="󰹑", label="Screen record"), dict(icon="󰆞", label="Colour pick"), dict(icon="󰂚", label="Gaps", on=True)]
+scenario("quickactions", "IslandView", dict(view="quickactions", index=4, app=dict(tiles=QA, power=[dict(icon="", label="lock"), dict(icon="󰤄", label="sleep"),
+         dict(icon="󰜉", label="restart"), dict(icon="󰐥", label="shut down")])))
+
 PLACES = {"island": "anchors.horizontalCenter: parent.horizontalCenter; y: 14", "fill": "anchors.fill: parent"}
 MAIN = """import QtQuick
 import QtQuick.Window

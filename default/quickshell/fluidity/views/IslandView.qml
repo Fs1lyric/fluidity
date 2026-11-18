@@ -34,7 +34,7 @@ Item {
     property var app: ({})             // a showcase app's data (Apps.qml)
 
     // the Fluid showcase apps: one file each, on AppBase
-    readonly property var appFiles: ({ calendar: "CalendarApp.qml", media: "MediaApp.qml", network: "NetworkApp.qml", bluetooth: "BluetoothApp.qml" })
+    readonly property var appFiles: ({ calendar: "CalendarApp.qml", media: "MediaApp.qml", network: "NetworkApp.qml", bluetooth: "BluetoothApp.qml", syspanel: "SysApp.qml", quickactions: "QuickApp.qml" })
     readonly property bool isApp: !!appFiles[view]
     readonly property bool known: view === "idle" || !!sizes[view]
 
@@ -51,7 +51,8 @@ Item {
         hints: [420, 52, 24], control: [640, 240 + (song ? 26 : 0), 30], notifications: [560, 420, 30],
         calendar: [900, 440, 32], media: [980, app.title ? 310 : 90, 32],
         network: [620, 64 + 50 * Math.max(1, Math.min(7, (app.nets || []).length)) + (app.ask ? 84 : 16), 30],
-        bluetooth: [620, 64 + 50 * Math.max(1, Math.min(7, (app.devs || []).length)) + 16, 30]
+        bluetooth: [620, 64 + 50 * Math.max(1, Math.min(7, (app.devs || []).length)) + 16, 30],
+        syspanel: [620, 306 + 50 * (app.sliders || []).length + 12, 30], quickactions: [640, 64 + 80 * Math.ceil((app.tiles || []).length / 3) + 76, 32]
     })
     readonly property var size: sizes[view] || sizes.idle
 
