@@ -21,6 +21,11 @@ start_pieces() {
   local own="" f n
   own=$(cat "$link/shell" 2>/dev/null)
   start fluidity
+  if [[ -e $state/widgets-off ]]; then   # fluidity-widgets off: nothing on screen but your windows
+    for f in "$themes"/*/shell; do [[ -f $f ]] && stop "$(cat "$f")"; done
+    stop dock; stop tahoe-bar; bar hide
+    return 0
+  fi
   for f in "$themes"/*/shell; do       # every theme shell except this theme's own
     [[ -f $f ]] || continue
     n=$(cat "$f"); [[ $n != "$own" ]] && stop "$n"

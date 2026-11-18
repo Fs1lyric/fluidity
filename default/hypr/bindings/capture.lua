@@ -20,7 +20,7 @@ o.bind("F9", "Stop dictation (push-to-talk)", "fluidity-dictate stop", { release
 o.bind("SUPER + S", "Scratch terminal", "fluidity-scratch toggle")
 o.bind("SUPER + ALT + S", "Make this the scratch window", "fluidity-scratch take")
 
-o.bind("SUPER + SHIFT + SPACE", "Toggle the bar", "fluidity-island bar")
+o.bind("SUPER + SHIFT + SPACE", "All widgets off / on", "fluidity-widgets toggle")
 o.bind("SUPER + SHIFT + G", "Signal", { launch = "signal-desktop", focus = "^signal$" })
 o.bind("SUPER + SHIFT + SLASH", "Passwords", { launch = "1password" })
 

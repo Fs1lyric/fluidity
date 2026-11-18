@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# All widgets off or on with one key (Super+Shift+Space): the bar, the desktop clock and cards, a theme's own
+# bar, mac mode's dock and menu bar. Windows get the whole screen. Remembered across restarts.
+#   fluidity-widgets toggle | on | off | status
+state=${FLUIDITY_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/fluidity}
+flag=$state/widgets-off
+say() { notify-send -u low -a Fluidity "$1" >/dev/null 2>&1; }
+case ${1:-toggle} in
+  off) mkdir -p "$state"; touch "$flag"; fluidity-mode start ;;
+  on) rm -f "$flag"; fluidity-mode start ;;
+  toggle) if [[ -e $flag ]]; then exec "$0" on; else exec "$0" off; fi ;;
+  status) [[ -e $flag ]] && echo off || echo on ;;
+  *) sed -n '4s/^# //p' "$0" >&2; exit 1 ;;
+esac

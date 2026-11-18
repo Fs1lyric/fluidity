@@ -22,3 +22,9 @@ o.bind("SUPER + Q", "Click hints", "fluidity-hints")
 o.bind("SUPER + SEMICOLON", "Leader", "fluidity-leader")
 o.bind("SUPER + K", "Cheat sheet", "fluidity-island cheatsheet")
 o.bind("SUPER + PERIOD", "Emoji", "fluidity-island emoji")
+
+-- Volume without media keys (the island shows the level).
+local sink = "@DEFAULT_AUDIO_SINK@"
+o.bind("SUPER + CTRL + UP", "Volume up", "wpctl set-mute " .. sink .. " 0 && wpctl set-volume -l 1.5 " .. sink .. " 5%+", { repeating = true })
+o.bind("SUPER + CTRL + DOWN", "Volume down", "wpctl set-volume " .. sink .. " 5%-", { repeating = true })
+o.bind("SUPER + CTRL + M", "Mute", "wpctl set-mute " .. sink .. " toggle")

@@ -7,6 +7,6 @@ view=${1:-}; arg=${2:-}
 [[ -n $view ]] || { sed -n '3,5s/^# \?//p' "$0" >&2; exit 1; }
 case $view in
   themes) exec qs -c fluidity ipc call themepicker toggle ;;
-  bar) exec qs -c fluidity ipc call bar toggle ;;
+  bar | widgets) exec fluidity-widgets toggle ;;
   *) exec qs -c fluidity ipc call island toggle "$view" "$arg" ;;
 esac

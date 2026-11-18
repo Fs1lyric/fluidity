@@ -77,9 +77,11 @@ Singleton {
         if (!overlayShown) { view = "idle"; overlayShown = true; later(16, () => view = target); }
         else view = target;
     }
+    readonly property int hideAfter: 340      // ms: the island shrinks back, then the window (and its keyboard grab) goes
+    readonly property string pasteDelay: "0.6" // s: typing/pasting waits for that, so it lands in your window
     function close() {
         view = "idle";
-        later(340, () => { if (view === "idle") overlayShown = false; });
+        later(hideAfter, () => { if (view === "idle") overlayShown = false; });
     }
 
     // ================= passive island (bar) =================
@@ -211,7 +213,7 @@ Singleton {
         if (!it) return;
         emojiRecent = [it.e].concat(emojiRecent.filter(x => x !== it.e)).slice(0, 30);
         emojiRecentFile.setText(JSON.stringify(emojiRecent));
-        sh("printf %s " + q(it.e) + " | wl-copy; sleep 0.2; wtype " + q(it.e));
+        sh("printf %s " + q(it.e) + " | wl-copy; sleep " + pasteDelay + "; wtype " + q(it.e));
     }
 
     // ---- clipboard ----
@@ -256,7 +258,7 @@ Singleton {
             else island.preview = { kind: "text", text: t.slice(0, 1200), info: "text · " + t.split("\n").length + " lines · " + t.length + " characters" };
         } }
     }
-    function pasteClip(it) { if (it) sh("cliphist decode " + q(it.clip.id) + " | wl-copy; sleep 0.2; wtype -M ctrl -k v -m ctrl") }
+    function pasteClip(it) { if (it) sh("cliphist decode " + q(it.clip.id) + " | wl-copy; sleep " + pasteDelay + "; wtype -M ctrl -k v -m ctrl") }
     function deleteClip(it) { if (it) { sh("printf '%s\\n' " + q(it.clip.raw) + " | cliphist delete"); clipAll = clipAll.filter(c => c !== it.clip); refreshClip(); } }
 
     // ---- cheat sheet (live from hyprctl binds) ----
@@ -312,7 +314,7 @@ Singleton {
             { k: "i", label: "idle", run: "fluidity-toggle idle" }, { k: "g", label: "gaps", run: "fluidity-window gaps" },
             { k: "t", label: "theme", run: "fluidity-theme next" }, { k: "m", label: "mode", run: "fluidity-mode toggle" },
             { k: "w", label: "wall", run: "fluidity-wallpaper next" }, { k: "l", label: "lock", run: "fluidity-lock" },
-            { k: "x", label: "power", open: "power" }, { k: "a", label: "windows", open: "switcher" }] },
+            { k: "x", label: "power", open: "power" }, { k: "a", label: "windows", open: "switcher" }, { k: "b", label: "widgets", run: "fluidity-widgets toggle" }] },
         capture: { title: "capture", keys: [
             { k: "s", label: "region", run: "fluidity-capture screenshot" }, { k: "f", label: "full screen", run: "fluidity-capture screenshot full" },
             { k: "w", label: "window", run: "fluidity-capture screenshot window" }, { k: "r", label: "record", run: "fluidity-capture record" },
@@ -321,7 +323,7 @@ Singleton {
         toggle: { title: "toggle", keys: [
             { k: "n", label: "night light", run: "fluidity-toggle nightlight" }, { k: "i", label: "stay awake", run: "fluidity-toggle idle" },
             { k: "d", label: "do not disturb", run: "fluidity-notify dnd" }, { k: "g", label: "gaps", run: "fluidity-window gaps" },
-            { k: "t", label: "transparency", run: "fluidity-window transparency" }, { k: "b", label: "bar", open: "bar" },
+            { k: "t", label: "transparency", run: "fluidity-window transparency" }, { k: "b", label: "widgets", run: "fluidity-widgets toggle" },
             { k: "m", label: "mac mode", run: "fluidity-mode toggle" }] },
         hardware: { title: "hardware", keys: [
             { k: "a", label: "audio output", run: "fluidity-audio next-output" }, { k: "m", label: "mirror displays", run: "fluidity-display mirror" },
