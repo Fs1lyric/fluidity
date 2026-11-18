@@ -1,0 +1,9 @@
+# Fluidity: colours follow the current theme.
+general.import = ["~/.config/fluidity/theme/alacritty.toml"]
+[font]
+normal = { family = "JetBrainsMono Nerd Font" }
+size = 11
+[window]
+padding = { x = 18, y = 16 }
+opacity = 0.88
+decorations = "None"

@@ -51,5 +51,11 @@ fresh
 rows=$(fluidity-theme rows)
 eq "rows: one preview link per theme that has a picture" "fluid.png" "$(cut -f1 <<<"$rows" | xargs -n1 basename | paste -sd' ')"
 
+fresh
+FLUIDITY_CONFIG=$SANDBOX/config fluidity-theme set fluid >/dev/null
+has "set writes hyprlock colours from the theme" '$accent = rgba(d7e59bff)' "$(cat "$FLUIDITY_CACHE/hyprlock-colors.conf" 2>/dev/null)"
+has "hyprlock gets the bare hex too" '$accent_hex = d7e59b' "$(cat "$FLUIDITY_CACHE/hyprlock-colors.conf" 2>/dev/null)"
+has "set colours the click hints" "label_select_color=#d7e59bff" "$(cat "$SANDBOX/config/wl-kbptr/config" 2>/dev/null)"
+
 status "unknown command fails" 1 fluidity-theme bogus
 done_testing

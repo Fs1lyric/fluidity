@@ -1,0 +1,14 @@
+# Fluidity: colours follow the current theme.
+config-file = ?"~/.config/fluidity/theme/ghostty.conf"
+font-family = "JetBrainsMono Nerd Font"
+font-size = 11
+window-padding-x = 18
+window-padding-y = 16
+window-padding-balance = true
+window-decoration = false
+confirm-close-surface = false
+resize-overlay = never
+background-opacity = 0.88
+cursor-style = bar
+cursor-style-blink = true
+shell-integration-features = no-cursor

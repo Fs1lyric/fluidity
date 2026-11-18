@@ -7,6 +7,7 @@ root=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)
 themes=${FLUIDITY_THEMES:-$root/themes}
 link=${FLUIDITY_THEME_LINK:-$HOME/.config/fluidity/theme}
 cache=${FLUIDITY_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/fluidity}
+config=${FLUIDITY_CONFIG:-${XDG_CONFIG_HOME:-$HOME/.config}}
 
 die() { echo "fluidity-theme: $*" >&2; exit 1; }
 names() { local d; for d in "$themes"/*/; do [[ -d $d ]] && basename "$d"; done | sort; }
@@ -52,6 +53,36 @@ rows() {
   done
 }
 
+# colour files for apps that can't read colors.toml: hyprlock variables and the click-hint labels
+derived() {
+  local f=$link/colors.toml c
+  declare -A col=([accent]=d7e59b [cyan]=c2e6d6 [red]=f2a7a7 [foreground]=e3e4da [dark_foreground]=878880 [background]=111417)
+  for c in "${!col[@]}"; do
+    v=$(sed -nE "s/^$c *= *\"#([0-9a-fA-F]{6})\".*/\1/p" "$f" 2>/dev/null | head -1)
+    [[ -n $v ]] && col[$c]=${v,,}
+  done
+  mkdir -p "$cache" "$config/wl-kbptr"
+  {
+    echo "# written by fluidity-theme from $(basename "$(readlink "$link")")"
+    for c in accent cyan red; do echo "\$$c = rgba(${col[$c]}ff)"; echo "\$${c}_hex = ${col[$c]}"; done
+    echo "\$fg = rgba(${col[foreground]}ff)"; echo "\$fg_hex = ${col[foreground]}"
+    echo "\$dim = rgba(${col[dark_foreground]}ff)"; echo "\$dim_hex = ${col[dark_foreground]}"
+    echo "\$bg = rgba(${col[background]}ff)"
+  } >"$cache/hyprlock-colors.conf"
+  cat >"$config/wl-kbptr/config" <<KB
+# written by fluidity-theme; replaced on every theme change
+[general]
+home_row_keys=asdfghjkl
+[mode_tile]
+label_color=#${col[background]}ff
+label_select_color=#${col[accent]}ff
+unselectable_bg_color=#00000040
+selectable_bg_color=#${col[accent]}33
+selectable_border_color=#${col[accent]}cc
+label_font_family=JetBrainsMono Nerd Font
+KB
+}
+
 set_theme() {
   local name=$1 old
   [[ -n $name && -d $themes/$name ]] || die "no theme called '$name' (try: fluidity-theme list)"
@@ -59,6 +90,7 @@ set_theme() {
   old=$(current)
   mkdir -p "$(dirname "$link")"
   ln -sfn "$themes/$name" "$link"
+  derived
   hyprctl reload >/dev/null 2>&1
   pkill -USR2 -x ghostty >/dev/null 2>&1   # Ghostty reloads its config on SIGUSR2
   pkill -USR1 -x kitty >/dev/null 2>&1     # kitty on SIGUSR1
@@ -74,6 +106,7 @@ case ${1:-} in
   mode) mode_of "$(current)" ;;
   json) json ;;
   rows) rows ;;
+  derived) derived ;;
   set) set_theme "${2:-}" ;;
   next)
     mapfile -t all < <(names)
