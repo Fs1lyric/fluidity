@@ -55,6 +55,34 @@ w next wallpaper · l lock · x power.
 Test: `tests/keymap.test.sh` fails on any duplicate chord, any upstream chord that's missing or rebound,
 and any app key that isn't open-or-focus.
 
+## The little things: every popup redesigned (added 2026-11-18)
+
+You use these dozens of times a day, so they matter as much as the bar. Today they're a mix: fuzzel text lists
+(emoji, clipboard, Super+K keybinds), the `qs -c lyric` launcher, and separate Quickshell panels (power,
+wallpaper). In Fluidity they're all **one Quickshell component, `Picker`**, with one design language in the
+current theme's colours (Fluid by default): square corners, dark glass, JetBrains Mono, the accent only on
+the selected row, snappy 150 ms open, Esc closes, everything works from the keyboard, it opens on the
+visible workspace, and the first result is already selected.
+
+| Surface | Key | Today | Fluidity |
+|---|---|---|---|
+| Launcher | Super+Space | qs launcher | app icons, fuzzy match, recent first, inline calculator (`=2*8`) and web search (`?query`) |
+| Emoji | Super+Period | fuzzel list | grid with big glyphs, category tabs on Tab, recent row, skin tone on Shift+Enter |
+| Clipboard | Super+Ctrl+V | fuzzel list | list + preview pane, images shown as thumbnails, Delete removes, pin favourites |
+| Cheat sheet | Super+K | fuzzel list | grouped (apps, windows, workspaces, capture, leader), drawn key caps, type to filter |
+| Leader strip | Super+; | new | one-line strip of key caps at the bottom of the screen |
+| Click hints | Super+Q | new | small square key-cap labels in the accent colour |
+| Power | Super+Esc | qs panel | 5 square tiles (lock, suspend, log out, restart, shut down), one letter each |
+| Wallpaper | Super+Ctrl+Space | qs panel | thumbnail strip, live preview, arrows + Enter |
+| Theme picker | Super+Ctrl+Shift+Space | slices view | kept (you liked it), restyled to match |
+| Window switcher | Alt+Tab | current | live thumbnails of the windows |
+| Notifications, OSD | n/a | qs lyric | same card style; the volume/brightness OSD is a thin bar |
+
+Process: **mock up first.** `mockups/popups.html` shows every surface in Fluid, plus one other theme to prove it
+re-themes, rendered off-screen to PNG for checking. You open it yourself (`xdg-open`), pick or adjust,
+then it gets built. It's built in phase 3 with the shell. Tests cover keyboard paths (every surface opens,
+filters, selects, closes with keys only) under Xvfb.
+
 ## Never touched
 
 Fluidity only owns the desktop config. It never moves, edits or deletes:
