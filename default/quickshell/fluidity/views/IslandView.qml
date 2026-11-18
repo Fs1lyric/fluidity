@@ -34,7 +34,7 @@ Item {
     property var app: ({})             // a showcase app's data (Apps.qml)
 
     // the Fluid showcase apps: one file each, on AppBase
-    readonly property var appFiles: ({ calendar: "CalendarApp.qml" })
+    readonly property var appFiles: ({ calendar: "CalendarApp.qml", media: "MediaApp.qml" })
     readonly property bool isApp: !!appFiles[view]
     readonly property bool known: view === "idle" || !!sizes[view]
 
@@ -49,7 +49,7 @@ Item {
         cheatsheet: [1240, 56 + 30 + 38 * groups.reduce((m, g) => Math.max(m, (g.binds || []).length), 1) + 22, 30], leader: [1320, 64, 32], power: [520, 120, 40], wallpaper: [1240, 250, 30],
         switcher: [Math.max(360, 48 + items.length * 226), 210, 30], notify: [520, 80, 28], osd: [420, 52, 26],
         hints: [420, 52, 24], control: [640, 240 + (song ? 26 : 0), 30], notifications: [560, 420, 30],
-        calendar: [900, 440, 32]
+        calendar: [900, 440, 32], media: [980, app.title ? 310 : 90, 32]
     })
     readonly property var size: sizes[view] || sizes.idle
 

@@ -2,15 +2,17 @@ pragma Singleton
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Services.Mpris
 
 // The Fluid showcase apps' brain: data for each app's island view (views/*App.qml) and its keys.
 // Island.qml opens them like any view and hands their keys here (key() returns true when used).
 Singleton {
     id: apps
-    readonly property var views: ["calendar"]
+    readonly property var views: ["calendar", "media"]
+    property string open: ""       // the app on screen, "" when none (polling runs only then)
     property var data: ({})
     // leader ; u: one letter per app
-    readonly property var leaderKeys: [{ k: "c", label: "calendar", open: "calendar" }]
+    readonly property var leaderKeys: [{ k: "c", label: "calendar", open: "calendar" }, { k: "m", label: "media", open: "media" }]
     readonly property string home: Quickshell.env("HOME")
     readonly property string stateDir: (Quickshell.env("XDG_STATE_HOME") || (home + "/.local/state")) + "/fluidity"
     readonly property string calDb: home + "/.local/share/calendio/cal.db"
@@ -18,15 +20,83 @@ Singleton {
     function iso(dt) { return Qt.formatDate(dt, "yyyy-MM-dd") }
 
     function load(v, arg) {
-        data = ({});
+        data = ({}); open = v;
         if (v === "calendar") calOpen(arg);
+        else if (v === "media") { Island.index = 1; mediaTick(); }
     }
     function key(event, v) {
         if (v === "calendar") return calKey(event);
+        if (v === "media") return mediaKey(event);
         return false;
     }
     function picked(v, i) {
         if (v === "calendar") { const c = calCells()[i]; if (c) calGo(c); }
+        else if (v === "media") { Island.index = i; mediaPress(i); }
+    }
+
+    readonly property bool shown: Island.overlayShown && Island.target === open
+    onShownChanged: if (!shown) open = ""
+
+    // ================= media =================
+    readonly property MprisPlayer player: Island.player
+    property bool showLyrics: true
+    property var bars: []
+    property var lyricLines: []      // [{t: seconds, text}]
+    property string lyricFor: ""
+    function fmt(s) { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0") }
+    Timer { interval: 500; repeat: true; running: apps.open === "media"; onTriggered: apps.mediaTick() }
+    function mediaTick() {
+        const p = player;
+        if (!p || !p.trackTitle) { patch({ title: "", bars: [] }); return; }
+        p.positionChanged();
+        const pos = p.position || 0, len = p.length || 0, key = (p.trackArtist || "") + "\t" + p.trackTitle;
+        if (showLyrics && key !== lyricFor) { lyricFor = key; lyricLines = []; lyricProc.command = ["curl", "-fsm", "8", "-G", "https://lrclib.net/api/get",
+            "--data-urlencode", "artist_name=" + (p.trackArtist || ""), "--data-urlencode", "track_name=" + p.trackTitle]; lyricProc.running = true; }
+        let li = -1;
+        for (let i = 0; i < lyricLines.length; i++) if (lyricLines[i].t <= pos + 0.3) li = i;
+        const lines = li < 0 ? [] : lyricLines.slice(Math.max(0, li - 1), li + 3).map(l => l.text);
+        patch({ title: p.trackTitle, artist: p.trackArtist || "", album: p.trackAlbum || "", art: p.trackArtUrl || "", player: p.identity || "",
+                playing: p.isPlaying, position: fmt(pos), length: len > 0 ? fmt(len) : "", progress: len > 0 ? pos / len : 0,
+                shuffle: p.shuffleSupported && p.shuffle, loop: p.loopSupported && p.loopState !== MprisLoopState.None, showLyrics: showLyrics,
+                lyrics: showLyrics ? lines : [], lyric: li < 1 ? 0 : 1, bars: bars });
+    }
+    Process {
+        id: lyricProc
+        stdout: StdioCollector { onStreamFinished: {
+            let j = null; try { j = JSON.parse(text) } catch (e) {}
+            const synced = j && j.syncedLyrics ? String(j.syncedLyrics).split("\n") : [];
+            apps.lyricLines = synced.map(l => { const m = l.match(/^\[(\d+):(\d+(?:\.\d+)?)\]\s*(.*)$/); return m && m[3] ? { t: Number(m[1]) * 60 + Number(m[2]), text: m[3] } : null }).filter(Boolean);
+        } }
+    }
+    // cava: 36 bars as "n;n;...", only while the media app is open
+    Process {
+        id: cava
+        running: apps.open === "media"
+        command: ["sh", "-c", "c=${XDG_RUNTIME_DIR:-/tmp}/fluidity-cava.conf; printf '[general]\\nbars = 36\\nframerate = 30\\n[output]\\nmethod = raw\\nraw_target = /dev/stdout\\ndata_format = ascii\\nascii_max_range = 100\\nbar_delimiter = 59\\n' > \"$c\"; exec cava -p \"$c\""]
+        stdout: SplitParser { onRead: line => { apps.bars = line.split(";").filter(x => x !== "").map(x => Number(x) / 100); if (apps.open === "media") apps.patch({ bars: apps.bars }); } }
+    }
+    function mediaPress(i) {
+        const p = player;
+        if (!p) { Island.close(); Island.sh("fluidity-launch focus spotify spotify"); return; }
+        if (i === 0) p.previous(); else if (i === 1) p.togglePlaying(); else if (i === 2) p.next();
+        else if (i === 3 && p.shuffleSupported) p.shuffle = !p.shuffle;
+        else if (i === 4 && p.loopSupported) p.loopState = p.loopState === MprisLoopState.None ? MprisLoopState.Playlist : MprisLoopState.None;
+        else if (i === 5) { showLyrics = !showLyrics; lyricFor = ""; }
+        later(150, mediaTick);
+    }
+    function later(ms, fn) { Island.later(ms, fn) }
+    function mediaKey(event) {
+        const k = event.key, t = event.text, p = player;
+        if (t === " ") mediaPress(1);
+        else if (t === "n") mediaPress(2);
+        else if (t === "p") mediaPress(0);
+        else if (t === "l") mediaPress(5);
+        else if (k === Qt.Key_Left || k === Qt.Key_Right) { if (p && p.canSeek) { p.position = Math.max(0, p.position + (k === Qt.Key_Left ? -5 : 5)); mediaTick(); } }
+        else if (k === Qt.Key_Tab || k === Qt.Key_Down) Island.index = (Island.index + 1) % 6;
+        else if (k === Qt.Key_Backtab || k === Qt.Key_Up) Island.index = (Island.index + 5) % 6;
+        else if (k === Qt.Key_Return || k === Qt.Key_Enter) mediaPress(Island.index);
+        else return false;
+        return true;
     }
 
     // ================= calendar =================

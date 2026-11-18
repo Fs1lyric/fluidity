@@ -110,6 +110,12 @@ scenario("calendar", "IslandView", dict(view="calendar", app=dict(year=2026, mon
          marks=["2026-11-03", "2026-11-10", "2026-11-18", "2026-11-19", "2026-11-24"], blocks=BLOCKS, sunrise="06:21", sunset="17:12", now="10:24")))
 scenario("calendar-empty", "IslandView", dict(view="calendar", app=dict(year=2026, month=11, today="2026-11-18", sel="2026-12-25", marks=[], blocks=[], sunrise="", sunset="", now="10:24")))
 
+import math
+BARS = [round(0.25 + 0.7 * abs(math.sin(i * 0.55) * math.cos(i * 0.21)), 2) for i in range(36)]
+scenario("media", "IslandView", dict(view="media", index=1, app=dict(title="Kokoro", artist="Tycho", album="Weather", art="", position="1:42", length="4:03",
+         progress=0.42, playing=True, player="spotify", bars=BARS, lyrics=["the light through the leaves", "we were never going back", "stay with me, stay fluid"], lyric=1)))
+scenario("media-none", "IslandView", dict(view="media", app=dict(title="", bars=[])))
+
 PLACES = {"island": "anchors.horizontalCenter: parent.horizontalCenter; y: 14", "fill": "anchors.fill: parent"}
 MAIN = """import QtQuick
 import QtQuick.Window
