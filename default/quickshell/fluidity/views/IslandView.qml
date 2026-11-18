@@ -32,9 +32,11 @@ Item {
     property string extra: ""          // idle: focus countdown or the next Calendio block (accent)
     property Component thumbDelegate: null   // switcher: the shell gives live window thumbnails
     property var app: ({})             // a showcase app's data (Apps.qml)
+    property int screenW: 1920         // the idle screen fills it
+    property int screenH: 1080
 
     // the Fluid showcase apps: one file each, on AppBase
-    readonly property var appFiles: ({ calendar: "CalendarApp.qml", media: "MediaApp.qml", network: "NetworkApp.qml", bluetooth: "BluetoothApp.qml", syspanel: "SysApp.qml", quickactions: "QuickApp.qml", wellbeing: "WellbeingApp.qml", guide: "GuideApp.qml", widgets: "WidgetsApp.qml" })
+    readonly property var appFiles: ({ calendar: "CalendarApp.qml", media: "MediaApp.qml", network: "NetworkApp.qml", bluetooth: "BluetoothApp.qml", syspanel: "SysApp.qml", quickactions: "QuickApp.qml", wellbeing: "WellbeingApp.qml", guide: "GuideApp.qml", widgets: "WidgetsApp.qml", polkit: "PolkitApp.qml", idlescreen: "IdleScreenApp.qml" })
     readonly property bool isApp: !!appFiles[view]
     readonly property bool known: view === "idle" || !!sizes[view]
 
@@ -54,7 +56,7 @@ Item {
         bluetooth: [620, 64 + 50 * Math.max(1, Math.min(7, (app.devs || []).length)) + 16, 30],
         syspanel: [620, 306 + 50 * (app.sliders || []).length + 12, 30], quickactions: [640, 64 + 80 * Math.ceil((app.tiles || []).length / 3) + 76, 32],
         wellbeing: [640, 200 + 36 * Math.max(1, Math.min(5, (app.apps || []).length)) + 14, 30], guide: [900, Math.max(400, 62 + 46 * (app.pages || []).length + 20), 30],
-        widgets: [560, 62 + 46 * 8 + 12, 30]
+        widgets: [560, 62 + 46 * 8 + 12, 30], polkit: [620, app.error ? 190 : 170, 30], idlescreen: [screenW - 28, screenH - 28, 60]
     })
     readonly property var size: sizes[view] || sizes.idle
 

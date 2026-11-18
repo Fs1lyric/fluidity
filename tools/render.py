@@ -161,6 +161,11 @@ scenario("desktop-widgets", "DesktopView", dict(media=dict(title="Kokoro", artis
          shown=ALLW, w=WIDGET_DATA), place="fill")
 scenario("widgets", "IslandView", dict(view="widgets", index=2, app=dict(rows=[dict(name=n, on=n in ALLW[:7]) for n in ALLW])))
 
+scenario("polkit", "IslandView", dict(view="polkit", app=dict(message="Authentication is needed to run `/usr/bin/pacman' as the super user", user="lyric",
+         prompt="Password:", secret="hunter2", error="", icon="")))
+scenario("polkit-wrong", "IslandView", dict(view="polkit", app=dict(message="Authentication is required to change system settings", user="lyric", prompt="Password:", secret="", error="That wasn't it. Try again.")))
+scenario("idlescreen", "IslandView", dict(view="idlescreen", app=dict(hours="23", minutes="47", date="Wednesday, 18 November", song="Kokoro · Tycho", next="math · linear algebra at 18:00")))
+
 PLACES = {"island": "anchors.horizontalCenter: parent.horizontalCenter; y: 14", "fill": "anchors.fill: parent"}
 MAIN = """import QtQuick
 import QtQuick.Window

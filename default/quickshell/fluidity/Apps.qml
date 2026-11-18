@@ -3,12 +3,13 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Mpris
+import Quickshell.Services.Polkit
 
 // The Fluid showcase apps' brain: data for each app's island view (views/*App.qml) and its keys.
 // Island.qml opens them like any view and hands their keys here (key() returns true when used).
 Singleton {
     id: apps
-    readonly property var views: ["calendar", "media", "network", "bluetooth", "syspanel", "quickactions", "wellbeing", "guide", "widgets"]
+    readonly property var views: ["calendar", "media", "network", "bluetooth", "syspanel", "quickactions", "wellbeing", "guide", "widgets", "polkit", "idlescreen"]
     property string open: ""       // the app on screen, "" when none (polling runs only then)
     property var data: ({})
     // leader ; u: one letter per app
@@ -29,6 +30,8 @@ Singleton {
         else if (v === "quickactions") qaRefresh();
         else if (v === "wellbeing") wbProc.running = true;
         else if (v === "widgets") wgRows();
+        else if (v === "polkit") pkShow();
+        else if (v === "idlescreen") idleTick();
         else if (v === "widgets") { Island.index = i; wgFlip(); }
         else if (v === "guide") { guidePage = 0; patch({ pages: guidePages, page: 0, focus: "pages" }); }
     }
@@ -42,6 +45,8 @@ Singleton {
         if (v === "wellbeing") { if (event.text === "r") { wbProc.running = true; return true; } return false; }
         if (v === "guide") return guideKey(event);
         if (v === "widgets") return wgKey(event);
+        if (v === "polkit") return pkKey(event);
+        if (v === "idlescreen") { Island.close(); return true; }
         return false;
     }
     function picked(v, i) {
@@ -55,7 +60,7 @@ Singleton {
     }
 
     readonly property bool shown: Island.overlayShown && Island.target === open
-    onShownChanged: if (!shown) open = ""
+    onShownChanged: if (!shown) { if (open === "polkit" && pkFlow && !pkFlow.isCompleted) pkFlow.cancelAuthenticationRequest(); open = "" }
 
     // ================= media =================
     readonly property MprisPlayer player: Island.player
@@ -403,6 +408,48 @@ Singleton {
         if (listMove(event, Widgets.all.length)) return true;
         if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.text === " ") { wgFlip(); return true; }
         return false;
+    }
+
+    // ================= polkit agent =================
+    // Fluidity answers system password prompts in the island. Only one agent can hold a session, so
+    // hyprpolkitagent has to be off (fluidity-install polkit); tests set FLUIDITY_NO_POLKIT.
+    property string pkSecret: ""
+    property string pkError: ""
+    Loader {
+        id: pkLoader
+        active: !Quickshell.env("FLUIDITY_NO_POLKIT")
+        sourceComponent: PolkitAgent {
+            onAuthenticationRequestStarted: { apps.pkSecret = ""; apps.pkError = ""; Island.open("polkit", "") }
+            onIsActiveChanged: if (!isActive && Island.target === "polkit") Island.close()
+        }
+    }
+    readonly property var pkFlow: pkLoader.item?.flow ?? null
+    Connections {
+        target: apps.pkFlow
+        function onAuthenticationFailed() { apps.pkSecret = ""; apps.pkError = "That wasn't it. Try again."; apps.pkShow() }
+        function onSupplementaryMessageChanged() { if (apps.pkFlow.supplementaryIsError) { apps.pkError = apps.pkFlow.supplementaryMessage; apps.pkShow() } }
+        function onIsResponseRequiredChanged() { apps.pkShow() }
+        function onIsCompletedChanged() { if (apps.pkFlow.isCompleted && Island.target === "polkit") Island.close() }
+    }
+    function pkShow() {
+        const f = pkFlow;
+        patch({ message: f ? f.message : "", user: Quickshell.env("USER") || "", prompt: f ? f.inputPrompt : "", echo: f ? f.responseVisible : false, secret: pkSecret, error: pkError });
+    }
+    function pkKey(event) {
+        const k = event.key, t = event.text, f = pkFlow;
+        if (k === Qt.Key_Escape) { if (f) f.cancelAuthenticationRequest(); Island.close(); return true; }
+        if (k === Qt.Key_Return || k === Qt.Key_Enter) { if (f && f.isResponseRequired) { f.submit(pkSecret); pkSecret = ""; pkError = ""; patch({ secret: "", error: "" }) } return true; }
+        if (k === Qt.Key_Backspace) pkSecret = pkSecret.slice(0, -1);
+        else if (t && t >= " " && !(event.modifiers & (Qt.ControlModifier | Qt.MetaModifier))) pkSecret += t;
+        patch({ secret: pkSecret });
+        return true;
+    }
+
+    // ================= idle screen =================
+    Timer { interval: 1000; repeat: true; running: apps.open === "idlescreen"; onTriggered: apps.idleTick() }
+    function idleTick() {
+        const now = new Date();
+        patch({ hours: Qt.formatTime(now, "HH"), minutes: Qt.formatTime(now, "mm"), date: Qt.formatDate(now, "dddd, d MMMM"), song: Island.song, next: Status.nextText });
     }
 
     // ================= calendar =================

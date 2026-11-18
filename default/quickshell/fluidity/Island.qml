@@ -368,7 +368,7 @@ Singleton {
             { k: "n", label: "night light", run: "fluidity-toggle nightlight" }, { k: "i", label: "stay awake", run: "fluidity-toggle idle" },
             { k: "d", label: "do not disturb", run: "fluidity-notify dnd" }, { k: "g", label: "gaps", run: "fluidity-window gaps" },
             { k: "t", label: "transparency", run: "fluidity-window transparency" }, { k: "b", label: "widgets", run: "fluidity-widgets toggle" },
-            { k: "m", label: "mac mode", run: "fluidity-mode toggle" }] },
+            { k: "m", label: "mac mode", run: "fluidity-mode toggle" }, { k: "r", label: "redact lock", run: "fluidity-lock redact toggle" }] },
         hardware: { title: "hardware", keys: [
             { k: "a", label: "audio output", run: "fluidity-audio next-output" }, { k: "m", label: "mirror displays", run: "fluidity-display mirror" },
             { k: "l", label: "laptop display", run: "fluidity-display internal toggle" }, { k: "k", label: "keyboard light", run: "fluidity-hw kbd cycle" },

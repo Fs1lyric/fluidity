@@ -1,3 +1,26 @@
 #!/usr/bin/env bash
 # Lock the screen (hyprlock), once.
-pidof hyprlock >/dev/null || exec hyprlock
+#   fluidity-lock                          lock
+#   fluidity-lock redact on|off|toggle|status   redacted: the lock shows a frosted, unreadable copy of your screen
+state=${FLUIDITY_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/fluidity}
+conf=${XDG_CONFIG_HOME:-$HOME/.config}/hypr/hyprlock.conf
+flag=$state/lock-redact
+if [[ ${1:-} == redact ]]; then
+  case ${2:-status} in
+    on) mkdir -p "$state"; touch "$flag" ;;
+    off) rm -f "$flag" ;;
+    toggle) if [[ -e $flag ]]; then exec "$0" redact off; else exec "$0" redact on; fi ;;
+    status) [[ -e $flag ]] && echo on || echo off ;;
+    *) sed -n '4s/^# \?//p' "$0" >&2; exit 1 ;;
+  esac
+  exit 0
+fi
+pidof hyprlock >/dev/null && exit 0
+if [[ -e $flag && -f $conf ]]; then
+  # your lock config with every background swapped for a heavily frosted screenshot
+  red=${XDG_RUNTIME_DIR:-/tmp}/fluidity-hyprlock-redact.conf
+  awk 'BEGIN{bg=0} /^background *\{/{bg=1; print; print "    path = screenshot"; print "    blur_passes = 4"; print "    blur_size = 14"; print "    noise = 0.03"; print "    brightness = 0.45"; next}
+       bg && /^\}/{bg=0} bg && /^ *(path|blur_passes|blur_size|brightness|noise) *=/{next} {print}' "$conf" >"$red"
+  exec hyprlock -c "$red"
+fi
+exec hyprlock

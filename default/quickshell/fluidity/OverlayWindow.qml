@@ -42,6 +42,8 @@ PanelWindow {
         body: Island.body
         keyHint: Island.keyHint
         app: Apps.data
+        screenW: w.width
+        screenH: w.height
         onActivated: i => { if (Apps.views.includes(Island.target)) Apps.picked(Island.target, i) }
         song: Island.song
         playing: Island.player?.isPlaying ?? false

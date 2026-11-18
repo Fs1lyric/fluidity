@@ -20,7 +20,7 @@ disp=":$((60 + RANDOM % 30))"
 Xvfb "$disp" -screen 0 1920x1080x24 -nolisten tcp >/dev/null 2>&1 & xvfb=$!
 sleep 0.8
 DISPLAY=$disp setsid -f sh -c "magick '$root/themes/${THEME:-fluid}/wallpaper.jpg[0]' -resize 1920x1080^ -extent 1920x1080 '$tmp/wall.png' && display -window root '$tmp/wall.png'" >/dev/null 2>&1
-run() { env -u WAYLAND_DISPLAY -u HYPRLAND_INSTANCE_SIGNATURE GIO_USE_VFS=local GTK_USE_PORTAL=0 QT_QPA_PLATFORMTHEME= QT_QPA_PLATFORM=xcb DISPLAY="$disp" FLUIDITY_PATH="$root" \
+run() { FLUIDITY_NO_POLKIT=1 env -u WAYLAND_DISPLAY -u HYPRLAND_INSTANCE_SIGNATURE GIO_USE_VFS=local GTK_USE_PORTAL=0 QT_QPA_PLATFORMTHEME= QT_QPA_PLATFORM=xcb DISPLAY="$disp" FLUIDITY_PATH="$root" \
   PATH="$root/bin:$PATH" HOME="$tmp/home" XDG_STATE_HOME="$tmp/state" XDG_RUNTIME_DIR="$tmp" FONTCONFIG_FILE="$tmp/fonts.conf" "$@"; }
 run dbus-run-session -- sh -c "qs -p '$tmp/fluidity' >'$tmp/log' 2>&1 & sleep $((4 + ${#@} * 3)); echo done" & qsp=$!
 sleep 3.5

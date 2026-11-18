@@ -3,9 +3,12 @@
 #   fluidity-island launcher|emoji|clipboard|cheatsheet|power|wallpaper|switcher|control|notifications [ARG]
 #   fluidity-island themes     the full-screen theme picker
 #   fluidity-island bar        show or hide the bar
+#   fluidity-island idle on|off the idle screen (hypridle: on before the lock, off on resume)
 view=${1:-}; arg=${2:-}
-[[ -n $view ]] || { sed -n '3,5s/^# \?//p' "$0" >&2; exit 1; }
+[[ -n $view ]] || { sed -n '3,6s/^# \?//p' "$0" >&2; exit 1; }
 case $view in
+  idle) if [[ $arg == on ]]; then exec qs -c fluidity ipc call island open idlescreen ""; fi
+        [[ $(qs -c fluidity ipc call island state 2>/dev/null) == idlescreen ]] && exec qs -c fluidity ipc call island close; exit 0 ;;
   themes) exec qs -c fluidity ipc call themepicker toggle ;;
   bar | widgets) exec fluidity-widgets toggle ;;
   *) exec qs -c fluidity ipc call island toggle "$view" "$arg" ;;
