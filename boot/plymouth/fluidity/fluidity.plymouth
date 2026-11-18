@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Fluidity
+Description=LUKS passphrase prompt styled like the Fluidity lock screen
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/fluidity
+ScriptFile=/usr/share/plymouth/themes/fluidity/fluidity.script

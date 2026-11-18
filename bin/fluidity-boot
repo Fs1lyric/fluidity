@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# The Fluidity boot screen (Plymouth: the disk password prompt, Fluidity style).
+#   fluidity-boot install    bake it from the current wallpaper/theme, install it, rebuild the initramfs (sudo)
+#   fluidity-boot preview    bake it only (boot/plymouth/fluidity)
+set -euo pipefail
+ROOT=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
+theme=${XDG_CONFIG_HOME:-$HOME/.config}/fluidity/theme
+acc=$(sed -nE 's/^accent *= *"(#[0-9a-fA-F]{6})".*/\1/p' "$theme/colors.toml" 2>/dev/null | head -1)
+cyan=$(sed -nE 's/^cyan *= *"(#[0-9a-fA-F]{6})".*/\1/p' "$theme/colors.toml" 2>/dev/null | head -1)
+wall=$(readlink -f "${XDG_STATE_HOME:-$HOME/.local/state}/fluidity/current-wallpaper" 2>/dev/null || true)
+[[ -f $wall ]] || wall=$(readlink -f "$ROOT/themes/fluid/wallpaper.jpg")
+"$ROOT/boot/gen.sh" "$wall" "${acc:-#d7e59b}" "${cyan:-#c2e6d6}"
+[[ ${1:-} == install ]] || exit 0
+sudo rm -rf /usr/share/plymouth/themes/fluidity
+sudo cp -r "$ROOT/boot/plymouth/fluidity" /usr/share/plymouth/themes/fluidity
+sudo plymouth-set-default-theme fluidity
+sudo mkinitcpio -P
+echo "Fluidity boot screen installed: you'll see it at the next boot"
