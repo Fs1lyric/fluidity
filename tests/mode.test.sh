@@ -17,7 +17,7 @@ t() { if "$@"; then ok "$name"; else fail "$name" "$(calls | paste -sd';')"; fi;
 fresh; fluidity-mode start >/dev/null
 name="the core shell always starts"; t started fluidity
 name="keyboard: the dock is stopped"; t stopped dock
-name="keyboard: the Fluidity bar shows"; t called "qs -c fluidity ipc call bar show"
+name="keyboard: the Fluidity bar reveals"; t called "qs -c fluidity ipc call bar reveal"
 name="keyboard: other theme shells stop"; t stopped mechanical-love
 
 fresh; touch "$SANDBOX/running-fluidity"; fluidity-mode start >/dev/null
@@ -25,12 +25,12 @@ name="a running core shell is left alone"; if started fluidity; then fail "$name
 
 fresh; ln -sfn "$FLUIDITY_THEMES/mechanical-love" "$FLUIDITY_THEME_LINK"; fluidity-mode start >/dev/null
 name="a theme shell starts its own bar"; t started mechanical-love
-name="a theme shell hides the Fluidity bar"; t called "qs -c fluidity ipc call bar hide"
+name="a theme shell hides the Fluidity bar"; t called "qs -c fluidity ipc call bar conceal"
 
 fresh; ln -sfn "$FLUIDITY_THEMES/tahoe" "$FLUIDITY_THEME_LINK"; fluidity-mode start >/dev/null
 name="mac: the dock starts"; t started dock
 name="mac: the menu bar starts"; t started tahoe-bar
-name="mac: the Fluidity bar hides"; t called "qs -c fluidity ipc call bar hide"
+name="mac: the Fluidity bar conceals"; t called "qs -c fluidity ipc call bar conceal"
 
 fresh; fluidity-mode current >/dev/null
 eq "current prints the mode" keyboard "$(fluidity-mode current)"

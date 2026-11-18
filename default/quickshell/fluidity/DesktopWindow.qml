@@ -8,7 +8,7 @@ PanelWindow {
     id: w
     required property var modelData
     screen: modelData
-    visible: Island.barShown
+    // always mapped (see BarWindow); its content hides with the widgets
     anchors { top: true; bottom: true; left: true; right: true }
     exclusiveZone: -1
     color: "transparent"
@@ -18,6 +18,7 @@ PanelWindow {
 
     DesktopView {
         anchors.fill: parent
+        visible: Island.barShown
         pal: Theme.pal
         hours: Status.hours; minutes: Status.minutes; weekday: Status.weekday; date: Status.date
         media: {

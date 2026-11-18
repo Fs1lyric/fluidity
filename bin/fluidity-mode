@@ -23,7 +23,7 @@ start_pieces() {
   start fluidity
   if [[ -e $state/widgets-off ]]; then   # fluidity-widgets off: nothing on screen but your windows
     for f in "$themes"/*/shell; do [[ -f $f ]] && stop "$(cat "$f")"; done
-    stop dock; stop tahoe-bar; bar hide
+    stop dock; stop tahoe-bar; bar conceal
     return 0
   fi
   for f in "$themes"/*/shell; do       # every theme shell except this theme's own
@@ -31,9 +31,9 @@ start_pieces() {
     n=$(cat "$f"); [[ $n != "$own" ]] && stop "$n"
   done
   case $(current) in
-    mac) stop "${own:-none}"; start dock; start tahoe-bar; bar hide ;;
+    mac) stop "${own:-none}"; start dock; start tahoe-bar; bar conceal ;;
     *) stop dock; stop tahoe-bar
-       if [[ -n $own ]]; then start "$own"; bar hide; else bar show; fi ;;
+       if [[ -n $own ]]; then start "$own"; bar conceal; else bar reveal; fi ;;
   esac
 }
 

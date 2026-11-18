@@ -489,8 +489,8 @@ Singleton {
     }
     IpcHandler {
         target: "bar"
-        function show(): void { island.barShown = true }
-        function hide(): void { island.barShown = false }
+        function reveal(): void { island.barShown = true }   // not "show": that is a qs ipc subcommand
+        function conceal(): void { island.barShown = false }
         function toggle(): void { island.barShown = !island.barShown }
     }
     IpcHandler {

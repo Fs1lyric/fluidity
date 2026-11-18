@@ -10,14 +10,16 @@ PanelWindow {
     id: w
     required property var modelData
     screen: modelData
-    visible: Island.barShown
+    // Hidden = empty and click-through, never unmapped: a layer window that is hidden can't be brought back here.
     anchors { top: true; left: true; right: true }
     implicitHeight: 140
-    exclusiveZone: 54
+    exclusiveZone: Island.barShown ? 54 : 0
     color: "transparent"
     WlrLayershell.namespace: "fluidity-bar"
     WlrLayershell.layer: WlrLayer.Top
-    mask: Region { item: bar.children[0]; Region { item: island } Region { item: rightHit } }
+    Region { id: shownMask; item: bar.children[0]; Region { item: island } Region { item: rightHit } }
+    Region { id: hiddenMask }
+    mask: Island.barShown ? shownMask : hiddenMask
 
     readonly property var ws: {
         const out = [];
@@ -30,6 +32,7 @@ PanelWindow {
 
     BarView {
         id: bar
+        visible: Island.barShown
         anchors.left: parent.left; anchors.right: parent.right
         pal: Theme.pal
         workspaces: w.ws
@@ -46,6 +49,7 @@ PanelWindow {
         id: island
         anchors.horizontalCenter: parent.horizontalCenter; y: 14
         pal: Theme.pal
+        visible: Island.barShown
         opacity: Island.overlayShown && Island.screen === w.screen ? 0 : 1
         view: Island.barView
         song: Island.song
