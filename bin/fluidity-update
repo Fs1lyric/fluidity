@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Update Fluidity: pull the repo (when it is a git checkout), run new migrations once each, re-run the
+# installer (new links and starter files; your files are never replaced), then reload the session.
+set -uo pipefail
+ROOT=${FLUIDITY_PATH:-$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)}
+STATE=${XDG_STATE_HOME:-$HOME/.local/state}/fluidity
+CONFIG=${XDG_CONFIG_HOME:-$HOME/.config}
+export CONFIG STATE ROOT
+mkdir -p "$STATE"; done=$STATE/migrations-done; touch "$done"
+
+if [[ -d $ROOT/.git ]]; then
+  before=$(git -C "$ROOT" rev-parse HEAD 2>/dev/null)
+  git -C "$ROOT" pull --ff-only || { echo "fluidity-update: pull failed (local changes?)" >&2; exit 1; }
+  echo "updated ${before:0:7} -> $(git -C "$ROOT" rev-parse --short HEAD 2>/dev/null)"
+fi
+# snapshot first when snapper is set up (limine shows snapshots at boot)
+command -v snapper >/dev/null && sudo -n snapper -c root create -d "before fluidity-update" >/dev/null 2>&1
+
+for m in "$ROOT"/migrations/*.sh; do
+  [[ -f $m ]] || continue
+  n=$(basename "$m")
+  grep -qxF "$n" "$done" && continue
+  echo "migration $n"
+  # shellcheck source=/dev/null
+  (source "$m") && echo "$n" >>"$done"
+done
+FLUIDITY_SKIP_PACKAGES=${FLUIDITY_SKIP_PACKAGES:-} bash "$ROOT/install.sh" >/dev/null || echo "fluidity-update: install step failed" >&2
+if [[ -n ${HYPRLAND_INSTANCE_SIGNATURE:-} ]]; then hyprctl reload >/dev/null 2>&1; pkill -f "qs -c fluidity"; fluidity-mode start; fi
+echo "Fluidity is up to date"

@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Check the install and say what is broken and how to fix it. Exit 1 when something is.
+ROOT=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
+CONFIG=${XDG_CONFIG_HOME:-$HOME/.config}
+bad=0
+good() { printf '  \033[38;2;215;229;155m✓\033[0m %s\n' "$1"; }
+oops() { printf '  \033[38;2;242;167;167m✗\033[0m %s\n      fix: %s\n' "$1" "$2"; bad=1; }
+
+echo "packages"
+missing=()
+while read -r p; do pacman -Q "$p" >/dev/null 2>&1 || missing+=("$p"); done < <(sed 's/#.*//; /^[[:space:]]*$/d' "$ROOT/install/packages.txt")
+if ((${#missing[@]})); then oops "missing: ${missing[*]}" "fluidity-install ${missing[*]}"; else good "all $(sed 's/#.*//; /^[[:space:]]*$/d' "$ROOT/install/packages.txt" | wc -l) installed"; fi
+
+echo "files"
+[[ -L $CONFIG/fluidity/theme && -d $CONFIG/fluidity/theme ]] && good "theme: $(basename "$(readlink "$CONFIG/fluidity/theme")")" || oops "no current theme link (~/.config/fluidity/theme)" "fluidity-theme set fluid"
+[[ $(readlink -f "$CONFIG/quickshell/fluidity") == "$ROOT/default/quickshell/fluidity" ]] && good "shell config linked" || oops "the shell config isn't linked" "bash $ROOT/install.sh"
+grep -q 'hypr.init' "$CONFIG/hypr/hyprland.lua" 2>/dev/null && good "Hyprland loads Fluidity" || oops "~/.config/hypr/hyprland.lua doesn't load Fluidity" "copy $ROOT/config/hypr/hyprland.lua there (your old one: keep a copy)"
+fc-list 2>/dev/null | grep -q 'Instrument Serif' && good "fonts" || oops "Geist / Instrument Serif not installed" "bash $ROOT/install.sh"
+
+echo "session"
+if [[ -n ${HYPRLAND_INSTANCE_SIGNATURE:-} ]]; then
+  pgrep -f "qs -c fluidity" >/dev/null && good "shell running" || oops "the shell isn't running" "fluidity-mode start"
+  hyprctl configerrors 2>/dev/null | grep -qv '^$' && oops "Hyprland config errors: $(hyprctl configerrors | head -1)" "check ~/.config/hypr" || good "no Hyprland config errors"
+else
+  good "not in Hyprland (session checks skipped)"
+fi
+exit $bad
