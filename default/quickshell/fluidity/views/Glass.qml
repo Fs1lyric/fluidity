@@ -11,7 +11,7 @@ Rectangle {
     border.width: 1
     border.color: Qt.rgba(1, 1, 1, 0.07)
     Rectangle { // accent glow around open popups: a soft ring just outside the shape
-        visible: g.glow
+        visible: false   // looked like a muddy band on the real screen with layer blur; kept for reference
         z: -1
         anchors.centerIn: parent
         width: parent.width + 48; height: parent.height + 48; radius: g.radius + 24

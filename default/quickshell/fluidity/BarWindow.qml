@@ -38,7 +38,7 @@ PanelWindow {
         muted: Island.sink?.audio?.muted ?? false
         battery: Status.battery
         ai: Status.ai
-        onWorkspaceClicked: id => Hyprland.dispatch("workspace " + id)
+        onWorkspaceClicked: id => Hyprland.dispatch(`hl.dsp.focus({ workspace = "${id}" })`)
     }
     Item { id: rightHit; anchors.right: parent.right; y: 14; width: 420; height: 40 }
 

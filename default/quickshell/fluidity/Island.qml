@@ -109,7 +109,7 @@ Singleton {
         if (v === "launcher") { placeholder = "open anything"; keyHint = ["↵ open", "↑↓ move", "= maths", "? web", "esc close"]; refreshLauncher(); }
         else if (v === "emoji") { placeholder = "search emoji"; cats = emojiCats; refreshEmoji(); }
         else if (v === "clipboard") { placeholder = "search clipboard"; clipProc.running = true; }
-        else if (v === "cheatsheet") { placeholder = "search keys"; bindsProc.running = true; }
+        else if (v === "cheatsheet") { placeholder = "search keys"; keyHint = ["type to filter", "esc close"]; bindsProc.running = true; }
         else if (v === "leader") { const r = leaderRows[arg] || leaderRows[""]; title = r.title; items = r.keys; }
         else if (v === "power") { items = powerItems; }
         else if (v === "wallpaper") { wallProc.running = true; }
@@ -298,7 +298,8 @@ Singleton {
         groups = g;
     }
     function runBind() {
-        for (const gr of groups) for (const b of gr.binds) if (b.on) { Hyprland.dispatch(b.bind.dispatcher + " " + (b.bind.arg || "")); return; }
+        // Hyprland's Lua binds report function references, not commands, so a bind can't be replayed from here
+        return;
     }
 
     // ---- leader ----
@@ -380,7 +381,7 @@ Singleton {
         });
         index = items.length > 1 ? 1 : 0;
     }
-    function focusWindow(it) { if (it) Hyprland.dispatch("focuswindow address:0x" + String(it.toplevel.address).replace(/^0x/, "")) }
+    function focusWindow(it) { if (it) Hyprland.dispatch(`hl.dsp.focus({ window = "address:0x${String(it.toplevel.address).replace(/^0x/, "")}" })`) }
 
     // ---- control centre ----
     property bool wifiOn: true
