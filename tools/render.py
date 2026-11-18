@@ -135,6 +135,15 @@ QA = [dict(icon="󰖔", label="Night light", on=True), dict(icon="󰂛", label="
 scenario("quickactions", "IslandView", dict(view="quickactions", index=4, app=dict(tiles=QA, power=[dict(icon="", label="lock"), dict(icon="󰤄", label="sleep"),
          dict(icon="󰜉", label="restart"), dict(icon="󰐥", label="shut down")])))
 
+HOURS = [0] * 7 + [12, 40, 55, 60, 48, 20, 35, 58, 50, 22, 10, 44, 52, 30, 8, 0, 0]
+scenario("wellbeing", "IslandView", dict(view="wellbeing", app=dict(total=544, streak=38, hours=HOURS, now=19, breakAfter=50,
+         apps=[dict(app="zen", minutes=182), dict(app="ghostty", minutes=141), dict(app="calendio", minutes=64), dict(app="obsidian", minutes=58), dict(app="spotify", minutes=31)])))
+GUIDE = [dict(icon="󰍜", title="The bar", body="Left: the droplet and your workspaces. Then the app row: every Fluid app is one click, or ❖ ; u and a letter. The island in the middle shows the song, the time and your next Calendio block; click it for the calendar.",
+              keys=[dict(desc="Apps row", keys=K("❖", ";", "U")), dict(desc="Hide every widget", keys=K("❖", "⇧", "Space"))], actions=[dict(label="Hide the bar now")]),
+         dict(icon="󰍹", title="Display"), dict(icon="󰂚", title="Notifications"), dict(icon="󰄀", title="Screenshot"), dict(icon="󰏘", title="Theme"),
+         dict(icon="󰸉", title="Wallpaper"), dict(icon="󰔟", title="Wellbeing")]
+scenario("guide", "IslandView", dict(view="guide", index=0, app=dict(pages=GUIDE, page=0, focus="pages")))
+
 PLACES = {"island": "anchors.horizontalCenter: parent.horizontalCenter; y: 14", "fill": "anchors.fill: parent"}
 MAIN = """import QtQuick
 import QtQuick.Window

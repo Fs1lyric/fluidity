@@ -8,11 +8,11 @@ import Quickshell.Services.Mpris
 // Island.qml opens them like any view and hands their keys here (key() returns true when used).
 Singleton {
     id: apps
-    readonly property var views: ["calendar", "media", "network", "bluetooth", "syspanel", "quickactions"]
+    readonly property var views: ["calendar", "media", "network", "bluetooth", "syspanel", "quickactions", "wellbeing", "guide"]
     property string open: ""       // the app on screen, "" when none (polling runs only then)
     property var data: ({})
     // leader ; u: one letter per app
-    readonly property var leaderKeys: [{ k: "c", label: "calendar", open: "calendar" }, { k: "m", label: "media", open: "media" }, { k: "w", label: "wi-fi", open: "network" }, { k: "b", label: "bluetooth", open: "bluetooth" }, { k: "s", label: "system", open: "syspanel" }, { k: "q", label: "quick", open: "quickactions" }]
+    readonly property var leaderKeys: [{ k: "c", label: "calendar", open: "calendar" }, { k: "m", label: "media", open: "media" }, { k: "w", label: "wi-fi", open: "network" }, { k: "b", label: "bluetooth", open: "bluetooth" }, { k: "s", label: "system", open: "syspanel" }, { k: "q", label: "quick", open: "quickactions" }, { k: "h", label: "wellbeing", open: "wellbeing" }, { k: "g", label: "guide", open: "guide" }]
     readonly property string home: Quickshell.env("HOME")
     readonly property string stateDir: (Quickshell.env("XDG_STATE_HOME") || (home + "/.local/state")) + "/fluidity"
     readonly property string calDb: home + "/.local/share/calendio/cal.db"
@@ -27,6 +27,8 @@ Singleton {
         else if (v === "bluetooth") btRefresh();
         else if (v === "syspanel") { sysTick(); }
         else if (v === "quickactions") qaRefresh();
+        else if (v === "wellbeing") wbProc.running = true;
+        else if (v === "guide") { guidePage = 0; patch({ pages: guidePages, page: 0, focus: "pages" }); }
     }
     function key(event, v) {
         if (v === "calendar") return calKey(event);
@@ -35,6 +37,8 @@ Singleton {
         if (v === "bluetooth") return btKey(event);
         if (v === "syspanel") return sysKey(event);
         if (v === "quickactions") return qaKey(event);
+        if (v === "wellbeing") { if (event.text === "r") { wbProc.running = true; return true; } return false; }
+        if (v === "guide") return guideKey(event);
         return false;
     }
     function picked(v, i) {
@@ -44,6 +48,7 @@ Singleton {
         else if (v === "bluetooth") { Island.index = i; btPress(); }
         else if (v === "syspanel") Island.index = i;
         else if (v === "quickactions") { Island.index = i; qaPress(i); }
+        else if (v === "guide") { guidePage = i; Island.index = 0; patch({ page: i, focus: "pages" }); }
     }
 
     readonly property bool shown: Island.overlayShown && Island.target === open
@@ -325,6 +330,65 @@ Singleton {
         else if (k === Qt.Key_Up) Island.index = i >= nt ? nt - 3 + Math.min(2, i - nt) : Math.max(0, i - 3);
         else if (k === Qt.Key_Return || k === Qt.Key_Enter || t === " ") qaPress(i);
         else return false;
+        return true;
+    }
+
+    // ================= wellbeing =================
+    Process {
+        id: wbProc
+        command: ["fluidity-wellbeing", "today"]
+        stdout: StdioCollector { onStreamFinished: { try { const j = JSON.parse(text); j.now = new Date().getHours(); j.breakAfter = 50; apps.patch(j) } catch (e) { apps.patch({ total: 0, apps: [], hours: [] }) } } }
+    }
+
+    // ================= guide =================
+    property int guidePage: 0
+    readonly property var guidePages: [
+        { icon: "󰍜", title: "The bar", body: "Left: the droplet and your workspaces. Then the app row: every Fluid app is one click, or ❖ ; u and a letter. The island in the middle shows the song, the time and your next Calendio block; click it for the calendar. The right pill: weather, load, Wi-Fi, Bluetooth, volume, battery and AI usage.",
+          keys: [{ desc: "Apps row", keys: ["❖", ";", "U"] }, { desc: "Hide every widget", keys: ["❖", "⇧", "Space"] }, { desc: "Leader keys", keys: ["❖", ";"] }],
+          actions: [{ label: "Hide or show widgets", run: "fluidity-widgets toggle" }, { label: "Choose widgets", run: "fluidity-widgets pick" }] },
+        { icon: "󰍹", title: "Display", body: "Scale, mirroring and the laptop panel. Night light warms the screen after dark; stay awake keeps it from locking.",
+          keys: [{ desc: "Night light", keys: ["❖", "^", "N"] }, { desc: "Stay awake", keys: ["❖", "^", "I"] }, { desc: "Hardware keys", keys: ["❖", "^", "H"] }],
+          actions: [{ label: "Night light", run: "fluidity-toggle nightlight" }, { label: "Mirror displays", run: "fluidity-display mirror" }, { label: "Scale up", run: "fluidity-window scale up" }, { label: "Scale down", run: "fluidity-window scale down" }] },
+        { icon: "󰂚", title: "Notifications", body: "They land in the island and wait in the history. Do not disturb keeps them quiet (the focus timer turns it on for you). Battery and weather alerts come here too.",
+          keys: [{ desc: "History", keys: ["❖", "⌥", ","] }, { desc: "Dismiss", keys: ["❖", ","] }, { desc: "Do not disturb", keys: ["❖", "^", ","] }],
+          actions: [{ label: "Open history", open: "notifications" }, { label: "Do not disturb", dnd: true }, { label: "Clear all", run: "fluidity-notify clear" }] },
+        { icon: "󰄀", title: "Screenshot", body: "A region, a window or the full screen; recordings with or without sound; text from the screen (OCR) and a colour picker. Everything lands in your clipboard.",
+          keys: [{ desc: "Capture keys", keys: ["❖", "^", "C"] }, { desc: "Region", keys: ["❖", ";", "S"] }, { desc: "Record", keys: ["❖", ";", "R"] }],
+          actions: [{ label: "Region", run: "fluidity-capture screenshot", close: true }, { label: "Full screen", run: "fluidity-capture screenshot full", close: true }, { label: "Record", run: "fluidity-capture record", close: true }] },
+        { icon: "󰏘", title: "Theme", body: "Fluid is the default; every Luminescent theme came along. A theme changes the colours of the bar, the island, your terminal and editor together. Mac mode swaps in the Tahoe bar and dock.",
+          keys: [{ desc: "Theme picker", keys: ["❖", "⇧", "^", "Space"] }, { desc: "Next theme", keys: ["❖", ";", "T"] }, { desc: "Mac mode", keys: ["❖", ";", "M"] }],
+          actions: [{ label: "Theme picker", open: "themes" }, { label: "Next theme", run: "fluidity-theme next" }, { label: "Mac mode", run: "fluidity-mode toggle" }] },
+        { icon: "󰸉", title: "Wallpaper", body: "Your fern is the default. Put images in ~/Wallpapers and they show up in the picker next to the theme's own.",
+          keys: [{ desc: "Wallpaper picker", keys: ["❖", "^", "Space"] }, { desc: "Next wallpaper", keys: ["❖", ";", "W"] }],
+          actions: [{ label: "Wallpaper picker", open: "wallpaper" }, { label: "Next wallpaper", run: "fluidity-wallpaper next" }] },
+        { icon: "󰔟", title: "Wellbeing", body: "One sample a minute of the app in front, kept on this PC only (~/.local/state/fluidity/wellbeing). After 50 minutes without a break you get a nudge. The focus timer runs 25 minutes with notifications off.",
+          keys: [{ desc: "Focus 25", keys: ["❖", ";", "F"] }, { desc: "Wellbeing", keys: ["❖", ";", "U", "H"] }],
+          actions: [{ label: "Screen time", open: "wellbeing" }, { label: "Start focus", run: "fluidity-focus toggle" }] },
+        { icon: "󰀻", title: "Apps", body: "The Fluid apps: calendar, media, Wi-Fi, Bluetooth, system, quick actions, wellbeing and this guide. Each opens in the island, from the bar's app row or the apps leader row.",
+          keys: [{ desc: "Calendar", keys: ["❖", ";", "U", "C"] }, { desc: "Media", keys: ["❖", ";", "U", "M"] }, { desc: "System", keys: ["❖", ";", "U", "S"] }],
+          actions: [{ label: "Calendar", open: "calendar" }, { label: "Media", open: "media" }, { label: "Quick actions", open: "quickactions" }] }]
+    function guideRun(act) {
+        if (!act) return;
+        if (act.dnd) { Notifs.dnd = !Notifs.dnd; return; }
+        if (act.open) { Island.close(); later(360, () => Island.open(act.open, "")); return; }
+        if (act.close) { Island.close(); later(300, () => Island.sh(act.run)); return; }
+        Island.sh(act.run);
+    }
+    function guideKey(event) {
+        const k = event.key, inA = data.focus === "actions", acts = guidePages[guidePage].actions || [];
+        if (inA) {
+            if (k === Qt.Key_Left && Island.index === 0 || k === Qt.Key_Backspace) patch({ focus: "pages" });
+            else if (k === Qt.Key_Right || k === Qt.Key_Tab || k === Qt.Key_Down) Island.index = Math.min(acts.length - 1, Island.index + 1);
+            else if (k === Qt.Key_Left || k === Qt.Key_Backtab || k === Qt.Key_Up) Island.index = Math.max(0, Island.index - 1);
+            else if (k === Qt.Key_Return || k === Qt.Key_Enter) guideRun(acts[Island.index]);
+            else return false;
+            return true;
+        }
+        if (k === Qt.Key_Down) guidePage = Math.min(guidePages.length - 1, guidePage + 1);
+        else if (k === Qt.Key_Up) guidePage = Math.max(0, guidePage - 1);
+        else if (k === Qt.Key_Right || k === Qt.Key_Tab || k === Qt.Key_Return || k === Qt.Key_Enter) { if (acts.length) { Island.index = 0; patch({ focus: "actions" }); } return true; }
+        else return false;
+        patch({ page: guidePage });
         return true;
     }
 
