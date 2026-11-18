@@ -1,0 +1,32 @@
+# Bruteon
+[colors.primary]
+background = "#f2e6dc"
+foreground = "#1a1414"
+
+[colors.cursor]
+text = "#f2e6dc"
+cursor = "#1a1414"
+
+[colors.selection]
+text = "#1a1414"
+background = "#b8a89c"
+
+[colors.normal]
+black = "#faf3ee"
+red = "#f28b82"
+green = "#b5e3a1"
+yellow = "#f7d38a"
+blue = "#a3c4f3"
+magenta = "#d8b4f8"
+cyan = "#a8dcd9"
+white = "#1a1414"
+
+[colors.bright]
+black = "#b8a89c"
+red = "#f4a098"
+green = "#c2e8b2"
+yellow = "#f8db9f"
+blue = "#b4cff5"
+magenta = "#dfc2f9"
+cyan = "#b8e2e0"
+white = "#1a1414"

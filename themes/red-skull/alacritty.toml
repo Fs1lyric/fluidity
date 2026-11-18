@@ -1,0 +1,32 @@
+# Red Skull
+[colors.primary]
+background = "#1d0b12"
+foreground = "#bfb098"
+
+[colors.cursor]
+text = "#1d0b12"
+cursor = "#fc2e64"
+
+[colors.selection]
+text = "#bfb098"
+background = "#4d1927"
+
+[colors.normal]
+black = "#32141f"
+red = "#fc2e64"
+green = "#8f9a5c"
+yellow = "#bfb098"
+blue = "#7a7fa8"
+magenta = "#c0507a"
+cyan = "#7a9a92"
+white = "#bfb098"
+
+[colors.bright]
+black = "#685841"
+red = "#ff5c86"
+green = "#a9b47a"
+yellow = "#d8cbb4"
+blue = "#9a9fc8"
+magenta = "#d8709a"
+cyan = "#9ab8b0"
+white = "#e8dcc8"

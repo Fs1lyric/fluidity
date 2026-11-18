@@ -1,0 +1,32 @@
+# Reverie
+[colors.primary]
+background = "#141118"
+foreground = "#f4f3f6"
+
+[colors.cursor]
+text = "#141118"
+cursor = "#b4a0d4"
+
+[colors.selection]
+text = "#f4f3f6"
+background = "#3b3447"
+
+[colors.normal]
+black = "#4f455f"
+red = "#d66f6f"
+green = "#6fd692"
+yellow = "#d6d36f"
+blue = "#6f9ad6"
+magenta = "#9e70d7"
+cyan = "#6fd6d6"
+white = "#f4f3f6"
+
+[colors.bright]
+black = "#4f455f"
+red = "#d4b0c7"
+green = "#aed4b9"
+yellow = "#e2ccd0"
+blue = "#98a4ff"
+magenta = "#d3a0e6"
+cyan = "#b4a0d4"
+white = "#ffffff"

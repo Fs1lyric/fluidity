@@ -1,0 +1,32 @@
+# Ax-Shell
+[colors.primary]
+background = "#0c0201"
+foreground = "#f0dedf"
+
+[colors.cursor]
+text = "#0c0201"
+cursor = "#ffbebc"
+
+[colors.selection]
+text = "#f0dedf"
+background = "#552826"
+
+[colors.normal]
+black = "#2a1110"
+red = "#c4102d"
+green = "#a8c79a"
+yellow = "#f2c38a"
+blue = "#8fa8d8"
+magenta = "#e09ab0"
+cyan = "#9fc9c4"
+white = "#f0dedf"
+
+[colors.bright]
+black = "#552826"
+red = "#cf3b53"
+green = "#b8d1ac"
+yellow = "#f4ce9f"
+blue = "#a3b8df"
+magenta = "#e6acbe"
+cyan = "#b0d3cf"
+white = "#f0dedf"

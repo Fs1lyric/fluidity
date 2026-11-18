@@ -1,0 +1,32 @@
+# Fluid
+[colors.primary]
+background = "#111417"
+foreground = "#e3e4da"
+
+[colors.cursor]
+text = "#111417"
+cursor = "#d7e59b"
+
+[colors.selection]
+text = "#e3e4da"
+background = "#3a3f45"
+
+[colors.normal]
+black = "#1b1f23"
+red = "#f2a7a7"
+green = "#cfe3a8"
+yellow = "#e8d98a"
+blue = "#a9b8e8"
+magenta = "#c8a8e0"
+cyan = "#c2e6d6"
+white = "#e3e4da"
+
+[colors.bright]
+black = "#3a3f45"
+red = "#f4b7b7"
+green = "#d8e8b8"
+yellow = "#ece09f"
+blue = "#b8c5ec"
+magenta = "#d2b8e6"
+cyan = "#cdeadd"
+white = "#e3e4da"

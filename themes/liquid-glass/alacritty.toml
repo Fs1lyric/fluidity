@@ -1,0 +1,32 @@
+# Liquid Glass
+[colors.primary]
+background = "#0b2a4a"
+foreground = "#f2f7fc"
+
+[colors.cursor]
+text = "#0b2a4a"
+cursor = "#9fd0ff"
+
+[colors.selection]
+text = "#f2f7fc"
+background = "#3b6a9a"
+
+[colors.normal]
+black = "#1d4a78"
+red = "#f5768c"
+green = "#8fe0b0"
+yellow = "#ffea8e"
+blue = "#4fa3e8"
+magenta = "#9099f9"
+cyan = "#7fd6f0"
+white = "#f2f7fc"
+
+[colors.bright]
+black = "#3b6a9a"
+red = "#f78fa1"
+green = "#a3e6be"
+yellow = "#ffeea2"
+blue = "#6fb4ec"
+magenta = "#a4abfa"
+cyan = "#96ddf3"
+white = "#f2f7fc"

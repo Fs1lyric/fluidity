@@ -1,0 +1,37 @@
+# Lyric Mono: black, white and greys. Red is kept for errors only.
+mode = "dark"
+
+focus = "#ffffff"
+accent = "#ffffff"
+selection = "#2a2a2a"
+muted = "#3a3a3a"
+
+background = "#0a0a0a"
+dark_background = "#050505"
+darker_background = "#000000"
+lighter_background = "#161616"
+
+foreground = "#e8e8e8"
+dark_foreground = "#8a8a8a"
+light_foreground = "#f4f4f4"
+bright_foreground = "#ffffff"
+
+red = "#ff5555"
+yellow = "#d0d0d0"
+orange = "#bdbdbd"
+green = "#f0f0f0"
+cyan = "#a8a8a8"
+blue = "#c4c4c4"
+magenta = "#ffffff"
+brown = "#9a9a9a"
+
+bright_red = "#ff7777"
+bright_yellow = "#e4e4e4"
+bright_green = "#ffffff"
+bright_cyan = "#c8c8c8"
+bright_blue = "#dcdcdc"
+bright_magenta = "#ffffff"
+
+# Windows get a thin white outline; unfocused ones a faint grey.
+hyprland_active_border = "rgba(ffffffcc)"
+hyprland_inactive_border = "rgba(ffffff1a)"

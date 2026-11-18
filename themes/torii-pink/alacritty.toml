@@ -1,0 +1,32 @@
+# Torii Pink
+[colors.primary]
+background = "#1c1e2a"
+foreground = "#ffffff"
+
+[colors.cursor]
+text = "#1c1e2a"
+cursor = "#f6a0ca"
+
+[colors.selection]
+text = "#ffffff"
+background = "#3a3a52"
+
+[colors.normal]
+black = "#282839"
+red = "#f38ba8"
+green = "#a6e3b0"
+yellow = "#f5d58a"
+blue = "#8ab4f8"
+magenta = "#f6a0ca"
+cyan = "#8adce8"
+white = "#ffffff"
+
+[colors.bright]
+black = "#3a3a52"
+red = "#f5a0b8"
+green = "#b6e8be"
+yellow = "#f7dd9f"
+blue = "#9fc2f9"
+magenta = "#f8b1d4"
+cyan = "#9fe2ec"
+white = "#ffffff"

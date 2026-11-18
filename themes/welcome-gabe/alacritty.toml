@@ -1,0 +1,32 @@
+# Welcome Gabe
+[colors.primary]
+background = "#10011e"
+foreground = "#9b9cc7"
+
+[colors.cursor]
+text = "#10011e"
+cursor = "#00ffff"
+
+[colors.selection]
+text = "#9b9cc7"
+background = "#3f408b"
+
+[colors.normal]
+black = "#09011d"
+red = "#571968"
+green = "#00ffff"
+yellow = "#573086"
+blue = "#454697"
+magenta = "#79238c"
+cyan = "#3f408b"
+white = "#9b9cc7"
+
+[colors.bright]
+black = "#23014e"
+red = "#75188f"
+green = "#4242b9"
+yellow = "#6f32ba"
+blue = "#4b4dd2"
+magenta = "#a422c1"
+cyan = "#00ffff"
+white = "#cfd0ff"

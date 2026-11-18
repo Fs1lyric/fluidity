@@ -1,0 +1,32 @@
+# Frutiger Y2K
+[colors.primary]
+background = "#f4f6f8"
+foreground = "#2d333e"
+
+[colors.cursor]
+text = "#f4f6f8"
+cursor = "#2f8be0"
+
+[colors.selection]
+text = "#2d333e"
+background = "#a2a8ae"
+
+[colors.normal]
+black = "#e8edf2"
+red = "#d8404a"
+green = "#3a9a5a"
+yellow = "#c9a227"
+blue = "#1e6ed0"
+magenta = "#8a5ad0"
+cyan = "#2a9ab8"
+white = "#2d333e"
+
+[colors.bright]
+black = "#a2a8ae"
+red = "#df626b"
+green = "#5dac78"
+yellow = "#d3b34e"
+blue = "#4688d8"
+magenta = "#9f78d8"
+cyan = "#50acc5"
+white = "#2d333e"

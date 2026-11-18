@@ -1,0 +1,11 @@
+// Neon 80s: plain fastfetch, the Arch logo in the theme's accent.
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  "logo": { "source": "arch", "color": { "1": "38;2;255;22;176", "2": "38;2;255;22;176" }, "padding": { "right": 3 } },
+  "display": {
+    "separator": "  ",
+    "color": { "keys": "38;2;70;189;255", "title": "38;2;255;22;176", "output": "38;2;230;230;240" }
+  },
+  "modules": ["title", "separator", "os", "kernel", "uptime", "packages", "shell", "wm", "terminal",
+              "cpu", "gpu", "memory", "disk", "break", "colors"]
+}

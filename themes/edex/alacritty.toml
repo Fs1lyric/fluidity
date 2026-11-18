@@ -1,0 +1,32 @@
+# eDEX Tron
+[colors.primary]
+background = "#0c1114"
+foreground = "#aacfd1"
+
+[colors.cursor]
+text = "#0c1114"
+cursor = "#aacfd1"
+
+[colors.selection]
+text = "#aacfd1"
+background = "#3a4c4e"
+
+[colors.normal]
+black = "#1a2427"
+red = "#c95f5f"
+green = "#7fbfa6"
+yellow = "#d6c88a"
+blue = "#6fa3b0"
+magenta = "#9a93b8"
+cyan = "#aacfd1"
+white = "#aacfd1"
+
+[colors.bright]
+black = "#3a4c4e"
+red = "#e07a7a"
+green = "#9bd6bf"
+yellow = "#e6d9a2"
+blue = "#8cbcc8"
+magenta = "#b3add0"
+cyan = "#c8e6e8"
+white = "#e4f4f5"

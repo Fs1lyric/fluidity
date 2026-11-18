@@ -1,0 +1,1 @@
+-- Fluid is Fluidity's default theme: its feel is default/hypr/liquid.lua, nothing to override here.

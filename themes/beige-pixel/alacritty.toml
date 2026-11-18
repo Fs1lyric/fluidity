@@ -1,0 +1,32 @@
+# Beige Pixel
+[colors.primary]
+background = "#fce4d3"
+foreground = "#2e230a"
+
+[colors.cursor]
+text = "#fce4d3"
+cursor = "#665544"
+
+[colors.selection]
+text = "#2e230a"
+background = "#ca9a78"
+
+[colors.normal]
+black = "#e6c7b0"
+red = "#b2442a"
+green = "#5f7a2e"
+yellow = "#a8862a"
+blue = "#48899f"
+magenta = "#8a4a6a"
+cyan = "#3f7a7a"
+white = "#2e230a"
+
+[colors.bright]
+black = "#ca9a78"
+red = "#c06650"
+green = "#7c9254"
+yellow = "#b89c50"
+blue = "#699eb0"
+magenta = "#9f6b85"
+cyan = "#629292"
+white = "#2e230a"

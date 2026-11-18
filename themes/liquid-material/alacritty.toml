@@ -1,0 +1,32 @@
+# Liquid Material
+[colors.primary]
+background = "#141016"
+foreground = "#ece0f2"
+
+[colors.cursor]
+text = "#141016"
+cursor = "#d9a8f0"
+
+[colors.selection]
+text = "#ece0f2"
+background = "#493557"
+
+[colors.normal]
+black = "#2a2230"
+red = "#ff8a6a"
+green = "#b6d7a8"
+yellow = "#f0c48a"
+blue = "#b0b8f0"
+magenta = "#d6a0e8"
+cyan = "#a8d4e0"
+white = "#ece0f2"
+
+[colors.bright]
+black = "#493557"
+red = "#ff9f85"
+green = "#c3deb8"
+yellow = "#f3cf9f"
+blue = "#bec5f3"
+magenta = "#ddb1ec"
+cyan = "#b8dce6"
+white = "#ece0f2"

@@ -1,0 +1,32 @@
+# Neon 80s
+[colors.primary]
+background = "#141830"
+foreground = "#e6e6f0"
+
+[colors.cursor]
+text = "#141830"
+cursor = "#46bdff"
+
+[colors.selection]
+text = "#e6e6f0"
+background = "#2d496f"
+
+[colors.normal]
+black = "#202a4c"
+red = "#ff2a6d"
+green = "#b6f23a"
+yellow = "#ff8c42"
+blue = "#46bdff"
+magenta = "#b893ce"
+cyan = "#2de2e6"
+white = "#e6e6f0"
+
+[colors.bright]
+black = "#566395"
+red = "#ff5c8d"
+green = "#cdf76e"
+yellow = "#f9f871"
+blue = "#7fd0ff"
+magenta = "#ff16b0"
+cyan = "#7af0f2"
+white = "#ffffff"

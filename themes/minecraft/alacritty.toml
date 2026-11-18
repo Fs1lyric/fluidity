@@ -1,0 +1,32 @@
+# Minecraft
+[colors.primary]
+background = "#292928"
+foreground = "#d8d0b0"
+
+[colors.cursor]
+text = "#292928"
+cursor = "#c6c6c6"
+
+[colors.selection]
+text = "#d8d0b0"
+background = "#585955"
+
+[colors.normal]
+black = "#3a3a38"
+red = "#d0453a"
+green = "#80a040"
+yellow = "#d8b84a"
+blue = "#7aa8c8"
+magenta = "#c87a9a"
+cyan = "#5a9a98"
+white = "#d8d0b0"
+
+[colors.bright]
+black = "#585955"
+red = "#d8665d"
+green = "#97b162"
+yellow = "#dfc56b"
+blue = "#92b8d2"
+magenta = "#d292ac"
+cyan = "#78acab"
+white = "#d8d0b0"

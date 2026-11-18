@@ -1,0 +1,32 @@
+# True Beauty
+[colors.primary]
+background = "#0a0614"
+foreground = "#ffffff"
+
+[colors.cursor]
+text = "#0a0614"
+cursor = "#ff10ff"
+
+[colors.selection]
+text = "#ffffff"
+background = "#3a2f6b"
+
+[colors.normal]
+black = "#18192b"
+red = "#ff3b3b"
+green = "#39ff14"
+yellow = "#ffff00"
+blue = "#3b5bff"
+magenta = "#ff10ff"
+cyan = "#16ffff"
+white = "#ffffff"
+
+[colors.bright]
+black = "#3a2f6b"
+red = "#ff5e5e"
+green = "#5dff3e"
+yellow = "#ffff2e"
+blue = "#5e79ff"
+magenta = "#ff3bff"
+cyan = "#40ffff"
+white = "#ffffff"

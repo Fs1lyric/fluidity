@@ -1,0 +1,32 @@
+# Perfect World
+[colors.primary]
+background = "#1a2026"
+foreground = "#ffffff"
+
+[colors.cursor]
+text = "#1a2026"
+cursor = "#f692b2"
+
+[colors.selection]
+text = "#ffffff"
+background = "#526170"
+
+[colors.normal]
+black = "#242d35"
+red = "#fb6396"
+green = "#94cf95"
+yellow = "#f692b2"
+blue = "#6ec1d6"
+magenta = "#cd84c8"
+cyan = "#7fe4d2"
+white = "#ffffff"
+
+[colors.bright]
+black = "#526170"
+red = "#f92d72"
+green = "#6ccb6e"
+yellow = "#f26190"
+blue = "#4cb9d6"
+magenta = "#c269bc"
+cyan = "#58d6bf"
+white = "#f4f5f2"

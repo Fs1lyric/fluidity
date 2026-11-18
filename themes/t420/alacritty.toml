@@ -1,0 +1,32 @@
+# T420 dwm
+[colors.primary]
+background = "#140c0d"
+foreground = "#d8cfc8"
+
+[colors.cursor]
+text = "#140c0d"
+cursor = "#7fc98f"
+
+[colors.selection]
+text = "#d8cfc8"
+background = "#4a3a3c"
+
+[colors.normal]
+black = "#2a1e20"
+red = "#c77778"
+green = "#7fc98f"
+yellow = "#c9a86a"
+blue = "#597b99"
+magenta = "#9a6a8a"
+cyan = "#477777"
+white = "#d8cfc8"
+
+[colors.bright]
+black = "#4a3a3c"
+red = "#d18f90"
+green = "#96d3a3"
+yellow = "#d3b885"
+blue = "#7793ab"
+magenta = "#ac859f"
+cyan = "#688f8f"
+white = "#d8cfc8"

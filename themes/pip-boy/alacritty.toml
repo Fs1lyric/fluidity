@@ -1,0 +1,32 @@
+# Pip-Boy
+[colors.primary]
+background = "#0a1a0c"
+foreground = "#8ff0b8"
+
+[colors.cursor]
+text = "#0a1a0c"
+cursor = "#60e597"
+
+[colors.selection]
+text = "#8ff0b8"
+background = "#2a552e"
+
+[colors.normal]
+black = "#14301a"
+red = "#49a260"
+green = "#60e597"
+yellow = "#9ee890"
+blue = "#399552"
+magenta = "#51c673"
+cyan = "#7ed8a8"
+white = "#8ff0b8"
+
+[colors.bright]
+black = "#2a552e"
+red = "#62bc88"
+green = "#90f1c0"
+yellow = "#d0f7b0"
+blue = "#49a260"
+magenta = "#60e597"
+cyan = "#9cf7d0"
+white = "#c8fbe0"

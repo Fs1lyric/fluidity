@@ -1,0 +1,11 @@
+// Mechanical Love: plain fastfetch, the Arch logo in the theme's accent.
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  "logo": { "source": "arch", "color": { "1": "38;2;197;116;221", "2": "38;2;197;116;221" }, "padding": { "right": 3 } },
+  "display": {
+    "separator": "  ",
+    "color": { "keys": "38;2;136;151;244", "title": "38;2;197;116;221", "output": "38;2;253;253;253" }
+  },
+  "modules": ["title", "separator", "os", "kernel", "uptime", "packages", "shell", "wm", "terminal",
+              "cpu", "gpu", "memory", "disk", "break", "colors"]
+}

@@ -1,0 +1,11 @@
+// Monochrome: plain fastfetch, the Arch logo in the theme's accent.
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  "logo": { "source": "arch", "color": { "1": "38;2;255;255;255", "2": "38;2;255;255;255" }, "padding": { "right": 3 } },
+  "display": {
+    "separator": "  ",
+    "color": { "keys": "38;2;189;189;189", "title": "38;2;255;255;255", "output": "38;2;232;232;232" }
+  },
+  "modules": ["title", "separator", "os", "kernel", "uptime", "packages", "shell", "wm", "terminal",
+              "cpu", "gpu", "memory", "disk", "break", "colors"]
+}

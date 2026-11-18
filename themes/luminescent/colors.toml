@@ -1,0 +1,37 @@
+# Luminescent: official Catppuccin Mocha. Mauve accent, lavender focus border.
+mode = "dark"
+
+focus = "#b4befe"
+accent = "#cba6f7"
+selection = "#45475a"
+muted = "#585b70"
+
+background = "#1e1e2e"
+dark_background = "#181825"
+darker_background = "#11111b"
+lighter_background = "#313244"
+
+foreground = "#cdd6f4"
+dark_foreground = "#9399b2"
+light_foreground = "#bac2de"
+bright_foreground = "#cdd6f4"
+
+red = "#f38ba8"
+yellow = "#f9e2af"
+orange = "#fab387"
+green = "#a6e3a1"
+cyan = "#94e2d5"
+blue = "#89b4fa"
+magenta = "#f5c2e7"
+brown = "#7f849c"
+
+bright_red = "#f38ba8"
+bright_yellow = "#f9e2af"
+bright_green = "#a6e3a1"
+bright_cyan = "#94e2d5"
+bright_blue = "#89b4fa"
+bright_magenta = "#f5c2e7"
+
+# Thin lavender outline on the focused window; unfocused ones fade into surface0.
+hyprland_active_border = "rgba(b4befeee)"
+hyprland_inactive_border = "rgba(31324499)"

@@ -1,0 +1,32 @@
+# Kurzgesagt
+[colors.primary]
+background = "#e8f6f0"
+foreground = "#16324a"
+
+[colors.cursor]
+text = "#e8f6f0"
+cursor = "#18b9f3"
+
+[colors.selection]
+text = "#16324a"
+background = "#8fbcb4"
+
+[colors.normal]
+black = "#cfe9e1"
+red = "#d0495a"
+green = "#15a86a"
+yellow = "#ac9a3e"
+blue = "#2a7ad0"
+magenta = "#5a68e2"
+cyan = "#11948a"
+white = "#16324a"
+
+[colors.bright]
+black = "#8fbcb4"
+red = "#d86a78"
+green = "#3fb885"
+yellow = "#bbac61"
+blue = "#5092d8"
+magenta = "#7883e7"
+cyan = "#3ca79f"
+white = "#16324a"

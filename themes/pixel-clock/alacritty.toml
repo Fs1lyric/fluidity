@@ -1,0 +1,32 @@
+# Pixel Clock
+[colors.primary]
+background = "#090e13"
+foreground = "#c5c9c7"
+
+[colors.cursor]
+text = "#090e13"
+cursor = "#7fb4ca"
+
+[colors.selection]
+text = "#c5c9c7"
+background = "#393b44"
+
+[colors.normal]
+black = "#090e13"
+red = "#c34043"
+green = "#98bb6c"
+yellow = "#dca561"
+blue = "#7fb4ca"
+magenta = "#938aa9"
+cyan = "#8ea4a2"
+white = "#c5c9c7"
+
+[colors.bright]
+black = "#717c7c"
+red = "#e46876"
+green = "#87a987"
+yellow = "#e6c384"
+blue = "#8ba4b0"
+magenta = "#8992a7"
+cyan = "#7aa89f"
+white = "#f2f1ef"

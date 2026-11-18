@@ -1,0 +1,32 @@
+# Outline
+[colors.primary]
+background = "#0f1012"
+foreground = "#e6e6e6"
+
+[colors.cursor]
+text = "#0f1012"
+cursor = "#e0c080"
+
+[colors.selection]
+text = "#e6e6e6"
+background = "#3a3d44"
+
+[colors.normal]
+black = "#1d1f23"
+red = "#e06c75"
+green = "#98c379"
+yellow = "#e0c080"
+blue = "#7aa2d8"
+magenta = "#c39ad8"
+cyan = "#7fc8c8"
+white = "#e6e6e6"
+
+[colors.bright]
+black = "#3a3d44"
+red = "#e6868e"
+green = "#abce91"
+yellow = "#e6cb97"
+blue = "#92b3df"
+magenta = "#ceacdf"
+cyan = "#96d2d2"
+white = "#e6e6e6"

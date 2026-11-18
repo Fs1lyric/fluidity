@@ -1,0 +1,55 @@
+// Lyric Mono fastfetch. Black, white and greys, square corners, lowercase keys.
+// Logo: put any picture at ~/.config/fastfetch/logo.png, or run
+//   ~/.config/fastfetch/set-logo /path/to/picture
+// which crops it square and greyscales it to match the rice.
+// Old config: config.jsonc.bak-2026-11-03
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  "logo": {
+    "type": "kitty-direct",
+    "source": "~/.config/fastfetch/logo.png",
+    "width": 36,
+    "height": 18,
+    "padding": { "top": 1, "left": 2, "right": 3 }
+  },
+  "display": {
+    "separator": "  ",
+    "disableLinewrap": true,
+    "color": { "keys": "90", "output": "97", "separator": "90", "title": "97" },
+    "key": { "width": 10 },
+    "bar": {
+      "width": 10,
+      "char": { "elapsed": "▰", "total": "▱" },
+      "border": { "left": "", "right": " " }
+    },
+    "percent": { "type": ["bar", "hide-others"], "color": { "green": "97", "yellow": "97", "red": "31" } },
+    "size": { "binaryPrefix": "jedec", "maxPrefix": "GB" }
+  },
+  "modules": [
+    { "type": "title", "format": "{user-name}\u001b[90m @ \u001b[97m{host-name}" },
+    { "type": "custom", "format": "\u001b[90m┌───────────────────────────────────────────┐" },
+
+    { "type": "custom", "format": "\u001b[90m├ \u001b[97msystem" },
+    { "type": "os", "key": "│ os", "format": "archy \u001b[90m(arch linux {arch})" },
+    { "type": "kernel", "key": "│ kernel", "format": "{release}" },
+    { "type": "wm", "key": "│ wm", "format": "{pretty-name} \u001b[90m{protocol-name}" },
+    { "type": "shell", "key": "│ shell", "format": "{pretty-name} {version}" },
+    { "type": "terminal", "key": "│ term", "format": "{pretty-name}" },
+    { "type": "packages", "key": "│ pkgs", "format": "{pacman} pacman \u001b[90m·\u001b[97m {flatpak-all} flatpak" },
+
+    { "type": "custom", "format": "\u001b[90m├ \u001b[97mhardware" },
+    { "type": "cpu", "key": "│ cpu", "format": "{name} \u001b[90m{cores-logical}t" },
+    { "type": "gpu", "key": "│ gpu", "detectionMethod": "pci", "format": "Radeon Vega 8 \u001b[90m(5700G)" },
+    { "type": "memory", "key": "│ mem", "format": "{percentage-bar}{used} / {total}" },
+    { "type": "disk", "key": "│ disk", "folders": "/", "format": "{size-percentage-bar}{size-used} / {size-total}" },
+    { "type": "display", "key": "│ display", "compactType": "original-with-refresh-rate" },
+
+    { "type": "custom", "format": "\u001b[90m├ \u001b[97mtime" },
+    { "type": "disk", "key": "│ age", "folders": "/", "format": "{days} days" },
+    { "type": "uptime", "key": "│ up" },
+    { "type": "command", "key": "│ ♪", "text": "playerctl metadata --format '{{artist}} - {{title}}' 2>/dev/null" },
+
+    { "type": "custom", "format": "\u001b[90m└───────────────────────────────────────────┘" },
+    { "type": "colors", "symbol": "square", "paddingLeft": 1 }
+  ]
+}

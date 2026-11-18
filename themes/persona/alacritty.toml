@@ -1,0 +1,32 @@
+# Persona
+[colors.primary]
+background = "#0c0f1d"
+foreground = "#e2f1f9"
+
+[colors.cursor]
+text = "#0c0f1d"
+cursor = "#5ec8e1"
+
+[colors.selection]
+text = "#e2f1f9"
+background = "#394560"
+
+[colors.normal]
+black = "#0c0f1d"
+red = "#1788b6"
+green = "#578db7"
+yellow = "#209fcd"
+blue = "#52a4cd"
+magenta = "#1cc9d9"
+cyan = "#5fcfdf"
+white = "#c2c3c6"
+
+[colors.bright]
+black = "#5c5f70"
+red = "#1788b6"
+green = "#578db7"
+yellow = "#209fcd"
+blue = "#52a4cd"
+magenta = "#1cc9d9"
+cyan = "#5fcfdf"
+white = "#e2f1f9"

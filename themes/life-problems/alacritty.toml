@@ -1,0 +1,32 @@
+# Life Problems
+[colors.primary]
+background = "#f1ead8"
+foreground = "#262626"
+
+[colors.cursor]
+text = "#f1ead8"
+cursor = "#262626"
+
+[colors.selection]
+text = "#262626"
+background = "#a2a39a"
+
+[colors.normal]
+black = "#e2dccb"
+red = "#c8553d"
+green = "#5f8f4e"
+yellow = "#b8902a"
+blue = "#3d6f9e"
+magenta = "#9a5a8a"
+cyan = "#3f8f8a"
+white = "#262626"
+
+[colors.bright]
+black = "#a2a39a"
+red = "#d27460"
+green = "#7ca36e"
+yellow = "#c5a450"
+blue = "#6089af"
+magenta = "#ac789f"
+cyan = "#62a39f"
+white = "#262626"

@@ -1,0 +1,32 @@
+# Nothing OS
+[colors.primary]
+background = "#000000"
+foreground = "#f2f2f2"
+
+[colors.cursor]
+text = "#000000"
+cursor = "#f2f2f2"
+
+[colors.selection]
+text = "#f2f2f2"
+background = "#2a2a2a"
+
+[colors.normal]
+black = "#141414"
+red = "#d71921"
+green = "#bdbdbd"
+yellow = "#e8e8e8"
+blue = "#a8a8a8"
+magenta = "#d71921"
+cyan = "#d0d0d0"
+white = "#f2f2f2"
+
+[colors.bright]
+black = "#2a2a2a"
+red = "#ff3b44"
+green = "#d6d6d6"
+yellow = "#ffffff"
+blue = "#c4c4c4"
+magenta = "#ff3b44"
+cyan = "#e6e6e6"
+white = "#ffffff"

@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Which shell pieces run. The core shell (qs -c fluidity: island, notifications, OSD) always runs.
+#   keyboard mode: the Fluidity bar, or the theme's own bar when it has a `shell` file
+#   mac mode:      the Tahoe dock (qs -c dock) and menu bar (qs -c tahoe-bar)
+#   fluidity-mode start | current | toggle | keyboard | mac
+set -uo pipefail
+root=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)
+themes=${FLUIDITY_THEMES:-$root/themes}
+link=${FLUIDITY_THEME_LINK:-$HOME/.config/fluidity/theme}
+state=${FLUIDITY_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/fluidity}
+MAC_THEME=tahoe
+
+theme() { [[ -L $link ]] && basename "$(readlink "$link")"; }
+current() { cat "$link/mode" 2>/dev/null || echo keyboard; }
+running() { pgrep -f "qs -c $1" >/dev/null 2>&1; }
+start() { running "$1" || setsid -f qs -c "$1" >/dev/null 2>&1; }
+stop() { pkill -f "qs -c $1" >/dev/null 2>&1; }
+bar() { qs -c fluidity ipc call bar "$1" >/dev/null 2>&1; }
+
+start_pieces() {
+  local own="" f n
+  own=$(cat "$link/shell" 2>/dev/null)
+  start fluidity
+  for f in "$themes"/*/shell; do       # every theme shell except this theme's own
+    [[ -f $f ]] || continue
+    n=$(cat "$f"); [[ $n != "$own" ]] && stop "$n"
+  done
+  case $(current) in
+    mac) stop "${own:-none}"; start dock; start tahoe-bar; bar hide ;;
+    *) stop dock; stop tahoe-bar
+       if [[ -n $own ]]; then start "$own"; bar hide; else bar show; fi ;;
+  esac
+}
+
+go_mac() { mkdir -p "$state"; theme >"$state/last-keyboard-theme"; fluidity-theme set "$MAC_THEME"; }
+go_keyboard() { fluidity-theme set "$(cat "$state/last-keyboard-theme" 2>/dev/null || echo fluid)"; }
+
+case ${1:-} in
+  start) start_pieces ;;
+  current) current ;;
+  toggle) if [[ $(current) == mac ]]; then go_keyboard; else go_mac; fi ;;
+  mac) [[ $(current) == mac ]] || go_mac ;;
+  keyboard) [[ $(current) == mac ]] && go_keyboard ;;
+  *) sed -n '6p' "$0" | sed 's/^# //' >&2; exit 1 ;;
+esac

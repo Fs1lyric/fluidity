@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+# Switch the theme. Each theme is a folder in themes/; ~/.config/fluidity/theme links to the current one,
+# and Hyprland, the shell and the terminals read their colours from there.
+#   fluidity-theme list | current | mode | json | rows | set NAME | next
+set -uo pipefail
+root=$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)
+themes=${FLUIDITY_THEMES:-$root/themes}
+link=${FLUIDITY_THEME_LINK:-$HOME/.config/fluidity/theme}
+cache=${FLUIDITY_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/fluidity}
+
+die() { echo "fluidity-theme: $*" >&2; exit 1; }
+names() { local d; for d in "$themes"/*/; do [[ -d $d ]] && basename "$d"; done | sort; }
+current() { [[ -L $link ]] && basename "$(readlink "$link")"; }
+mode_of() { cat "$themes/$1/mode" 2>/dev/null || echo keyboard; }
+
+json() {
+  local cur n d title first=1 wall
+  cur=$(current)
+  printf '['
+  for n in $(names); do
+    ((first)) || printf ','; first=0
+    d=$themes/$n
+    title=$(cat "$d/TITLE" 2>/dev/null) || title=$(sed -E 's/(^|-)(.)/\1\u\2/g; s/-/ /g' <<<"$n")
+    wall=$(ls "$d"/wallpaper.* 2>/dev/null | head -1)
+    printf '{"name":"%s","title":"%s","tagline":"%s","wallpaper":"%s","preview":"%s","mode":"%s","current":%s,"colors":{' \
+      "$n" "$title" "$(cat "$d/TAGLINE" 2>/dev/null)" "$wall" "$(preview_of "$n")" "$(mode_of "$n")" \
+      "$([[ $n == "$cur" ]] && echo true || echo false)"
+    sed -nE 's/^([a-z_]+) *= *"(#[0-9a-fA-F]{6})".*/"\1":"\2"/p' "$d/colors.toml" 2>/dev/null | paste -sd,
+    printf '}}'
+  done
+  printf ']\n'
+}
+
+# the picture the theme picker shows: preview.*, else the first background, else the wallpaper
+preview_of() {
+  local d=$themes/$1 f
+  for f in "$d"/preview.{png,jpg,jpeg,webp}; do [[ -f $f ]] && { echo "$f"; return; }; done
+  f=$(ls "$d"/backgrounds/* 2>/dev/null | sort | head -1)
+  [[ -n $f ]] && { echo "$f"; return; }
+  ls "$d"/wallpaper.* 2>/dev/null | head -1
+}
+
+# rows for the slices picker: a folder of <theme>.<ext> links, printed "path<TAB>thumbnail"
+rows() {
+  local dir=$cache/theme-previews n p ext
+  rm -rf "$dir"; mkdir -p "$dir"
+  for n in $(names); do
+    p=$(preview_of "$n"); [[ -n $p ]] || continue
+    ext=${p##*.}; ext=${ext,,}
+    ln -s "$p" "$dir/$n.$ext"
+    printf '%s\t%s\n' "$dir/$n.$ext" "$dir/$n.$ext"
+  done
+}
+
+set_theme() {
+  local name=$1 old
+  [[ -n $name && -d $themes/$name ]] || die "no theme called '$name' (try: fluidity-theme list)"
+  [[ -e $link && ! -L $link ]] && die "$link is a real folder; move it away first"
+  old=$(current)
+  mkdir -p "$(dirname "$link")"
+  ln -sfn "$themes/$name" "$link"
+  hyprctl reload >/dev/null 2>&1
+  pkill -USR2 -x ghostty >/dev/null 2>&1   # Ghostty reloads its config on SIGUSR2
+  pkill -USR1 -x kitty >/dev/null 2>&1     # kitty on SIGUSR1
+  qs -c fluidity ipc call theme reload >/dev/null 2>&1  # file watchers miss a symlink swap
+  [[ $old != "$name" ]] && fluidity-wallpaper theme "$old" "$name" >/dev/null 2>&1
+  fluidity-mode start >/dev/null 2>&1
+  echo "$name"
+}
+
+case ${1:-} in
+  list) cur=$(current); for n in $(names); do [[ $n == "$cur" ]] && echo "* $n" || echo "  $n"; done ;;
+  current) current ;;
+  mode) mode_of "$(current)" ;;
+  json) json ;;
+  rows) rows ;;
+  set) set_theme "${2:-}" ;;
+  next)
+    mapfile -t all < <(names)
+    cur=$(current); i=0
+    for j in "${!all[@]}"; do [[ ${all[j]} == "$cur" ]] && i=$(((j + 1) % ${#all[@]})); done
+    set_theme "${all[i]}" ;;
+  *) sed -n '4p' "$0" | sed 's/^# //' >&2; exit 1 ;;
+esac

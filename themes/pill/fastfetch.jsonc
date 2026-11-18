@@ -1,0 +1,11 @@
+// Pill: plain fastfetch, the Arch logo in the theme's accent.
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  "logo": { "source": "arch", "color": { "1": "38;2;224;86;59", "2": "38;2;224;86;59" }, "padding": { "right": 3 } },
+  "display": {
+    "separator": "  ",
+    "color": { "keys": "38;2;255;154;100", "title": "38;2;224;86;59", "output": "38;2;230;214;203" }
+  },
+  "modules": ["title", "separator", "os", "kernel", "uptime", "packages", "shell", "wm", "terminal",
+              "cpu", "gpu", "memory", "disk", "break", "colors"]
+}

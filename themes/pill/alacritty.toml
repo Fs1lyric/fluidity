@@ -1,0 +1,32 @@
+# Pill
+[colors.primary]
+background = "#211711"
+foreground = "#e6d6cb"
+
+[colors.cursor]
+text = "#211711"
+cursor = "#ff9a64"
+
+[colors.selection]
+text = "#e6d6cb"
+background = "#3a2a22"
+
+[colors.normal]
+black = "#2e231b"
+red = "#e0533f"
+green = "#a9b98a"
+yellow = "#e6c38a"
+blue = "#9aa9c9"
+magenta = "#c98aa0"
+cyan = "#9cc3b8"
+white = "#e6d6cb"
+
+[colors.bright]
+black = "#6f635b"
+red = "#ff6d55"
+green = "#c0d0a0"
+yellow = "#ffd9a0"
+blue = "#b4c2de"
+magenta = "#e0a4b9"
+cyan = "#b5dbd0"
+white = "#fff6f0"

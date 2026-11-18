@@ -1,0 +1,32 @@
+# Lavender
+[colors.primary]
+background = "#c6c1f4"
+foreground = "#2b2735"
+
+[colors.cursor]
+text = "#c6c1f4"
+cursor = "#faf2f2"
+
+[colors.selection]
+text = "#2b2735"
+background = "#85799e"
+
+[colors.normal]
+black = "#63617a"
+red = "#c75f7f"
+green = "#6f9a7b"
+yellow = "#c9a95a"
+blue = "#6f78c8"
+magenta = "#a06fb5"
+cyan = "#5f9aa8"
+white = "#faf2f2"
+
+[colors.bright]
+black = "#85799e"
+red = "#e08aa3"
+green = "#8fbf9c"
+yellow = "#e0c47a"
+blue = "#9aa2ec"
+magenta = "#c79ae0"
+cyan = "#86c4d2"
+white = "#ffffff"

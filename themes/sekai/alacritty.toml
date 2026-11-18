@@ -1,0 +1,32 @@
+# Sekai
+[colors.primary]
+background = "#f4f8fa"
+foreground = "#12404a"
+
+[colors.cursor]
+text = "#f4f8fa"
+cursor = "#12404a"
+
+[colors.selection]
+text = "#12404a"
+background = "#9eb8c8"
+
+[colors.normal]
+black = "#c9dfe6"
+red = "#d9566e"
+green = "#5c9a1a"
+yellow = "#c9a227"
+blue = "#4a78c8"
+magenta = "#8a6ad8"
+cyan = "#2b8fa6"
+white = "#12404a"
+
+[colors.bright]
+black = "#9eb8c8"
+red = "#e07488"
+green = "#79ac43"
+yellow = "#d3b34e"
+blue = "#6b90d2"
+magenta = "#9f85df"
+cyan = "#51a3b6"
+white = "#12404a"
