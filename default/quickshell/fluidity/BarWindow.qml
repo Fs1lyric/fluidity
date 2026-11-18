@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
+import Quickshell.Services.SystemTray as Tray
 import "views"
 
 // One per screen: the three pills on top. Its island plays the passive views (notification, volume OSD) and
@@ -17,7 +18,7 @@ PanelWindow {
     color: "transparent"
     WlrLayershell.namespace: "fluidity-bar"
     WlrLayershell.layer: WlrLayer.Top
-    Region { id: shownMask; item: bar.children[0]; Region { item: island } Region { item: rightHit } Region { item: bar.appsItem } }
+    Region { id: shownMask; item: bar.children[0]; Region { item: island } Region { item: bar.rightItem } Region { item: bar.appsItem } }
     Region { id: hiddenMask }
     mask: Island.barShown ? shownMask : hiddenMask
 
@@ -60,10 +61,18 @@ PanelWindow {
         battery: Status.battery
         ai: Status.ai
         apps: w.apps
+        weather: Status.weather
+        cpu: Math.round(Status.sys.cpu)
+        viz: Status.viz
+        kb: Status.kb
+        bt: Status.bt
+        tray: Array.from(Tray.SystemTray.items?.values ?? []).map(t => ({ icon: t.icon, title: t.tooltipTitle || t.title || t.id }))
+        onTrayClicked: (i, b) => { const t = Array.from(Tray.SystemTray.items?.values ?? [])[i]; if (!t) return;
+            if (b === Qt.RightButton && t.hasMenu) t.display(w, bar.rightItem.x, 56); else if (b === Qt.MiddleButton) t.secondaryActivate(); else t.activate() }
+        onFaceClicked: v => Island.toggle(v, "")
         onAppClicked: (v, a) => Island.toggle(v, a)
         onWorkspaceClicked: id => Hyprland.dispatch(`hl.dsp.focus({ workspace = "${id}" })`)
     }
-    Item { id: rightHit; anchors.right: parent.right; y: 14; width: 420; height: 40 }
 
     IslandView {
         id: island

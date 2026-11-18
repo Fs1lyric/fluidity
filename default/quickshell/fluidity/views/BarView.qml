@@ -4,7 +4,7 @@ import QtQuick
 // drawn by the shell on top. Pure view for tools/render.py.
 Item {
     id: bar
-    property var pal: ({ accent: "#d7e59b", cyan: "#c2e6d6", fg: "#e3e4da", dim: "#878880", muted: "#3a3f45" })
+    property var pal: ({ accent: "#d7e59b", cyan: "#c2e6d6", fg: "#e3e4da", dim: "#878880", muted: "#3a3f45", red: "#f2a7a7" })
     property bool animate: true
     property var workspaces: []   // [{id, active, occupied}]
     property string wifi: ""
@@ -13,9 +13,18 @@ Item {
     property int battery: -1
     property int ai: -1           // AI usage percent, -1 hides it
     property string aiName: "claude"
+    property string weather: ""   // "glyph 14°", "" hides it
+    property int cpu: -1          // load percent, -1 hides it
+    property var viz: []          // a few bars 0..1 while music plays
+    property string kb: ""        // keyboard layout, "" when there is only one
+    property int bt: -1           // -1 no adapter / off, 0 on, n connected devices
+    property var tray: []         // [{icon, title}]
+    signal trayClicked(int index, int button)
+    signal faceClicked(string view)
     property var apps: []         // [{icon, view}]: the app row, each opens its island view
     property int appIndex: -1     // highlighted button (keyboard or hover), -1 none
     readonly property alias appsItem: appsPill  // for the window's input mask
+    readonly property alias rightItem: right
     readonly property string mono: "JetBrainsMono Nerd Font"
     implicitHeight: 54
 
@@ -92,6 +101,27 @@ Item {
         Row {
             id: rrow
             anchors.centerIn: parent; spacing: 16
+            Row { // tray
+                visible: bar.tray.length > 0; spacing: 8; anchors.verticalCenter: parent.verticalCenter
+                Repeater { model: bar.tray
+                    Item { width: 18; height: 18
+                        Image { anchors.fill: parent; source: modelData.icon || ""; sourceSize.width: 36; sourceSize.height: 36; smooth: true; visible: !!modelData.icon }
+                        Rectangle { anchors.fill: parent; radius: 9; visible: !modelData.icon; color: Qt.rgba(1, 1, 1, 0.12)
+                            Text { anchors.centerIn: parent; text: (modelData.title || "?")[0]; color: bar.pal.fg; font.pixelSize: 10; font.family: bar.mono } }
+                        MouseArea { anchors.fill: parent; acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton; onClicked: e => bar.trayClicked(index, e.button) } } }
+            }
+            Row { // mini visualizer
+                visible: bar.viz.length > 0; spacing: 2; height: 16; anchors.verticalCenter: parent.verticalCenter
+                Repeater { model: bar.viz
+                    Rectangle { width: 3; radius: 1.5; anchors.bottom: parent.bottom; height: Math.max(3, 16 * modelData); color: index % 2 ? bar.pal.cyan : bar.pal.accent } }
+            }
+            Text { visible: bar.weather !== ""; text: bar.weather; color: bar.pal.fg; font.family: bar.mono; font.pixelSize: 13
+                MouseArea { anchors.fill: parent; onClicked: bar.faceClicked("calendar") } }
+            Text { visible: bar.cpu >= 0; text: "󰍛 " + bar.cpu; color: bar.cpu >= 85 ? bar.pal.red : bar.pal.fg; font.family: bar.mono; font.pixelSize: 13
+                MouseArea { anchors.fill: parent; onClicked: bar.faceClicked("syspanel") } }
+            Text { visible: bar.kb !== ""; text: "󰌌 " + bar.kb; color: bar.pal.fg; font.family: bar.mono; font.pixelSize: 13 }
+            Text { visible: bar.bt >= 0; text: bar.bt > 0 ? "󰂱 " + bar.bt : "󰂯"; color: bar.bt > 0 ? bar.pal.accent : bar.pal.fg; font.family: bar.mono; font.pixelSize: 13
+                MouseArea { anchors.fill: parent; onClicked: bar.faceClicked("bluetooth") } }
             Text { visible: bar.wifi !== ""; text: bar.wifi; color: bar.pal.fg; font.family: bar.mono; font.pixelSize: 13 }
             Text { visible: bar.volume >= 0; text: (bar.muted ? "󰝟" : "󰕾") + "  " + bar.volume; color: bar.pal.fg; font.family: bar.mono; font.pixelSize: 13 }
             Text { visible: bar.battery >= 0; text: "󰁹 " + bar.battery; color: bar.battery <= 15 ? bar.pal.red : bar.pal.fg; font.family: bar.mono; font.pixelSize: 13 }

@@ -144,6 +144,10 @@ GUIDE = [dict(icon="󰍜", title="The bar", body="Left: the droplet and your wor
          dict(icon="󰸉", title="Wallpaper"), dict(icon="󰔟", title="Wellbeing")]
 scenario("guide", "IslandView", dict(view="guide", index=0, app=dict(pages=GUIDE, page=0, focus="pages")))
 
+scenario("bar-faces", "BarView", dict(workspaces=[dict(id=1, active=True, occupied=True), dict(id=2, occupied=True), dict(id=3)],
+         wifi="\U000f05a9", volume=64, battery=14, ai=68, apps=BAR_APPS, weather="\U000f0599 14°", cpu=23, viz=[0.3, 0.8, 0.5, 0.9, 0.4, 0.6],
+         kb="us", bt=1, tray=[dict(icon="", title="Proton VPN"), dict(icon="", title="Vesktop")]), place="fill")
+
 PLACES = {"island": "anchors.horizontalCenter: parent.horizontalCenter; y: 14", "fill": "anchors.fill: parent"}
 MAIN = """import QtQuick
 import QtQuick.Window

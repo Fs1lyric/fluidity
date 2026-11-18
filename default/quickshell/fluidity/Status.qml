@@ -3,6 +3,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.UPower
+import Quickshell.Services.Mpris
+import Quickshell.Hyprland
 
 // Slow-moving facts for the bar and the desktop: clock, Wi-Fi, battery, AI usage, system load, today's plan.
 Singleton {
@@ -16,6 +18,78 @@ Singleton {
     property string wifi: ""
     readonly property int battery: UPower.displayDevice?.isLaptopBattery ? Math.round(UPower.displayDevice.percentage * 100) : -1
     property int ai: -1
+    // bar faces
+    property string weather: ""
+    property string weatherText: ""
+    property var viz: []
+    property string kb: ""
+    property int bt: -1
+    readonly property bool playing: Mpris.players.values.some(p => p.isPlaying)
+    function notify(title, body, icon) { Quickshell.execDetached(["notify-send", "-a", "Fluidity", "-i", icon || "dialog-information", title, body || ""]) }
+
+    // weather from wttr.in (by your IP) every 30 min; a storm, heavy rain or snow is announced once a day
+    readonly property var weatherGlyphs: [[/thunder/i, "󰙾"], [/snow|sleet|blizzard/i, "󰖘"], [/rain|drizzle|shower/i, "󰖗"], [/fog|mist|haze/i, "󰖑"],
+                                          [/overcast|cloud/i, "󰖐"], [/partly/i, "󰖕"], [/clear|sunny/i, "󰖙"]]
+    Timer { interval: 1800000; running: true; repeat: true; triggeredOnStart: true; onTriggered: weatherProc.running = true }
+    Process {
+        id: weatherProc
+        command: ["curl", "-fsm", "8", "https://wttr.in/?format=%t|%C"]
+        stdout: StdioCollector { onStreamFinished: {
+            const p = String(text).trim().split("|");
+            if (p.length < 2 || !/°/.test(p[0])) return;
+            const cond = p[1], g = (st.weatherGlyphs.find(x => x[0].test(cond)) || [null, "󰖐"])[1];
+            st.weather = g + " " + p[0].replace(/^\+/, "").replace(/C$|F$/, "");
+            st.weatherText = cond;
+            const bad = /thunder|heavy|torrential|blizzard|snow/i.test(cond), day = Qt.formatDate(new Date(), "yyyy-MM-dd");
+            if (bad && st.alerted !== day + cond) { st.alerted = day + cond; st.notify("Weather: " + cond, p[0] + " outside right now", "weather-storm"); }
+        } }
+    }
+    property string alerted: ""
+
+    // battery: low at 15 % (and 5 %), charged at 100 %
+    property int battWarned: 101
+    onBatteryChanged: {
+        const dev = UPower.displayDevice;
+        if (battery < 0 || !dev) return;
+        const charging = dev.state === UPowerDeviceState.Charging || dev.state === UPowerDeviceState.FullyCharged || dev.state === UPowerDeviceState.PendingCharge;
+        if (!charging && (battery <= 5 && battWarned > 5 || battery <= 15 && battWarned > 15)) { battWarned = battery; notify("Battery low", battery + "% left. Plug in soon.", "battery-caution"); }
+        if (charging) battWarned = 101;
+        if (charging && battery >= 100 && !fullSaid) { fullSaid = true; notify("Battery charged", "100%. You can unplug.", "battery-full-charged"); }
+        if (battery < 95) fullSaid = false;
+    }
+    property bool fullSaid: false
+
+    // keyboard layout: shown only when more than one is set up
+    Process {
+        id: kbProc
+        running: true
+        command: ["sh", "-c", "hyprctl getoption input:kb_layout -j 2>/dev/null | jq -r '.str // empty'; hyprctl devices -j 2>/dev/null | jq -r '[.keyboards[] | select(.main)][0].active_keymap // empty'"]
+        stdout: StdioCollector { onStreamFinished: { const l = String(text).split("\n"); st.multiKb = (l[0] || "").includes(","); if (st.multiKb) st.kb = st.shortKb(l[1] || ""); } }
+    }
+    property bool multiKb: false
+    function shortKb(name) { const m = { english: "us", german: "de", french: "fr", spanish: "es", bengali: "bn", arabic: "ar", russian: "ru", japanese: "ja" };
+        const w = name.toLowerCase().split(/[ (]/)[0]; return m[w] || w.slice(0, 2) }
+    Connections {
+        target: Hyprland
+        function onRawEvent(e) { if (e.name === "activelayout" && st.multiKb) st.kb = st.shortKb(e.data.split(",").slice(1).join(",")) }
+    }
+
+    // bluetooth: hidden when there is no adapter or it is off
+    Timer { interval: 30000; running: true; repeat: true; triggeredOnStart: true; onTriggered: if (!btProc.running) btProc.running = true }
+    Process {
+        id: btProc
+        command: ["sh", "-c", "timeout 3 bluetoothctl show 2>/dev/null | grep -q 'Powered: yes' || { echo -1; exit; }; timeout 3 bluetoothctl devices Connected 2>/dev/null | grep -c '^Device'"]
+        stdout: StdioCollector { onStreamFinished: st.bt = parseInt(text) >= 0 ? parseInt(text) : -1 }
+    }
+
+    // a six-bar visualizer for the bar while music plays
+    Process {
+        id: vizProc
+        running: st.playing
+        command: ["sh", "-c", "c=${XDG_RUNTIME_DIR:-/tmp}/fluidity-cava-bar.conf; printf '[general]\\nbars = 6\\nframerate = 20\\n[output]\\nmethod = raw\\nraw_target = /dev/stdout\\ndata_format = ascii\\nascii_max_range = 100\\nbar_delimiter = 59\\n' > \"$c\"; exec cava -p \"$c\""]
+        stdout: SplitParser { onRead: line => st.viz = line.split(";").filter(x => x !== "").map(x => Number(x) / 100) }
+        onRunningChanged: if (!running) st.viz = []
+    }
     property var sys: ({ cpu: 0, ram: 0, temp: 0, disk: 0 })
     property var agenda: []
     property var cpuLast: null
