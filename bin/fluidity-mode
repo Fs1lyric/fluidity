@@ -12,9 +12,9 @@ MAC_THEME=tahoe
 
 theme() { [[ -L $link ]] && basename "$(readlink "$link")"; }
 current() { cat "$link/mode" 2>/dev/null || echo keyboard; }
-running() { pgrep -f "qs -c $1" >/dev/null 2>&1; }
+running() { pgrep -f "qs -c $1( |$)" >/dev/null 2>&1; }
 start() { running "$1" || setsid -f qs -c "$1" >/dev/null 2>&1; }
-stop() { pkill -f "qs -c $1" >/dev/null 2>&1; }
+stop() { pkill -f "qs -c $1( |$)" >/dev/null 2>&1; }
 bar() { qs -c fluidity ipc call bar "$1" >/dev/null 2>&1; }
 
 start_pieces() {

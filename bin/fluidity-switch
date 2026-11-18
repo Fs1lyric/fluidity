@@ -24,7 +24,7 @@ case ${1:-} in
     FLUIDITY_TAKEOVER=1 FLUIDITY_BACKUP=$backup FLUIDITY_NO_LIVE=1 bash "$ROOT/install.sh" || exit 1
     [[ -f $rec/lyric-theme ]] && ln -sfn "$CONFIG/fluidity/theme" "$CONFIG/lyric-theme"   # old apps follow the Fluidity theme
     if live; then
-      for s in lyric luminescent dock $(cat "$ROOT"/themes/*/shell 2>/dev/null | sort -u); do pkill -f "qs -c $s\b" 2>/dev/null; done
+      for s in lyric luminescent dock $(cat "$ROOT"/themes/*/shell 2>/dev/null | sort -u); do pkill -f "qs -c $s( |$)" 2>/dev/null; done
       hyprctl reload >/dev/null; "$ROOT/bin/fluidity-mode" start; "$ROOT/bin/fluidity-wallpaper" restore >/dev/null 2>&1
     fi
     echo "Fluidity is on. Backups: $backup. To undo: fluidity-switch back" ;;
@@ -48,7 +48,7 @@ case ${1:-} in
     sed -i '\#/hypr/#d' "$STATE/installed-files" 2>/dev/null
     rm -rf "$rec"
     if live; then
-      pkill -f "qs -c fluidity" 2>/dev/null; pkill -f "qs -c tahoe-bar" 2>/dev/null
+      pkill -f "qs -c fluidity( |$)" 2>/dev/null; pkill -f "qs -c tahoe-bar( |$)" 2>/dev/null
       hyprctl reload >/dev/null
       command -v lyric-shell >/dev/null && setsid -f uwsm-app -- qs -c lyric >/dev/null 2>&1
       command -v lyric-theme >/dev/null && lyric-theme shell >/dev/null 2>&1

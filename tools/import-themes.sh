@@ -15,6 +15,7 @@ done
 cat > "$dst/fluid/hyprland-final.lua" <<'LUA'
 -- Fluid is Fluidity's default theme: its feel is default/hypr/liquid.lua, nothing to override here.
 LUA
+rm -f "$dst/fluid/shell"   # Fluid IS the Fluidity shell: no theme shell of its own
 echo "imported $(ls "$dst" | wc -l) themes into $dst"
 
 # The per-theme Quickshell shells (a theme's `shell` file names one) and their shared widgets.

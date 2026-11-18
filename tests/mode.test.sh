@@ -45,5 +45,11 @@ ln -sfn "$FLUIDITY_THEMES/tahoe" "$FLUIDITY_THEME_LINK"; : >"$LOG"
 fluidity-mode toggle >/dev/null
 name="toggle back returns to the remembered theme"; t called "fluidity-theme set fluid"
 
+# a theme shell called "fluid" must not be mistaken for the core shell "fluidity" (or the other way round)
+fresh; theme fluid keyboard shell=fluid; touch "$SANDBOX/running-fluidity"
+fluidity-mode start >/dev/null
+name="a running fluidity does not count as a running fluid"; t started fluid
+name="stopping a theme shell can't hit fluidity"; if grep -q 'pkill -f qs -c fluid( |$)' "$LOG" || ! grep -q 'pkill -f qs -c fluidity$' "$LOG"; then ok "$name"; else fail "$name" "$(calls | paste -sd';')"; fi
+
 status "unknown command fails" 1 fluidity-mode bogus
 done_testing

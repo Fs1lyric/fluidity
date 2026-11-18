@@ -12,7 +12,7 @@ sandbox() {
   for s in hyprctl qs pkill setsid notify-send awww fluidity-wallpaper fluidity-mode; do
     printf '#!/usr/bin/env bash\necho "%s $*" >> %q\n' "$s" "$LOG" >"$SANDBOX/stubs/$s"
   done
-  printf '#!/usr/bin/env bash\necho "pgrep $*" >> %q\n[[ -e %q/running-${2##* } ]]\n' "$LOG" "$SANDBOX" >"$SANDBOX/stubs/pgrep"
+  printf '#!/usr/bin/env bash\necho "pgrep $*" >> %q\nfor f in %q/running-*; do [[ -e $f ]] && echo "qs -c ${f##*/running-}"; done | grep -qE -- "$2"\n' "$LOG" "$SANDBOX" >"$SANDBOX/stubs/pgrep"
   chmod +x "$SANDBOX/stubs/"*
   export PATH=$SANDBOX/stubs:$PATH
 }

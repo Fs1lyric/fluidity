@@ -25,5 +25,5 @@ for m in "$ROOT"/migrations/*.sh; do
   (source "$m") && echo "$n" >>"$done"
 done
 FLUIDITY_SKIP_PACKAGES=${FLUIDITY_SKIP_PACKAGES:-} bash "$ROOT/install.sh" >/dev/null || echo "fluidity-update: install step failed" >&2
-if [[ -n ${HYPRLAND_INSTANCE_SIGNATURE:-} ]]; then hyprctl reload >/dev/null 2>&1; pkill -f "qs -c fluidity"; fluidity-mode start; fi
+if [[ -n ${HYPRLAND_INSTANCE_SIGNATURE:-} ]]; then hyprctl reload >/dev/null 2>&1; pkill -f "qs -c fluidity( |$)"; fluidity-mode start; fi
 echo "Fluidity is up to date"
