@@ -1,0 +1,55 @@
+# Fluidity's packages. Repo packages install with pacman, the rest from the AUR. One per line; # comments.
+# desktop
+hyprland
+uwsm
+xdg-desktop-portal-hyprland
+hyprpolkitagent
+quickshell
+awww
+hypridle
+hyprlock
+hyprsunset
+hyprpicker
+# terminal and shell
+ghostty
+xdg-terminal-exec
+starship
+fastfetch
+btop
+neovim
+# capture, clipboard, typing
+grim
+slurp
+wl-clipboard
+cliphist
+wtype
+tesseract
+tesseract-data-eng
+gpu-screen-recorder
+wl-kbptr
+# system
+networkmanager
+bluez-utils
+pipewire
+pipewire-pulse
+wireplumber
+brightnessctl
+ddcutil
+playerctl
+upower
+udiskie
+libnotify
+zenity
+sqlite
+jq
+lua
+imagemagick
+ffmpeg
+# fonts and icons (Geist + Instrument Serif ship with Fluidity in default/fonts)
+ttf-jetbrains-mono-nerd
+noto-fonts-emoji
+papirus-icon-theme
+# apps
+zen-browser-bin
+helium-browser-bin
+nautilus
