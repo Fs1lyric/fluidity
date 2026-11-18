@@ -222,18 +222,28 @@ Not verified / not done:
 - Cheat sheet can't replay a bind (Hyprland's Lua binds report function refs); Enter just closes it.
 
 ## Next: the Fluid showcase apps in the Fluidity bar (asked 2026-11-18)
-User: "the video had so many showcased custom apps i want those too and easily accessible in my top bar".
-Source look: ilyamiro/nixos-configuration src/quickshell (the Fluid r/unixporn post). Rebuild in Fluidity's own
-shell (default/quickshell/fluidity, the live `qs -c fluidity`), not the Luminescent fluid shell. Already in
-Fluidity: launcher, emoji, clipboard, wallpaper, screenshot, notifications, power, control, timer, volume OSD.
-Every new view opens in the island, has a key (leader + one-chord), and a bar button. One commit per step,
-render test first (tests/render.test.sh + tools/render.py, off-screen; never open windows on the live screen).
-1. Bar app row: a third pill of icon buttons (launcher, music, calendar, wifi, bluetooth, wallpaper, clipboard,
-   screenshot, notes), click opens the island view; pure BarView props so render.py can draw it.
-2. Calendar dashboard: month grid + today's Calendio blocks + sun arc (sunrise/sunset); clock click opens it.
-3. Music player: art (vinyl spin), title/artist, seek bar, prev/play/next, cava strip; song pill click opens it.
-   Lyrics later (needs a lyrics source; lrclib.net, no key).
-4. Network cards: Wi-Fi list + connect (nmcli), Bluetooth devices + connect (bluetoothctl); wifi pill opens it.
-5. Desktop widgets (DesktopView, toggled by fluidity-widgets): weather (wttr.in), CPU/RAM/temp rings,
-   visualizer, quick notes (a text file in ~/.local/share/fluidity/notes.md).
-6. Dock: Fluid-theme only, bottom, keyboard reachable (user said include it).
+User: "the video had so many showcased custom apps i want those too and easily accessible in my top bar",
+"that motherfucker has so many apps just look at the video". Source = his repo's folders (the video shows these):
+ilyamiro/nixos-configuration src/quickshell (`gh api repos/ilyamiro/nixos-configuration/git/trees/HEAD?recursive=1`).
+Rebuild in Fluidity's own shell (default/quickshell/fluidity, the live `qs -c fluidity`), our look, keyboard-first.
+Each app: an island view, a key, a button in the bar app row. Render test first (tools/render.py scenario +
+tests/render.test.sh, Xvfb off-screen; never a window on the live screen). One commit per app.
+
+Already in Fluidity: launcher, emoji, clipboard, wallpaper, screenshot, notifications, power, control,
+focus timer, volume OSD, switcher, cheat sheet, layouts, desktop clock + Calendio cards.
+Step 1 DONE: bar app row (BarView apps/appIndex/appClicked, BarWindow apps list), buttons for the views that exist.
+
+His apps still to build, in this order:
+2. calendar: month grid + today's Calendio blocks + sun arc; clock click opens it.
+3. media: music player (art, title, seek, prev/play/next, cava strip; lyrics via lrclib.net later).
+4. network: Wi-Fi list + connect (nmcli). 5. bluetooth: devices + connect (bluetoothctl).
+6. syspanel: CPU/RAM/temp/disk/battery + brightness/volume sliders. 7. quickactions: grid of toggles
+   (night light, DND, caffeine, VPN, mic, airplane) + power.
+8. guide: an in-shell settings/help app (pages: bar, display, notifications, screenshot, theme, wallpaper, wellbeing).
+9. wellbeing: screen time per app today (from hyprland focus log), break reminders.
+10. bar faces in the right pill: weather (wttr.in), sysmon, visualizer, tray, keyboard layout, bluetooth, battery.
+11. desktop widgets (DesktopView, fluidity-widgets toggles each): clock, weather, github contribution graph,
+    music, visualizer, usage, timer, notes (~/.local/share/fluidity/notes.md), battery, image, text, user card.
+12. notifications extras: battery low/charged + weather alerts as island notifications.
+13. polkit agent (password prompt in the island), lock redactor (hyprlock blurs/redacts), idle screen.
+14. dock: Fluid-theme only, bottom, keyboard reachable (user said include it).

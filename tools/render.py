@@ -88,6 +88,11 @@ scenario("notifications", "IslandView", dict(view="notifications", index=0, item
          dict(icon="", title="2 new messages", desc="Vesktop", meta="3m")]))
 scenario("bar", "BarView", dict(workspaces=[dict(id=1, active=True, occupied=True), dict(id=2, occupied=True), dict(id=3, occupied=True), dict(id=4), dict(id=5)],
          wifi="", volume=64, battery=88, ai=68), place="fill")
+BAR_APPS = [dict(icon="\U000f003b", view="launcher"), dict(icon="\U000f075a", view="music"), dict(icon="\U000f00ed", view="calendar"),
+            dict(icon="\U000f05a9", view="network"), dict(icon="\U000f00af", view="bluetooth"), dict(icon="\U000f0e09", view="wallpaper"),
+            dict(icon="\U000f014c", view="clipboard"), dict(icon="\U000f0e51", view="screenshot"), dict(icon="\U000f009a", view="notifications")]
+scenario("bar-apps", "BarView", dict(workspaces=[dict(id=1, active=True, occupied=True), dict(id=2, occupied=True), dict(id=3)],
+         wifi="", volume=64, battery=88, ai=68, apps=BAR_APPS, appIndex=1), place="fill")
 scenario("desktop", "DesktopView", dict(media=dict(title="Kokoro", artist="Tycho · Weather", progress=0.42, position="1:42", length="4:03", playing=True),
          agenda=[dict(time="09:00", title="Art · gesture drawing", sub="45 min", color=PAL["magenta"], done=True),
                  dict(time="10:00", title="Code · Fluidity shell", sub="now · 1h 20m left", color=PAL["accent"], now=True),

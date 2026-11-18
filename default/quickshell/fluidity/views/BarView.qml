@@ -13,10 +13,14 @@ Item {
     property int battery: -1
     property int ai: -1           // AI usage percent, -1 hides it
     property string aiName: "claude"
+    property var apps: []         // [{icon, view}]: the app row, each opens its island view
+    property int appIndex: -1     // highlighted button (keyboard or hover), -1 none
+    readonly property alias appsItem: appsPill  // for the window's input mask
     readonly property string mono: "JetBrainsMono Nerd Font"
     implicitHeight: 54
 
     signal workspaceClicked(int id)
+    signal appClicked(string view)
 
     Glass {
         id: left
@@ -47,6 +51,35 @@ Item {
                         Gradient { id: g; orientation: Gradient.Horizontal; GradientStop { position: 0; color: bar.pal.accent } GradientStop { position: 1; color: bar.pal.cyan } }
                         MouseArea { anchors.fill: parent; anchors.margins: -6; onClicked: bar.workspaceClicked(modelData.id) }
                     }
+                }
+            }
+        }
+    }
+
+    Glass { // the app row: the Fluid showcase apps, one click away
+        id: appsPill
+        visible: bar.apps.length > 0
+        pal: bar.pal; tint: 0.72
+        x: left.x + left.width + 10; y: 14; height: 40; width: arow.width + 12
+        Row {
+            id: arow
+            anchors.centerIn: parent; spacing: 2
+            Repeater {
+                model: bar.apps
+                Rectangle {
+                    id: btn
+                    required property var modelData
+                    required property int index
+                    property bool lit: bar.appIndex === index || hover.containsMouse
+                    width: 32; height: 30; radius: 15
+                    color: lit ? Qt.rgba(1, 1, 1, 0.10) : "transparent"
+                    Behavior on color { enabled: bar.animate; ColorAnimation { duration: 120 } }
+                    Text {
+                        anchors.centerIn: parent; text: btn.modelData.icon
+                        color: btn.lit ? bar.pal.accent : bar.pal.fg
+                        font.family: bar.mono; font.pixelSize: 15
+                    }
+                    MouseArea { id: hover; anchors.fill: parent; hoverEnabled: true; onClicked: bar.appClicked(btn.modelData.view) }
                 }
             }
         }

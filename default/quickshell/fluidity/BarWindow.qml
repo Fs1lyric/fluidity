@@ -17,7 +17,7 @@ PanelWindow {
     color: "transparent"
     WlrLayershell.namespace: "fluidity-bar"
     WlrLayershell.layer: WlrLayer.Top
-    Region { id: shownMask; item: bar.children[0]; Region { item: island } Region { item: rightHit } }
+    Region { id: shownMask; item: bar.children[0]; Region { item: island } Region { item: rightHit } Region { item: bar.appsItem } }
     Region { id: hiddenMask }
     mask: Island.barShown ? shownMask : hiddenMask
 
@@ -30,6 +30,16 @@ PanelWindow {
         return out;
     }
 
+    // The app row. Each button opens its island view; views land here as they are built (PLAN.md, showcase apps).
+    readonly property var apps: [
+        { icon: "\u{f003b}", view: "launcher" },
+        { icon: "\u{f0e09}", view: "wallpaper" },
+        { icon: "\u{f014c}", view: "clipboard" },
+        { icon: "\u{f0e51}", view: "screenshot" },
+        { icon: "\u{f009a}", view: "notifications" },
+        { icon: "\u{f0493}", view: "control" }
+    ]
+
     BarView {
         id: bar
         visible: Island.barShown
@@ -41,6 +51,8 @@ PanelWindow {
         muted: Island.sink?.audio?.muted ?? false
         battery: Status.battery
         ai: Status.ai
+        apps: w.apps
+        onAppClicked: v => Island.toggle(v, "")
         onWorkspaceClicked: id => Hyprland.dispatch(`hl.dsp.focus({ workspace = "${id}" })`)
     }
     Item { id: rightHit; anchors.right: parent.right; y: 14; width: 420; height: 40 }
