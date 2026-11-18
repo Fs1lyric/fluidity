@@ -252,3 +252,16 @@ His apps still to build, in this order:
 12. notifications extras: battery low/charged + weather alerts as island notifications.
 13. polkit agent (password prompt in the island), lock redactor (hyprlock blurs/redacts), idle screen.
 14. dock: Fluid-theme only, bottom, keyboard reachable (user said include it).
+
+## Status 2026-11-18 night: every Fluid showcase app is built (steps 2-14)
+Each one is test-first: a render scenario (tools/render.py, 40 scenarios) plus a real-shell shot (tools/shell-shot.sh); `tests/run.sh` green.
+- Island apps (bar app row, leader `;` `u` + letter): calendar `c` (also a click on the island), media `m`, Wi-Fi `w`, Bluetooth `b`,
+  system `s`, quick actions `q`, wellbeing `h`, guide `g`, widgets picker `d`, dock keys `k`. Code: views/*App.qml on AppBase, Apps.qml.
+- Bar faces: tray, mini visualizer while playing, weather, CPU, keyboard layout (only with 2+), Bluetooth. Battery low/charged and storm alerts.
+- Desktop widgets (Widgets.qml, views/DesktopWidgets.qml): `fluidity-widgets list|all|add|remove|flip|pick`.
+- `fluidity-wellbeing` (minute samples, today JSON, 50-min nudge; in default autostart), `fluidity-lock redact on|off`, `fluidity-island idle on|off`.
+- Polkit agent in the island: only registers once hyprpolkitagent is off (`systemctl --user disable --now hyprpolkitagent`); tests set FLUIDITY_NO_POLKIT.
+- Fluid dock (DockWindow/Dock.qml): pinned list in ~/.config/fluidity/dock ("class command" per line), Fluid theme only.
+Not done live (the permission classifier blocked it): copy config/hypr/hypridle.conf to ~/.config/hypr/ and restart hypridle (idle screen),
+start `fluidity-wellbeing watch` now (otherwise it starts at the next login). Not driven by hand yet: typing a Wi-Fi password, pairing,
+the polkit prompt, lyrics on a real Spotify track.
