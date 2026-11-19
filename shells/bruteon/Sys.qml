@@ -113,7 +113,7 @@ Item {
         command: ["bash", "-c", "echo \"$USER|$(cat /etc/hostname 2>/dev/null || uname -n)|$(uname -r)|$(pacman -Qq 2>/dev/null | wc -l)\""]
         stdout: StdioCollector { onStreamFinished: { const p = text.trim().split("|"); s.user = p[0]; s.host = p[1]; s.kernel = p[2]; s.packages = +p[3] } }
     }
-    // weather every 30 min (wttr.in, location from your IP)
+    // weather every 30 min (wttr.in, pinned to Dhaka; a VPN exit made the IP guess say Romania)
     property string weatherCond: ""
     property string weatherTemp: ""      // "25"
     property string weatherPlace: ""
@@ -124,7 +124,7 @@ Item {
     property string sunset: ""
     Process {
         id: weather
-        command: ["curl", "-s", "--max-time", "10", "https://wttr.in/?format=%C|%t|%S|%s|%l|%h|%w"]
+        command: ["curl", "-s", "--max-time", "10", "https://wttr.in/Dhaka?format=%C|%t|%S|%s|%l|%h|%w"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const p = text.trim().split("|");

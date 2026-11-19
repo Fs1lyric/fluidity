@@ -13,7 +13,7 @@ case ${1:-} in
     info=$(upower -i "$b"); pct=$(awk '/percentage/ {print $2}' <<<"$info"); left=$(awk -F': *' '/time to (empty|full)/ {print $2}' <<<"$info")
     note "Battery $pct" "${left:-}" ;;
   time) note "$(date +'%A %-d %B')" "$(date +'%H:%M')" ;;
-  weather) note "Weather" "$(curl -fsS --max-time 5 'https://wttr.in/?format=%l:+%c+%t+(feels+%f),+%w' || echo unavailable)" ;;
+  weather) note "Weather" "$(curl -fsS --max-time 5 'https://wttr.in/Dhaka?format=%l:+%c+%t+(feels+%f),+%w' || echo unavailable)" ;;
   remind)
     in=${2:-}
     [[ -n $in ]] || in=$(zenity --entry --title=Reminder --text="Minutes, then the message (e.g. 25 stretch)" 2>/dev/null) || exit 0

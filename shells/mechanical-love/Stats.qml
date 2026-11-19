@@ -39,7 +39,7 @@ Item {
 
     Process {
         id: weather
-        command: ["curl", "-s", "--max-time", "10", "https://wttr.in/?format=%C|%t|%S|%s"]
+        command: ["curl", "-s", "--max-time", "10", "https://wttr.in/Dhaka?format=%C|%t|%S|%s"]
         stdout: StdioCollector {
             onStreamFinished: {
                 const p = text.trim().split("|");
