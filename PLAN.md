@@ -38,7 +38,8 @@ Every app key is **open-or-focus** (never a second copy, never on a hidden works
 | Super+I | Claude | AI ("intelligence") |
 | Super+U | Flowday | tasks ("up next") |
 | Super+Z | VS Code Insiders | code (Zed isn't installed) |
-| Super+R, Super+Y | free | yours to fill |
+| Super+F | Screen Time | day, week, month and year stats (2026-11-21); upstream full screen moved to Super+R |
+| Super+Y | free | yours to fill |
 | Super+Q | click hints | a letter on every clickable spot, type it to click (wl-kbptr, new package) |
 | Super+; | leader | next letter does a rare action; a small hint strip shows the letters |
 | Super+K | cheat sheet | upstream already shows keybinds here; rebuilt as a searchable, keyboard-only overlay |

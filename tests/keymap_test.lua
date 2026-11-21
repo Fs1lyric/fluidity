@@ -88,11 +88,16 @@ end
 
 -- Fluidity extras
 local extras = { ["SUPER + Q"] = "fluidity%-hints", ["SUPER + SEMICOLON"] = "fluidity%-leader",
-  ["SUPER + K"] = "fluidity%-island cheatsheet", ["SUPER + PERIOD"] = "fluidity%-island emoji" }
+  ["SUPER + K"] = "fluidity%-island cheatsheet", ["SUPER + PERIOD"] = "fluidity%-island emoji",
+  ["SUPER + F"] = "fluidity%-wellbeing app" }   -- you asked for Screen Time on Super+F (2026-11-21)
 for c, pat in pairs(extras) do
   local cmd = by[c] and type(by[c].dsp) == "table" and by[c].dsp.cmd or ""
   if cmd:match(pat) then ok(c .. " runs " .. pat:gsub("%%", "")) else fail(c .. " runs " .. pat:gsub("%%", ""), "got [" .. cmd .. "]") end
 end
+
+-- full screen moved off Super+F to the free Super+R
+if by["SUPER + R"] and by["SUPER + R"].opts.description == "Full screen" then ok("SUPER + R is full screen")
+else fail("SUPER + R is full screen", "got [" .. tostring(by["SUPER + R"] and by["SUPER + R"].opts.description) .. "]") end
 
 -- no old helper names leak into Fluidity
 local leaks = {}

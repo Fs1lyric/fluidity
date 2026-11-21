@@ -1,2 +1,2 @@
 -- Your bindings overrides. Loaded after the Fluidity defaults.
--- o.bind("SUPER + R", "Something", "my-command")   -- Super+R and Super+Y are left free for you
+-- o.bind("SUPER + Y", "Something", "my-command")   -- Super+Y is left free for you

@@ -4,6 +4,7 @@ o.bind("SUPER + SHIFT + RETURN", "Browser", { app = "browser" })
 o.bind("SUPER + SHIFT + B", "Browser", { app = "browser" })
 o.bind("SUPER + SHIFT + ALT + B", "Browser (private)", { app = "browser --private" })
 o.bind("SUPER + SHIFT + F", "File manager", { app = "files" })
+o.bind("SUPER + F", "Screen Time", "fluidity-wellbeing app")   -- full screen moved to Super+R
 o.bind("SUPER + ALT + SHIFT + F", "File manager (cwd)", { app = "files --cwd" })
 o.bind("SUPER + SHIFT + N", "Editor", { app = "editor" })
 o.bind("SUPER + CTRL + T", "Activity", { tui = "btop" })
