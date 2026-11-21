@@ -48,6 +48,19 @@ APPS = [dict(icon="", title="Calendio", desc="your day · math at 18:00", key
         dict(icon="", title="Cursorify", desc="cursor designer"),
         dict(icon="", title="Burrow", desc="files", keys=K("❖", "E"))]
 HINT = ["↵ open", "↑↓ move", "tab actions", "esc close"]
+WEEK = dict(start="2026-11-16", end="2026-11-22", total=1012, prev=870, days=6, avg=169, bars=[184, 142, 220, 201, 96, 169, 0],
+            apps=[dict(app="zen", minutes=388), dict(app="ghostty", minutes=301), dict(app="calendio", minutes=92), dict(app="obsidian", minutes=80),
+                  dict(app="sober", minutes=61), dict(app="vesktop", minutes=44), dict(app="spotify", minutes=30), dict(app="code", minutes=16)])
+ST = dict(size=(960, 680), place="fill")
+scenario("screentime-week", "ScreenTimeView", dict(d=WEEK, period="week", sel=2, now="2026-11-21T19"), **ST)
+scenario("screentime-day", "ScreenTimeView", dict(d=dict(WEEK, start="2026-11-21", end="2026-11-21", total=169, prev=96, days=1, avg=169,
+         bars=[0] * 9 + [40, 52, 30, 0, 10, 0, 0, 0, 18, 19, 0, 0, 0, 0, 0]), period="day", sel=-1, now="2026-11-21T19"), **ST)
+scenario("screentime-month", "ScreenTimeView", dict(d=dict(WEEK, start="2026-11-01", end="2026-11-30", total=4410, prev=0, days=21, avg=210,
+         bars=[0] * 9 + [180, 240, 200, 260, 150, 90, 210, 184, 142, 220, 201, 96, 169] + [0] * 9), period="month", sel=20, now="2026-11-21T19"), **ST)
+scenario("screentime-year", "ScreenTimeView", dict(d=dict(WEEK, start="2026-01-01", end="2026-12-31", total=9410, prev=12020, days=60, avg=157,
+         bars=[0] * 8 + [1200, 2600, 4410, 0]), period="year", sel=-1, now="2026-11-21T19"), **ST)
+scenario("screentime-empty", "ScreenTimeView", dict(d=dict(start="2001-01-01", end="2001-01-07", total=0, prev=0, days=0, avg=0, apps=[], bars=[0] * 7),
+         period="week", sel=-1, now="2026-11-21T19"), **ST)
 scenario("idle", "IslandView", dict(view="idle", song="Kokoro · Tycho", playing=True, clock="Wed 18 · 09:41"))
 scenario("idle-focus", "IslandView", dict(view="idle", song="Kokoro · Tycho", playing=True, clock="Wed 18 · 09:41", extra="focus 24:12"))
 scenario("idle-long", "IslandView", dict(view="idle", song="wtf is a \"Quant\"... (finance bro explains) · How People Make Money", playing=True,
@@ -64,7 +77,7 @@ scenario("clipboard", "IslandView", dict(view="clipboard", placeholder="search c
 G = lambda name, *b: dict(name=name, binds=[dict(desc=d, keys=k, on=o) for d, k, o in b])
 scenario("cheatsheet", "IslandView", dict(view="cheatsheet", query="sh", groups=[
     G("apps", ("Calendio", K("❖", "A"), False), ("Zen", K("❖", "B"), False), ("Spotify", K("❖", "M"), False), ("Obsidian", K("❖", "N"), False), ("Terminal", K("❖", "↵"), False)),
-    G("windows", ("Close", K("❖", "W"), False), ("Float / tile", K("❖", "T"), False), ("Fullscreen", K("❖", "F"), False), ("Toggle split", K("❖", "J"), False), ("Group", K("❖", "G"), False)),
+    G("windows", ("Close", K("❖", "W"), False), ("Float / tile", K("❖", "T"), False), ("Fullscreen", K("❖", "R"), False), ("Toggle split", K("❖", "J"), False), ("Group", K("❖", "G"), False)),
     G("capture", ("Screenshot", K("❖", ";", "S"), True), ("Record", K("❖", ";", "R"), False), ("OCR copy", K("❖", ";", "O"), False), ("Colour pick", K("❖", ";", "P"), False)),
     G("system", ("Launcher", K("❖", "Space"), False), ("Emoji", K("❖", "."), False), ("Clipboard", K("❖", "^", "V"), False), ("Click hints", K("❖", "Q"), False), ("Power", K("❖", "Esc"), False))]))
 LEAD = [dict(k=k, label=l) for k, l in [("s", "shot"), ("r", "record"), ("o", "ocr"), ("p", "colour"), ("c", "clipboard"), ("e", "emoji"), ("n", "night"),
