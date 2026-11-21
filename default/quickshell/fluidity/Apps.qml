@@ -13,7 +13,7 @@ Singleton {
     property string open: ""       // the app on screen, "" when none (polling runs only then)
     property var data: ({})
     // leader ; u: one letter per app
-    readonly property var leaderKeys: [{ k: "c", label: "calendar", open: "calendar" }, { k: "m", label: "media", open: "media" }, { k: "w", label: "wi-fi", open: "network" }, { k: "b", label: "bluetooth", open: "bluetooth" }, { k: "s", label: "system", open: "syspanel" }, { k: "q", label: "quick", open: "quickactions" }, { k: "h", label: "wellbeing", open: "wellbeing" }, { k: "g", label: "guide", open: "guide" }, { k: "d", label: "widgets", open: "widgets" }, { k: "k", label: "dock", open: "dockkeys" }]
+    readonly property var leaderKeys: [{ k: "c", label: "calendar", open: "calendar" }, { k: "m", label: "media", open: "media" }, { k: "w", label: "wi-fi", open: "network" }, { k: "b", label: "bluetooth", open: "bluetooth" }, { k: "s", label: "system", open: "syspanel" }, { k: "q", label: "quick", open: "quickactions" }, { k: "h", label: "screen time", run: "fluidity-wellbeing app" }, { k: "g", label: "guide", open: "guide" }, { k: "d", label: "widgets", open: "widgets" }, { k: "k", label: "dock", open: "dockkeys" }]
     readonly property string home: Quickshell.env("HOME")
     readonly property string stateDir: (Quickshell.env("XDG_STATE_HOME") || (home + "/.local/state")) + "/fluidity"
     readonly property string calDb: home + "/.local/share/calendio/cal.db"
@@ -372,8 +372,8 @@ Singleton {
           keys: [{ desc: "Wallpaper picker", keys: ["❖", "^", "Space"] }, { desc: "Next wallpaper", keys: ["❖", ";", "W"] }],
           actions: [{ label: "Wallpaper picker", open: "wallpaper" }, { label: "Next wallpaper", run: "fluidity-wallpaper next" }] },
         { icon: "󰔟", title: "Wellbeing", body: "One sample a minute of the app in front, kept on this PC only (~/.local/state/fluidity/wellbeing). After 50 minutes without a break you get a nudge. The focus timer runs 25 minutes with notifications off.",
-          keys: [{ desc: "Focus 25", keys: ["❖", ";", "F"] }, { desc: "Wellbeing", keys: ["❖", ";", "U", "H"] }],
-          actions: [{ label: "Screen time", open: "wellbeing" }, { label: "Start focus", run: "fluidity-focus toggle" }] },
+          keys: [{ desc: "Focus 25", keys: ["❖", ";", "F"] }, { desc: "Screen Time", keys: ["❖", "F"] }],
+          actions: [{ label: "Screen time", run: "fluidity-wellbeing app", close: true }, { label: "Start focus", run: "fluidity-focus toggle" }] },
         { icon: "󰀻", title: "Apps", body: "The Fluid apps: calendar, media, Wi-Fi, Bluetooth, system, quick actions, wellbeing and this guide. Each opens in the island, from the bar's app row or the apps leader row.",
           keys: [{ desc: "Calendar", keys: ["❖", ";", "U", "C"] }, { desc: "Media", keys: ["❖", ";", "U", "M"] }, { desc: "System", keys: ["❖", ";", "U", "S"] }],
           actions: [{ label: "Calendar", open: "calendar" }, { label: "Media", open: "media" }, { label: "Quick actions", open: "quickactions" }] }]
