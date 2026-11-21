@@ -4,9 +4,41 @@
 #   fluidity-wellbeing tick           record the focused app now (skipped while the screen is locked)
 #   fluidity-wellbeing today [DATE]   {"total": min, "apps": [{app, minutes}], "hours": [24], "streak": min}
 #   fluidity-wellbeing nudge          notify when the last 50 minutes had no break (once per 50)
+#   fluidity-wellbeing stats day|week|month|year [DATE]
+#                                     {"start", "end", "total", "prev", "days", "avg", "apps", "bars"} for the period holding DATE
+#   fluidity-wellbeing app            open the Screen Time window, or focus it
 set -uo pipefail
 dir=${FLUIDITY_STATE:-${XDG_STATE_HOME:-$HOME/.local/state}/fluidity}/wellbeing
 BREAK_AFTER=${FLUIDITY_BREAK_AFTER:-50}
+# the day files from $1 to $2 (inclusive, YYYY-MM-DD), and the minutes in them
+files_in() { local f n; for f in "$dir"/*.tsv; do [[ -e $f ]] || continue; n=${f##*/}; n=${n%.tsv}
+  [[ $n < $1 || $n > $2 ]] || echo "$f"; done; }
+minutes_in() { local f n=0; while read -r f; do n=$((n + $(wc -l <"$f"))); done < <(files_in "$1" "$2"); echo "$n"; }
+stats() {
+  local period=$1 day from to pfrom pto nb fmt u fs
+  day=$(date -d "${2:-today}" +%F 2>/dev/null) || { echo "bad date: $2" >&2; return 2; }
+  case $period in
+    day) from=$day to=$day pfrom=$(date -d "$day -1 day" +%F) pto=$pfrom nb=24 fmt=%H ;;
+    week) u=$(date -d "$day" +%u); from=$(date -d "$day -$((u - 1)) days" +%F); to=$(date -d "$from +6 days" +%F)
+      pfrom=$(date -d "$from -7 days" +%F); pto=$(date -d "$from -1 day" +%F); nb=7 fmt=%u ;;
+    month) from=${day:0:8}01; to=$(date -d "$from +1 month -1 day" +%F)
+      pfrom=$(date -d "$from -1 month" +%F); pto=$(date -d "$from -1 day" +%F); nb=$((10#${to:8:2})) fmt=%d ;;
+    year) from=${day:0:4}-01-01 to=${day:0:4}-12-31 pfrom=$((${day:0:4} - 1))-01-01 pto=$((${day:0:4} - 1))-12-31 nb=12 fmt=%m ;;
+    *) echo "period is day, week, month or year" >&2; return 2 ;;
+  esac
+  mapfile -t fs < <(files_in "$from" "$to")
+  # one line per sample: bar index, tidied app name, its day
+  { (( ${#fs[@]} )) && gawk -F'\t' -v fmt="$fmt" -v off="$([[ $fmt == %H ]] && echo 0 || echo 1)" '
+      NF >= 2 { a = tolower($2); sub(/^.*\./, "", a); sub(/-(bin|browser|desktop)$/, "", a)
+                printf "%d\t%s\t%s\n", strftime(fmt, $1) - off, a, strftime("%F", $1) }' "${fs[@]}"; } |
+    jq -Rsc --arg p "$period" --arg from "$from" --arg to "$to" --argjson nb "$nb" --argjson prev "$(minutes_in "$pfrom" "$pto")" '
+      split("\n") | map(select(length > 0) | split("\t") | {b: (.[0] | tonumber), app: .[1], d: .[2]}) as $s
+      | ($s | map(.d) | unique | length) as $days
+      | {period: $p, start: $from, end: $to, total: ($s | length), prev: $prev, days: $days,
+         avg: (if $days > 0 then (($s | length) / $days | round) else 0 end),
+         apps: ($s | group_by(.app) | map({app: .[0].app, minutes: length}) | sort_by(-.minutes)),
+         bars: (reduce $s[] as $x ([range($nb) | 0]; if $x.b >= 0 and $x.b < $nb then .[$x.b] += 1 else . end))}'
+}
 tidy() { sed -E 's/^.*\.//; s/-(bin|browser|desktop)$//' <<<"${1,,}"; }
 case ${1:-} in
   tick)
@@ -32,7 +64,16 @@ case ${1:-} in
       mkdir -p "$dir"; echo "$now" >"$dir/nudged"
       notify-send -a Fluidity -i dialog-information "Time for a break" "${streak} minutes straight. Stand up, look far away for a bit."
     fi ;;
+  stats) shift; stats "$@" ;;
+  app)
+    # -n: a second press never opens a second window; focus the one that's there
+    if pgrep -f "qs -n -c screentime" >/dev/null 2>&1; then
+      addr=$(hyprctl clients -j 2>/dev/null | jq -r '.[] | select(.title == "Screen Time") | .address' 2>/dev/null | head -n1)
+      [[ -n $addr ]] && hyprctl dispatch "hl.dsp.focus({ window = \"address:$addr\" })" >/dev/null
+    else
+      setsid -f qs -n -c screentime >/dev/null 2>&1
+    fi ;;
   watch)
     while :; do "$0" tick; "$0" nudge; sleep 60; done ;;
-  *) sed -n '3,6s/^# \?//p' "$0" >&2; exit 1 ;;
+  *) sed -n '3,9s/^# \?//p' "$0" >&2; exit 1 ;;
 esac
